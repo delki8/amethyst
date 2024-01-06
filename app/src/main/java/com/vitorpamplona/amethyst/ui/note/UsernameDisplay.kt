@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,7 +25,6 @@ import com.vitorpamplona.amethyst.model.User
 import com.vitorpamplona.amethyst.service.tts.TextToSpeechHelper
 import com.vitorpamplona.amethyst.ui.components.CreateTextWithEmoji
 import com.vitorpamplona.amethyst.ui.theme.StdButtonSizeModifier
-import com.vitorpamplona.amethyst.ui.theme.StdHorzSpacer
 import com.vitorpamplona.amethyst.ui.theme.placeholderText
 import com.vitorpamplona.quartz.events.ImmutableListOfLists
 
@@ -113,10 +111,10 @@ private fun UserDisplay(
             modifier = modifier,
             color = textColor
         )
-        if (showPlayButton) {
-            Spacer(StdHorzSpacer)
-            DrawPlayName(bestDisplayName)
-        }
+//        if (showPlayButton) {
+//            Spacer(StdHorzSpacer)
+//            DrawPlayName(bestDisplayName)
+//        }
     }
 }
 
@@ -148,10 +146,10 @@ private fun UserAndUsernameDisplay(
             overflow = TextOverflow.Ellipsis,
 
         )*/
-        if (showPlayButton) {
-            Spacer(StdHorzSpacer)
-            DrawPlayName(bestDisplayName)
-        }
+//        if (showPlayButton) {
+//            Spacer(StdHorzSpacer)
+//            DrawPlayName(bestDisplayName)
+//        }
     }
 }
 

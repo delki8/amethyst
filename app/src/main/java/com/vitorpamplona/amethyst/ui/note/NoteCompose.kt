@@ -152,7 +152,6 @@ import com.vitorpamplona.amethyst.ui.theme.StdPadding
 import com.vitorpamplona.amethyst.ui.theme.StdVertSpacer
 import com.vitorpamplona.amethyst.ui.theme.UserNameMaxRowHeight
 import com.vitorpamplona.amethyst.ui.theme.UserNameRowHeight
-import com.vitorpamplona.amethyst.ui.theme.WidthAuthorPictureModifier
 import com.vitorpamplona.amethyst.ui.theme.boostedNoteModifier
 import com.vitorpamplona.amethyst.ui.theme.channelNotePictureModifier
 import com.vitorpamplona.amethyst.ui.theme.grayText
@@ -956,12 +955,12 @@ fun InnerNoteWithReactions(
             boostedNoteModifier
         }
     ) {
-        if (notBoostedNorQuote) {
-            Column(WidthAuthorPictureModifier) {
-                AuthorAndRelayInformation(baseNote, accountViewModel, nav)
-            }
-            Spacer(modifier = DoubleHorzSpacer)
-        }
+//        if (notBoostedNorQuote) {
+//            Column(WidthAuthorPictureModifier) {
+//                AuthorAndRelayInformation(baseNote, accountViewModel, nav)
+//            }
+//            Spacer(modifier = DoubleHorzSpacer)
+//        }
 
         Column(Modifier.fillMaxWidth()) {
             val showSecondRow = baseNote.event !is RepostEvent && baseNote.event !is GenericRepostEvent && !isBoostedNote && !isQuotedNote
@@ -1023,13 +1022,13 @@ private fun NoteBody(
         nav = nav
     )
 
-    if (showSecondRow) {
-        SecondUserInfoRow(
-            baseNote,
-            accountViewModel,
-            nav
-        )
-    }
+//    if (showSecondRow) {
+//        SecondUserInfoRow(
+//            baseNote,
+//            accountViewModel,
+//            nav
+//        )
+//    }
 
     if (baseNote.event !is RepostEvent && baseNote.event !is GenericRepostEvent) {
         Spacer(modifier = Modifier.height(3.dp))
@@ -2580,13 +2579,11 @@ fun FirstUserInfoRow(
 
         val textColor = if (isRepost) MaterialTheme.colorScheme.grayText else Color.Unspecified
 
-        if (showAuthorPicture) {
-            NoteAuthorPicture(baseNote, nav, accountViewModel, Size25dp)
-            Spacer(HalfPadding)
-            NoteUsernameDisplay(baseNote, remember { Modifier.weight(1f) }, textColor = textColor)
-        } else {
-            NoteUsernameDisplay(baseNote, remember { Modifier.weight(1f) }, textColor = textColor)
-        }
+//        if (showAuthorPicture) {
+        NoteAuthorPicture(baseNote, nav, accountViewModel, Size25dp)
+        Spacer(HalfPadding)
+//        }
+        NoteUsernameDisplay(baseNote, remember { Modifier.weight(1f) }, textColor = textColor)
 
         if (isRepost) {
             BoostedMark()

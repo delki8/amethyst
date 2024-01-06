@@ -111,11 +111,11 @@
     <string name="copy_channel_id_note_to_the_clipboard">Copy Channel ID (Note) to the Clipboard</string>
     <string name="edits_the_channel_metadata">Edits the Channel Metadata</string>
     <string name="join">Join</string>
-    <string name="known">Known</string>
-    <string name="new_requests">New Requests</string>
+    <string name="known">known</string>
+    <string name="new_requests">new requests</string>
     <string name="blocked_users">Blocked Users</string>
-    <string name="new_threads">New Threads</string>
-    <string name="conversations">Conversations</string>
+    <string name="new_threads">new threads</string>
+    <string name="conversations">conversations</string>
     <string name="notes">Notes</string>
     <string name="replies">Replies</string>
     <string name="follows">"Follows"</string>
@@ -152,8 +152,8 @@
     <string name="loading_account">Loading account</string>
     <string name="error_loading_replies">"Error loading replies: "</string>
     <string name="try_again">Try again</string>
-    <string name="feed_is_empty">Feed is empty.</string>
-    <string name="refresh">Refresh</string>
+    <string name="feed_is_empty">feed is empty</string>
+    <string name="refresh">refresh</string>
     <string name="created">created</string>
     <string name="with_description_of">with description of</string>
     <string name="and_picture">and picture</string>
@@ -353,9 +353,9 @@
     <string name="no">No</string>
 
 
-    <string name="follow_list_selection">Follow List</string>
-    <string name="follow_list_kind3follows">All Follows</string>
-    <string name="follow_list_global">Global</string>
+    <string name="follow_list_selection">follow list</string>
+    <string name="follow_list_kind3follows">🚶‍♂️ follows</string>
+    <string name="follow_list_global">🌎 global</string>
     <string name="follow_list_mute_list">Mute List</string>
     <string name="connect_through_your_orbot_setup_markdown">
         ## Connect through Tor with Orbot
@@ -393,7 +393,7 @@
     <string name="channel_list_create_channel">Create</string>
     <string name="channel_list_join_channel">Join</string>
 
-    <string name="today">Today</string>
+    <string name="today">today</string>
 
     <string name="content_warning">Content warning</string>
     <string name="content_warning_explanation">This post contains sensitive content which some people may find offensive or disturbing</string>

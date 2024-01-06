@@ -44,8 +44,8 @@ import kotlinx.collections.immutable.persistentListOf
 val bottomNavigationItems = persistentListOf(
     Route.Home,
     Route.Message,
-    Route.Video,
-    Route.Discover,
+//    Route.Video,
+//    Route.Discover,
     Route.Notification
 )
 

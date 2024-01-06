@@ -8,12 +8,12 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 var locale = Locale.getDefault()
-var yearFormatter = SimpleDateFormat(" • MMM dd, yyyy", locale)
-var monthFormatter = SimpleDateFormat(" • MMM dd", locale)
+var yearFormatter = SimpleDateFormat("MMM dd, yyyy", locale)
+var monthFormatter = SimpleDateFormat("MMM dd", locale)
 
 fun timeAgo(time: Long?, context: Context): String {
     if (time == null) return " "
-    if (time == 0L) return " • ${context.getString(R.string.never)}"
+    if (time == 0L) return "${context.getString(R.string.never)}"
 
     val timeDifference = TimeUtils.now() - time
 
@@ -22,8 +22,8 @@ fun timeAgo(time: Long?, context: Context): String {
 
         if (locale != Locale.getDefault()) {
             locale = Locale.getDefault()
-            yearFormatter = SimpleDateFormat(" • MMM dd, yyyy", locale)
-            monthFormatter = SimpleDateFormat(" • MMM dd", locale)
+            yearFormatter = SimpleDateFormat("MMM dd, yyyy", locale)
+            monthFormatter = SimpleDateFormat("MMM dd", locale)
         }
 
         yearFormatter.format(time * 1000)
@@ -31,20 +31,20 @@ fun timeAgo(time: Long?, context: Context): String {
         // Dec 12
         if (locale != Locale.getDefault()) {
             locale = Locale.getDefault()
-            yearFormatter = SimpleDateFormat(" • MMM dd, yyyy", locale)
-            monthFormatter = SimpleDateFormat(" • MMM dd", locale)
+            yearFormatter = SimpleDateFormat("MMM dd, yyyy", locale)
+            monthFormatter = SimpleDateFormat("MMM dd", locale)
         }
 
         monthFormatter.format(time * 1000)
     } else if (timeDifference > TimeUtils.oneDay) {
         // 2 days
-        " • " + (timeDifference / TimeUtils.oneDay).toString() + context.getString(R.string.d)
+        "" + (timeDifference / TimeUtils.oneDay).toString() + context.getString(R.string.d)
     } else if (timeDifference > TimeUtils.oneHour) {
-        " • " + (timeDifference / TimeUtils.oneHour).toString() + context.getString(R.string.h)
+        "" + (timeDifference / TimeUtils.oneHour).toString() + context.getString(R.string.h)
     } else if (timeDifference > TimeUtils.oneMinute) {
-        " • " + (timeDifference / TimeUtils.oneMinute).toString() + context.getString(R.string.m)
+        "" + (timeDifference / TimeUtils.oneMinute).toString() + context.getString(R.string.m)
     } else {
-        " • " + context.getString(R.string.now)
+        "" + context.getString(R.string.now)
     }
 }
 
