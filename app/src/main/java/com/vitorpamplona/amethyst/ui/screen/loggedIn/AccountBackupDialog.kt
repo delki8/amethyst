@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn
 
 import android.app.Activity
@@ -52,39 +72,36 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun AccountBackupDialog(accountViewModel: AccountViewModel, onClose: () -> Unit) {
+fun AccountBackupDialog(
+    accountViewModel: AccountViewModel,
+    onClose: () -> Unit,
+) {
     Dialog(
         onDismissRequest = onClose,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Surface(modifier = Modifier.fillMaxSize()) {
             Column(
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.background)
-                    .fillMaxSize()
+                modifier = Modifier.background(MaterialTheme.colorScheme.background).fillMaxSize(),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp),
+                    modifier = Modifier.fillMaxWidth().padding(10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     CloseButton(onPress = onClose)
                 }
 
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 30.dp),
+                    modifier = Modifier.fillMaxSize().padding(horizontal = 30.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
+                    verticalArrangement = Arrangement.Center,
                 ) {
                     Material3RichText(
-                        style = RichTextStyle().resolveDefaults()
+                        style = RichTextStyle().resolveDefaults(),
                     ) {
                         Markdown(
-                            content = stringResource(R.string.account_backup_tips_md)
+                            content = stringResource(R.string.account_backup_tips_md),
                         )
                     }
 
@@ -98,15 +115,14 @@ fun AccountBackupDialog(accountViewModel: AccountViewModel, onClose: () -> Unit)
 }
 
 @Composable
-private fun NSecCopyButton(
-    accountViewModel: AccountViewModel
-) {
+private fun NSecCopyButton(accountViewModel: AccountViewModel) {
     val clipboardManager = LocalClipboardManager.current
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     val keyguardLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result: ActivityResult ->
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+                result: ActivityResult ->
             if (result.resultCode == Activity.RESULT_OK) {
                 copyNSec(context, scope, accountViewModel.account, clipboardManager)
             }
@@ -119,27 +135,28 @@ private fun NSecCopyButton(
                 title = context.getString(R.string.copy_my_secret_key),
                 context = context,
                 keyguardLauncher = keyguardLauncher,
-                onApproved = {
-                    copyNSec(context, scope, accountViewModel.account, clipboardManager)
-                },
-                onError = { title, message ->
-                    accountViewModel.toast(title, message)
-                }
+                onApproved = { copyNSec(context, scope, accountViewModel.account, clipboardManager) },
+                onError = { title, message -> accountViewModel.toast(title, message) },
             )
         },
         shape = ButtonBorder,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary
-        ),
-        contentPadding = ButtonPadding
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+            ),
+        contentPadding = ButtonPadding,
     ) {
         Icon(
             tint = MaterialTheme.colorScheme.onPrimary,
             imageVector = Icons.Default.Key,
-            contentDescription = stringResource(R.string.copies_the_nsec_id_your_password_to_the_clipboard_for_backup),
-            modifier = Modifier.padding(end = 5.dp)
+            contentDescription =
+                stringResource(R.string.copies_the_nsec_id_your_password_to_the_clipboard_for_backup),
+            modifier = Modifier.padding(end = 5.dp),
         )
-        Text(stringResource(id = R.string.copy_my_secret_key), color = MaterialTheme.colorScheme.onPrimary)
+        Text(
+            stringResource(id = R.string.copy_my_secret_key),
+            color = MaterialTheme.colorScheme.onPrimary,
+        )
     }
 }
 
@@ -158,7 +175,7 @@ private fun copyNSec(
     context: Context,
     scope: CoroutineScope,
     account: Account,
-    clipboardManager: ClipboardManager
+    clipboardManager: ClipboardManager,
 ) {
     account.keyPair.privKey?.let {
         clipboardManager.setText(AnnotatedString(it.toNsec()))
@@ -166,8 +183,9 @@ private fun copyNSec(
             Toast.makeText(
                 context,
                 context.getString(R.string.secret_key_copied_to_clipboard),
-                Toast.LENGTH_SHORT
-            ).show()
+                Toast.LENGTH_SHORT,
+            )
+                .show()
         }
     }
 }

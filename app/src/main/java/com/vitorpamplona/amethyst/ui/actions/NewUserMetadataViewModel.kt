@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.actions
 
 import android.content.Context
@@ -43,7 +63,8 @@ class NewUserMetadataViewModel : ViewModel() {
 
     var isUploadingImageForPicture by mutableStateOf(false)
     var isUploadingImageForBanner by mutableStateOf(false)
-    val imageUploadingError = MutableSharedFlow<String?>(0, 3, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    val imageUploadingError =
+        MutableSharedFlow<String?>(0, 3, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
     fun load(account: Account) {
         this.account = account
@@ -77,17 +98,17 @@ class NewUserMetadataViewModel : ViewModel() {
     fun create() {
         // Tries to not delete any existing attribute that we do not work with.
         val latest = account.userProfile().info?.latestMetadata
-        val currentJson = if (latest != null) {
-            ObjectMapper().readTree(
-                ByteArrayInputStream(latest.content.toByteArray(Charsets.UTF_8))
-            ) as ObjectNode
-        } else {
-            ObjectMapper().createObjectNode()
-        }
-        // currentJson.put("username", userName.value.trim())
+        val currentJson =
+            if (latest != null) {
+                ObjectMapper()
+                    .readTree(
+                        ByteArrayInputStream(latest.content.toByteArray(Charsets.UTF_8)),
+                    ) as ObjectNode
+            } else {
+                ObjectMapper().createObjectNode()
+            }
         currentJson.put("name", displayName.value.trim())
         currentJson.put("display_name", displayName.value.trim())
-        currentJson.put("displayName", displayName.value.trim())
         currentJson.put("picture", picture.value.trim())
         currentJson.put("banner", banner.value.trim())
         currentJson.put("website", website.value.trim())
@@ -114,11 +135,13 @@ class NewUserMetadataViewModel : ViewModel() {
         }
 
         // Updates while keeping other identities intact
-        val newClaims = listOfNotNull(
-            TwitterIdentity.parseProofUrl(twitter.value),
-            GitHubIdentity.parseProofUrl(github.value),
-            MastodonIdentity.parseProofUrl(mastodon.value)
-        ) + claims.filter { it !is TwitterIdentity && it !is GitHubIdentity && it !is MastodonIdentity }
+        val newClaims =
+            listOfNotNull(
+                TwitterIdentity.parseProofUrl(twitter.value),
+                GitHubIdentity.parseProofUrl(github.value),
+                MastodonIdentity.parseProofUrl(mastodon.value),
+            ) +
+                claims.filter { it !is TwitterIdentity && it !is GitHubIdentity && it !is MastodonIdentity }
 
         val writer = StringWriter()
         ObjectMapper().writeValue(writer, currentJson)
@@ -144,84 +167,88 @@ class NewUserMetadataViewModel : ViewModel() {
         mastodon.value = ""
     }
 
-    fun uploadForPicture(uri: Uri, context: Context) {
+    fun uploadForPicture(
+        uri: Uri,
+        context: Context,
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             upload(
                 uri,
                 context,
-                onUploading = {
-                    isUploadingImageForPicture = it
-                },
-                onUploaded = {
-                    picture.value = it
-                }
+                onUploading = { isUploadingImageForPicture = it },
+                onUploaded = { picture.value = it },
             )
         }
     }
 
-    fun uploadForBanner(uri: Uri, context: Context) {
+    fun uploadForBanner(
+        uri: Uri,
+        context: Context,
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             upload(
                 uri,
                 context,
-                onUploading = {
-                    isUploadingImageForBanner = it
-                },
-                onUploaded = {
-                    banner.value = it
-                }
+                onUploading = { isUploadingImageForBanner = it },
+                onUploaded = { banner.value = it },
             )
         }
     }
 
-    private suspend fun upload(galleryUri: Uri, context: Context, onUploading: (Boolean) -> Unit, onUploaded: (String) -> Unit) {
+    private suspend fun upload(
+        galleryUri: Uri,
+        context: Context,
+        onUploading: (Boolean) -> Unit,
+        onUploaded: (String) -> Unit,
+    ) {
         onUploading(true)
 
         val contentResolver = context.contentResolver
 
-        MediaCompressor().compress(
-            galleryUri,
-            contentResolver.getType(galleryUri),
-            context.applicationContext,
-            onReady = { fileUri, contentType, size ->
-                viewModelScope.launch(Dispatchers.IO) {
-                    try {
-                        val result = Nip96Uploader(account).uploadImage(
-                            uri = fileUri,
-                            contentType = contentType,
-                            size = size,
-                            alt = null,
-                            sensitiveContent = null,
-                            server = account.defaultFileServer,
-                            contentResolver = contentResolver,
-                            onProgress = { }
-                        )
+        MediaCompressor()
+            .compress(
+                galleryUri,
+                contentResolver.getType(galleryUri),
+                context.applicationContext,
+                onReady = { fileUri, contentType, size ->
+                    viewModelScope.launch(Dispatchers.IO) {
+                        try {
+                            val result =
+                                Nip96Uploader(account)
+                                    .uploadImage(
+                                        uri = fileUri,
+                                        contentType = contentType,
+                                        size = size,
+                                        alt = null,
+                                        sensitiveContent = null,
+                                        server = account.defaultFileServer,
+                                        contentResolver = contentResolver,
+                                        onProgress = {},
+                                    )
 
-                        val url = result.tags?.firstOrNull() { it.size > 1 && it[0] == "url" }?.get(1)
+                            val url = result.tags?.firstOrNull { it.size > 1 && it[0] == "url" }?.get(1)
 
-                        if (url != null) {
-                            onUploading(false)
-                            onUploaded(url)
-                        } else {
+                            if (url != null) {
+                                onUploading(false)
+                                onUploaded(url)
+                            } else {
+                                onUploading(false)
+                                viewModelScope.launch {
+                                    imageUploadingError.emit("Failed to upload the image / video")
+                                }
+                            }
+                        } catch (e: Exception) {
                             onUploading(false)
                             viewModelScope.launch {
                                 imageUploadingError.emit("Failed to upload the image / video")
                             }
                         }
-                    } catch (e: Exception) {
-                        onUploading(false)
-                        viewModelScope.launch {
-                            imageUploadingError.emit("Failed to upload the image / video")
-                        }
                     }
-                }
-            },
-            onError = {
-                onUploading(false)
-                viewModelScope.launch {
-                    imageUploadingError.emit(it)
-                }
-            }
-        )
+                },
+                onError = {
+                    onUploading(false)
+                    viewModelScope.launch { imageUploadingError.emit(it) }
+                },
+            )
     }
 }

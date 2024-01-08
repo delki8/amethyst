@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.components
 
 import android.content.res.Resources
@@ -34,8 +54,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.os.ConfigurationCompat
 import com.vitorpamplona.amethyst.R
 import com.vitorpamplona.amethyst.service.lang.LanguageTranslatorService
@@ -54,14 +76,14 @@ fun TranslatableRichTextViewer(
     tags: ImmutableListOfLists<String>,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    var translatedTextState by remember(content) {
-        mutableStateOf(TranslationConfig(content, null, null, false))
-    }
+    var translatedTextState by
+        remember(content) { mutableStateOf(TranslationConfig(content, null, null, false)) }
 
     TranslateAndWatchLanguageChanges(content, accountViewModel) { result ->
-        if (!translatedTextState.result.equals(result.result, true) ||
+        if (
+            !translatedTextState.result.equals(result.result, true) ||
             translatedTextState.sourceLang != result.sourceLang ||
             translatedTextState.targetLang != result.targetLang
         ) {
@@ -78,7 +100,7 @@ fun TranslatableRichTextViewer(
             tags,
             backgroundColor,
             accountViewModel,
-            nav
+            nav,
         )
     }
 }
@@ -92,15 +114,15 @@ private fun RenderText(
     tags: ImmutableListOfLists<String>,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    var showOriginal by remember(translatedTextState) { mutableStateOf(translatedTextState.showOriginal) }
+    var showOriginal by
+        remember(translatedTextState) { mutableStateOf(translatedTextState.showOriginal) }
 
-    val toBeViewed by remember(translatedTextState) {
-        derivedStateOf {
-            if (showOriginal) content else translatedTextState.result ?: content
+    val toBeViewed by
+        remember(translatedTextState) {
+            derivedStateOf { if (showOriginal) content else translatedTextState.result ?: content }
         }
-    }
 
     Column {
         ExpandableRichTextViewer(
@@ -110,17 +132,18 @@ private fun RenderText(
             tags,
             backgroundColor,
             accountViewModel,
-            nav
+            nav,
         )
 
-        if (translatedTextState.sourceLang != null &&
+        if (
+            translatedTextState.sourceLang != null &&
             translatedTextState.targetLang != null &&
             translatedTextState.sourceLang != translatedTextState.targetLang
         ) {
             TranslationMessage(
                 translatedTextState.sourceLang,
                 translatedTextState.targetLang,
-                accountViewModel
+                accountViewModel,
             ) {
                 showOriginal = it
             }
@@ -133,64 +156,64 @@ private fun TranslationMessage(
     source: String,
     target: String,
     accountViewModel: AccountViewModel,
-    onChangeWhatToShow: (Boolean) -> Unit
+    onChangeWhatToShow: (Boolean) -> Unit,
 ) {
     var langSettingsPopupExpanded by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(top = 5.dp)
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp, start= 32.dp),
     ) {
-        val clickableTextStyle =
-            SpanStyle(color = MaterialTheme.colorScheme.lessImportantLink)
+        val clickableTextStyle = SpanStyle(color = MaterialTheme.colorScheme.lessImportantLink)
 
-        val annotatedTranslationString = buildAnnotatedString {
-            withStyle(clickableTextStyle) {
-                pushStringAnnotation("langSettings", true.toString())
-                append(stringResource(R.string.translations_auto))
-            }
+        val annotatedTranslationString =
+            buildAnnotatedString {
+                withStyle(clickableTextStyle) {
+                    pushStringAnnotation("langSettings", true.toString())
+                    append(stringResource(R.string.translations_auto))
+                }
 
-            append("-${stringResource(R.string.translations_translated_from)} ")
+                append("-${stringResource(R.string.translations_translated_from)} ")
 
-            withStyle(clickableTextStyle) {
-                pushStringAnnotation("showOriginal", true.toString())
-                append(Locale(source).displayName)
-            }
+                withStyle(clickableTextStyle) {
+                    pushStringAnnotation("showOriginal", true.toString())
+                    append(Locale(source).displayName)
+                }
 
-            append(" ${stringResource(R.string.translations_to)} ")
+                append(" ${stringResource(R.string.translations_to)} ")
 
-            withStyle(clickableTextStyle) {
-                pushStringAnnotation("showOriginal", false.toString())
-                append(Locale(target).displayName)
-            }
-        }
+                withStyle(clickableTextStyle) {
+                    pushStringAnnotation("showOriginal", false.toString())
+                    append(Locale(target).displayName)
+                }
+            }.toLowerCase()
 
         ClickableText(
             text = annotatedTranslationString,
-            style = LocalTextStyle.current.copy(
-                color = MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = 0.32f
-                )
+            style =
+                LocalTextStyle.current.copy(
+                    color =
+                        MaterialTheme.colorScheme.onSurface.copy(
+                            alpha = 0.32f,
+                        ),
+                fontSize = 10.sp
             ),
             overflow = TextOverflow.Visible,
-            maxLines = 3
+            maxLines = 3,
         ) { spanOffset ->
-            annotatedTranslationString.getStringAnnotations(spanOffset, spanOffset)
-                .firstOrNull()
-                ?.also { span ->
-                    if (span.tag == "showOriginal") {
-                        onChangeWhatToShow(span.item.toBoolean())
-                    } else {
-                        langSettingsPopupExpanded = !langSettingsPopupExpanded
-                    }
+            annotatedTranslationString.getStringAnnotations(spanOffset, spanOffset).firstOrNull()?.also {
+                    span ->
+                if (span.tag == "showOriginal") {
+                    onChangeWhatToShow(span.item.toBoolean())
+                } else {
+                    langSettingsPopupExpanded = !langSettingsPopupExpanded
                 }
+            }
         }
 
         DropdownMenu(
             expanded = langSettingsPopupExpanded,
-            onDismissRequest = { langSettingsPopupExpanded = false }
+            onDismissRequest = { langSettingsPopupExpanded = false },
         ) {
             DropdownMenuItem(
                 text = {
@@ -198,7 +221,7 @@ private fun TranslationMessage(
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
                         )
                     } else {
                         Spacer(modifier = Modifier.size(24.dp))
@@ -209,8 +232,8 @@ private fun TranslationMessage(
                     Text(
                         stringResource(
                             R.string.translations_never_translate_from_lang,
-                            Locale(source).displayName
-                        )
+                            Locale(source).displayName,
+                        ),
                     )
                 },
                 onClick = {
@@ -218,7 +241,7 @@ private fun TranslationMessage(
                         accountViewModel.dontTranslateFrom(source)
                         langSettingsPopupExpanded = false
                     }
-                }
+                },
             )
             Divider()
             DropdownMenuItem(
@@ -227,7 +250,7 @@ private fun TranslationMessage(
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
                         )
                     } else {
                         Spacer(modifier = Modifier.size(24.dp))
@@ -238,8 +261,8 @@ private fun TranslationMessage(
                     Text(
                         stringResource(
                             R.string.translations_show_in_lang_first,
-                            Locale(source).displayName
-                        )
+                            Locale(source).displayName,
+                        ),
                     )
                 },
                 onClick = {
@@ -247,7 +270,7 @@ private fun TranslationMessage(
                         accountViewModel.prefer(source, target, source)
                         langSettingsPopupExpanded = false
                     }
-                }
+                },
             )
             DropdownMenuItem(
                 text = {
@@ -255,7 +278,7 @@ private fun TranslationMessage(
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = null,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(24.dp),
                         )
                     } else {
                         Spacer(modifier = Modifier.size(24.dp))
@@ -266,8 +289,8 @@ private fun TranslationMessage(
                     Text(
                         stringResource(
                             R.string.translations_show_in_lang_first,
-                            Locale(target).displayName
-                        )
+                            Locale(target).displayName,
+                        ),
                     )
                 },
                 onClick = {
@@ -275,12 +298,11 @@ private fun TranslationMessage(
                         accountViewModel.prefer(source, target, target)
                         langSettingsPopupExpanded = false
                     }
-                }
+                },
             )
             Divider()
 
-            val languageList =
-                ConfigurationCompat.getLocales(Resources.getSystem().configuration)
+            val languageList = ConfigurationCompat.getLocales(Resources.getSystem().configuration)
             for (i in 0 until languageList.size()) {
                 languageList.get(i)?.let { lang ->
                     DropdownMenuItem(
@@ -289,7 +311,7 @@ private fun TranslationMessage(
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = null,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(24.dp),
                                 )
                             } else {
                                 Spacer(modifier = Modifier.size(24.dp))
@@ -300,8 +322,8 @@ private fun TranslationMessage(
                             Text(
                                 stringResource(
                                     R.string.translations_always_translate_to_lang,
-                                    lang.displayName
-                                )
+                                    lang.displayName,
+                                ),
                             )
                         },
                         onClick = {
@@ -309,7 +331,7 @@ private fun TranslationMessage(
                                 accountViewModel.translateTo(lang)
                                 langSettingsPopupExpanded = false
                             }
-                        }
+                        },
                     )
                 }
             }
@@ -318,31 +340,42 @@ private fun TranslationMessage(
 }
 
 @Composable
-fun TranslateAndWatchLanguageChanges(content: String, accountViewModel: AccountViewModel, onTranslated: (TranslationConfig) -> Unit) {
+fun TranslateAndWatchLanguageChanges(
+    content: String,
+    accountViewModel: AccountViewModel,
+    onTranslated: (TranslationConfig) -> Unit,
+) {
     val accountState by accountViewModel.accountLanguagesLiveData.observeAsState()
 
     LaunchedEffect(accountState) {
-        // This takes some time. Launches as a Composition scope to make sure this gets cancel if this item gets out of view.
+        // This takes some time. Launches as a Composition scope to make sure this gets cancel if this
+        // item gets out of view.
         launch(Dispatchers.IO) {
             LanguageTranslatorService.autoTranslate(
                 content,
                 accountViewModel.account.dontTranslateFrom,
-                accountViewModel.account.translateTo
-            ).addOnCompleteListener { task ->
-                if (task.isSuccessful && !content.equals(task.result.result, true)) {
-                    if (task.result.sourceLang != null && task.result.targetLang != null) {
-                        val preference = accountViewModel.account.preferenceBetween(task.result.sourceLang!!, task.result.targetLang!!)
-                        val newConfig = TranslationConfig(
-                            result = task.result.result,
-                            sourceLang = task.result.sourceLang,
-                            targetLang = task.result.targetLang,
-                            showOriginal = preference == task.result.sourceLang
-                        )
+                accountViewModel.account.translateTo,
+            )
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful && !content.equals(task.result.result, true)) {
+                        if (task.result.sourceLang != null && task.result.targetLang != null) {
+                            val preference =
+                                accountViewModel.account.preferenceBetween(
+                                    task.result.sourceLang!!,
+                                    task.result.targetLang!!,
+                                )
+                            val newConfig =
+                                TranslationConfig(
+                                    result = task.result.result,
+                                    sourceLang = task.result.sourceLang,
+                                    targetLang = task.result.targetLang,
+                                    showOriginal = preference == task.result.sourceLang,
+                                )
 
-                        onTranslated(newConfig)
+                            onTranslated(newConfig)
+                        }
                     }
                 }
-            }
         }
     }
 }

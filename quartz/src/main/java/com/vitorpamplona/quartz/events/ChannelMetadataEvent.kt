@@ -1,13 +1,30 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.quartz.events
 
 import android.util.Log
 import androidx.compose.runtime.Immutable
-import com.vitorpamplona.quartz.utils.TimeUtils
-import com.vitorpamplona.quartz.encoders.toHexKey
-import com.vitorpamplona.quartz.crypto.CryptoUtils
-import com.vitorpamplona.quartz.crypto.KeyPair
 import com.vitorpamplona.quartz.encoders.HexKey
 import com.vitorpamplona.quartz.signers.NostrSigner
+import com.vitorpamplona.quartz.utils.TimeUtils
 
 @Immutable
 class ChannelMetadataEvent(
@@ -16,10 +33,10 @@ class ChannelMetadataEvent(
     createdAt: Long,
     tags: Array<Array<String>>,
     content: String,
-    sig: HexKey
-) : Event(id, pubKey, createdAt, kind, tags, content, sig), IsInPublicChatChannel {
-
+    sig: HexKey,
+) : Event(id, pubKey, createdAt, KIND, tags, content, sig), IsInPublicChatChannel {
     override fun channel() = tags.firstOrNull { it.size > 1 && it[0] == "e" }?.get(1)
+
     fun channelInfo() =
         try {
             mapper.readValue(content, ChannelCreateEvent.ChannelData::class.java)
@@ -29,8 +46,8 @@ class ChannelMetadataEvent(
         }
 
     companion object {
-        const val kind = 41
-        const val alt = "This is a public chat definition update"
+        const val KIND = 41
+        const val ALT = "This is a public chat definition update"
 
         fun create(
             name: String?,
@@ -39,16 +56,18 @@ class ChannelMetadataEvent(
             originalChannelIdHex: String,
             signer: NostrSigner,
             createdAt: Long = TimeUtils.now(),
-            onReady: (ChannelMetadataEvent) -> Unit
+            onReady: (ChannelMetadataEvent) -> Unit,
         ) {
             create(
                 ChannelCreateEvent.ChannelData(
-                    name, about, picture
+                    name,
+                    about,
+                    picture,
                 ),
                 originalChannelIdHex,
                 signer,
                 createdAt,
-                onReady
+                onReady,
             )
         }
 
@@ -57,7 +76,7 @@ class ChannelMetadataEvent(
             originalChannelIdHex: String,
             signer: NostrSigner,
             createdAt: Long = TimeUtils.now(),
-            onReady: (ChannelMetadataEvent) -> Unit
+            onReady: (ChannelMetadataEvent) -> Unit,
         ) {
             val content =
                 if (newChannelInfo != null) {
@@ -66,11 +85,12 @@ class ChannelMetadataEvent(
                     ""
                 }
 
-            val tags = listOf(
-                arrayOf("e", originalChannelIdHex, "", "root"),
-                arrayOf("alt", "Public chat update to ${newChannelInfo?.name}")
-            )
-            signer.sign(createdAt, kind, tags.toTypedArray(), content, onReady)
+            val tags =
+                listOf(
+                    arrayOf("e", originalChannelIdHex, "", "root"),
+                    arrayOf("alt", "Public chat update to ${newChannelInfo?.name}"),
+                )
+            signer.sign(createdAt, KIND, tags.toTypedArray(), content, onReady)
         }
     }
 }

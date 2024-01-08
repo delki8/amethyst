@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.model
 
 import androidx.compose.runtime.Stable
@@ -21,10 +41,11 @@ class RelayInformation(
     val tags: List<String>?,
     val posting_policy: String?,
     val payments_url: String?,
-    val fees: RelayInformationFees?
+    val fees: RelayInformationFees?,
 ) {
     companion object {
-        val mapper = jacksonObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        val mapper =
+            jacksonObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
         fun fromJson(json: String): RelayInformation = mapper.readValue(json, RelayInformation::class.java)
     }
@@ -35,14 +56,14 @@ class RelayInformationFee(
     val amount: Int?,
     val unit: String?,
     val period: Int?,
-    val kinds: List<Int>?
+    val kinds: List<Int>?,
 )
 
 class RelayInformationFees(
     val admission: List<RelayInformationFee>?,
     val subscription: List<RelayInformationFee>?,
     val publication: List<RelayInformationFee>?,
-    val retention: List<RelayInformationFee>?
+    val retention: List<RelayInformationFee>?,
 )
 
 class RelayInformationLimitation(
@@ -56,5 +77,5 @@ class RelayInformationLimitation(
     val max_content_length: Int?,
     val min_pow_difficulty: Int?,
     val auth_required: Boolean?,
-    val payment_required: Boolean?
+    val payment_required: Boolean?,
 )

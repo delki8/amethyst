@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.screen
 
 import android.util.Log
@@ -25,23 +45,28 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class NostrUserProfileFollowsUserFeedViewModel(val user: User, val account: Account) : UserFeedViewModel(UserProfileFollowsFeedFilter(user, account)) {
+class NostrUserProfileFollowsUserFeedViewModel(val user: User, val account: Account) :
+    UserFeedViewModel(UserProfileFollowsFeedFilter(user, account)) {
     class Factory(val user: User, val account: Account) : ViewModelProvider.Factory {
         override fun <NostrUserProfileFollowsUserFeedViewModel : ViewModel> create(modelClass: Class<NostrUserProfileFollowsUserFeedViewModel>): NostrUserProfileFollowsUserFeedViewModel {
-            return NostrUserProfileFollowsUserFeedViewModel(user, account) as NostrUserProfileFollowsUserFeedViewModel
+            return NostrUserProfileFollowsUserFeedViewModel(user, account)
+                as NostrUserProfileFollowsUserFeedViewModel
         }
     }
 }
 
-class NostrUserProfileFollowersUserFeedViewModel(val user: User, val account: Account) : UserFeedViewModel(UserProfileFollowersFeedFilter(user, account)) {
+class NostrUserProfileFollowersUserFeedViewModel(val user: User, val account: Account) :
+    UserFeedViewModel(UserProfileFollowersFeedFilter(user, account)) {
     class Factory(val user: User, val account: Account) : ViewModelProvider.Factory {
         override fun <NostrUserProfileFollowersUserFeedViewModel : ViewModel> create(modelClass: Class<NostrUserProfileFollowersUserFeedViewModel>): NostrUserProfileFollowersUserFeedViewModel {
-            return NostrUserProfileFollowersUserFeedViewModel(user, account) as NostrUserProfileFollowersUserFeedViewModel
+            return NostrUserProfileFollowersUserFeedViewModel(user, account)
+                as NostrUserProfileFollowersUserFeedViewModel
         }
     }
 }
 
-class NostrHiddenAccountsFeedViewModel(val account: Account) : UserFeedViewModel(HiddenAccountsFeedFilter(account)) {
+class NostrHiddenAccountsFeedViewModel(val account: Account) :
+    UserFeedViewModel(HiddenAccountsFeedFilter(account)) {
     class Factory(val account: Account) : ViewModelProvider.Factory {
         override fun <NostrHiddenAccountsFeedViewModel : ViewModel> create(modelClass: Class<NostrHiddenAccountsFeedViewModel>): NostrHiddenAccountsFeedViewModel {
             return NostrHiddenAccountsFeedViewModel(account) as NostrHiddenAccountsFeedViewModel
@@ -49,7 +74,8 @@ class NostrHiddenAccountsFeedViewModel(val account: Account) : UserFeedViewModel
     }
 }
 
-class NostrSpammerAccountsFeedViewModel(val account: Account) : UserFeedViewModel(SpammerAccountsFeedFilter(account)) {
+class NostrSpammerAccountsFeedViewModel(val account: Account) :
+    UserFeedViewModel(SpammerAccountsFeedFilter(account)) {
     class Factory(val account: Account) : ViewModelProvider.Factory {
         override fun <NostrSpammerAccountsFeedViewModel : ViewModel> create(modelClass: Class<NostrSpammerAccountsFeedViewModel>): NostrSpammerAccountsFeedViewModel {
             return NostrSpammerAccountsFeedViewModel(account) as NostrSpammerAccountsFeedViewModel
@@ -58,14 +84,13 @@ class NostrSpammerAccountsFeedViewModel(val account: Account) : UserFeedViewMode
 }
 
 @Stable
-open class UserFeedViewModel(val dataSource: FeedFilter<User>) : ViewModel(), InvalidatableViewModel {
+open class UserFeedViewModel(val dataSource: FeedFilter<User>) :
+    ViewModel(), InvalidatableViewModel {
     private val _feedContent = MutableStateFlow<UserFeedState>(UserFeedState.Loading)
     val feedContent = _feedContent.asStateFlow()
 
     private fun refresh() {
-        viewModelScope.launch(Dispatchers.Default) {
-            refreshSuspended()
-        }
+        viewModelScope.launch(Dispatchers.Default) { refreshSuspended() }
     }
 
     private fun refreshSuspended() {
@@ -114,15 +139,16 @@ open class UserFeedViewModel(val dataSource: FeedFilter<User>) : ViewModel(), In
 
     init {
         Log.d("Init", "${this.javaClass.simpleName}")
-        collectorJob = viewModelScope.launch(Dispatchers.IO) {
-            checkNotInMainThread()
-
-            LocalCache.live.newEventBundles.collect { newNotes ->
+        collectorJob =
+            viewModelScope.launch(Dispatchers.IO) {
                 checkNotInMainThread()
 
-                invalidateData()
+                LocalCache.live.newEventBundles.collect { newNotes ->
+                    checkNotInMainThread()
+
+                    invalidateData()
+                }
             }
-        }
     }
 
     override fun onCleared() {

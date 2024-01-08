@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn
 
 import androidx.compose.animation.Crossfade
@@ -49,7 +69,7 @@ fun HomeScreen(
     repliesFeedViewModel: NostrHomeRepliesFeedViewModel,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    nip47: String? = null
+    nip47: String? = null,
 ) {
     ResolveNIP47(nip47, accountViewModel)
 
@@ -67,18 +87,30 @@ fun HomeScreen(
 private fun AssembleHomeTabs(
     homeFeedViewModel: NostrHomeFeedViewModel,
     repliesFeedViewModel: NostrHomeRepliesFeedViewModel,
-    inner: @Composable (PagerState, ImmutableList<TabItem>) -> Unit
+    inner: @Composable (PagerState, ImmutableList<TabItem>) -> Unit,
 ) {
     val pagerState = rememberForeverPagerState(key = PagerStateKeys.HOME_SCREEN) { 2 }
 
-    val tabs by remember(homeFeedViewModel, repliesFeedViewModel) {
-        mutableStateOf(
-            listOf(
-                TabItem(R.string.new_threads, homeFeedViewModel, Route.Home.base + "Follows", ScrollStateKeys.HOME_FOLLOWS),
-                TabItem(R.string.conversations, repliesFeedViewModel, Route.Home.base + "FollowsReplies", ScrollStateKeys.HOME_REPLIES)
-            ).toImmutableList()
-        )
-    }
+    val tabs by
+        remember(homeFeedViewModel, repliesFeedViewModel) {
+            mutableStateOf(
+                listOf(
+                    TabItem(
+                        R.string.new_threads,
+                        homeFeedViewModel,
+                        Route.Home.base + "Follows",
+                        ScrollStateKeys.HOME_FOLLOWS,
+                    ),
+                    TabItem(
+                        R.string.conversations,
+                        repliesFeedViewModel,
+                        Route.Home.base + "FollowsReplies",
+                        ScrollStateKeys.HOME_REPLIES,
+                    ),
+                )
+                    .toImmutableList(),
+            )
+        }
 
     inner(pagerState, tabs)
 }
@@ -89,17 +121,15 @@ private fun AssembleHomePage(
     pagerState: PagerState,
     tabs: ImmutableList<TabItem>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    Column(Modifier.fillMaxHeight()) {
-        HomePages(pagerState, tabs, accountViewModel, nav)
-    }
+    Column(Modifier.fillMaxHeight()) { HomePages(pagerState, tabs, accountViewModel, nav) }
 }
 
 @Composable
 fun ResolveNIP47(
     nip47: String?,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
     var wantsToAddNip47 by remember(nip47) { mutableStateOf(nip47) }
 
@@ -112,17 +142,16 @@ fun ResolveNIP47(
 private fun WatchLifeCycleChanges(accountViewModel: AccountViewModel) {
     val lifeCycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifeCycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                NostrHomeDataSource.account = accountViewModel.account
-                NostrHomeDataSource.invalidateFilters()
+        val observer =
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    NostrHomeDataSource.account = accountViewModel.account
+                    NostrHomeDataSource.invalidateFilters()
+                }
             }
-        }
 
         lifeCycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifeCycleOwner.lifecycle.removeObserver(observer)
-        }
+        onDispose { lifeCycleOwner.lifecycle.removeObserver(observer) }
     }
 }
 
@@ -132,25 +161,21 @@ private fun HomePages(
     pagerState: PagerState,
     tabs: ImmutableList<TabItem>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     TabRow(
         containerColor = MaterialTheme.colorScheme.background,
         contentColor = MaterialTheme.colorScheme.onBackground,
         modifier = TabRowHeight,
-        selectedTabIndex = pagerState.currentPage
+        selectedTabIndex = pagerState.currentPage,
     ) {
         val coroutineScope = rememberCoroutineScope()
 
         tabs.forEachIndexed { index, tab ->
             Tab(
                 selected = pagerState.currentPage == index,
-                text = {
-                    Text(text = stringResource(tab.resource))
-                },
-                onClick = {
-                    coroutineScope.launch { pagerState.animateScrollToPage(index) }
-                }
+                text = { Text(text = stringResource(tab.resource)) },
+                onClick = { coroutineScope.launch { pagerState.animateScrollToPage(index) } },
             )
         }
     }
@@ -161,16 +186,20 @@ private fun HomePages(
             routeForLastRead = tabs[page].routeForLastRead,
             scrollStateKey = tabs[page].scrollStateKey,
             accountViewModel = accountViewModel,
-            nav = nav
+            nav = nav,
         )
     }
 }
 
 @Composable
-fun CheckIfUrlIsOnline(url: String, accountViewModel: AccountViewModel, whenOnline: @Composable (Boolean) -> Unit) {
+fun CheckIfUrlIsOnline(
+    url: String,
+    accountViewModel: AccountViewModel,
+    whenOnline: @Composable (Boolean) -> Unit,
+) {
     var online by remember {
         mutableStateOf(
-            OnlineChecker.isOnlineCached(url)
+            OnlineChecker.isOnlineCached(url),
         )
     }
 
@@ -186,10 +215,14 @@ fun CheckIfUrlIsOnline(url: String, accountViewModel: AccountViewModel, whenOnli
 }
 
 @Composable
-fun CrossfadeCheckIfUrlIsOnline(url: String, accountViewModel: AccountViewModel, whenOnline: @Composable () -> Unit) {
+fun CrossfadeCheckIfUrlIsOnline(
+    url: String,
+    accountViewModel: AccountViewModel,
+    whenOnline: @Composable () -> Unit,
+) {
     var online by remember {
         mutableStateOf(
-            OnlineChecker.isOnlineCached(url)
+            OnlineChecker.isOnlineCached(url),
         )
     }
 
@@ -203,7 +236,7 @@ fun CrossfadeCheckIfUrlIsOnline(url: String, accountViewModel: AccountViewModel,
 
     Crossfade(
         targetState = online,
-        label = "CheckIfUrlIsOnline"
+        label = "CheckIfUrlIsOnline",
     ) {
         if (it) {
             whenOnline()
@@ -215,7 +248,7 @@ fun CrossfadeCheckIfUrlIsOnline(url: String, accountViewModel: AccountViewModel,
 fun WatchAccountForHomeScreen(
     homeFeedViewModel: NostrHomeFeedViewModel,
     repliesFeedViewModel: NostrHomeRepliesFeedViewModel,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
     val homeFollowList by accountViewModel.account.liveHomeFollowLists.collectAsStateWithLifecycle()
 
@@ -233,5 +266,5 @@ class TabItem(
     val viewModel: FeedViewModel,
     val routeForLastRead: String,
     val scrollStateKey: String,
-    val forceEventKind: Int? = null
+    val forceEventKind: Int? = null,
 )

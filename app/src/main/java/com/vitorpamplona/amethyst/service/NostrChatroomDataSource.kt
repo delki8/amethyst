@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.service
 
 import com.vitorpamplona.amethyst.model.Account
@@ -14,7 +34,10 @@ object NostrChatroomDataSource : NostrDataSource("ChatroomFeed") {
 
     private val latestEOSEs = EOSEAccount()
 
-    fun loadMessagesBetween(accountIn: Account, withRoom: ChatroomKey) {
+    fun loadMessagesBetween(
+        accountIn: Account,
+        withRoom: ChatroomKey,
+    ) {
         this.account = accountIn
         this.withRoom = withRoom
         resetFilters()
@@ -26,12 +49,17 @@ object NostrChatroomDataSource : NostrDataSource("ChatroomFeed") {
         return if (myPeer != null) {
             TypedFilter(
                 types = setOf(FeedType.PRIVATE_DMS),
-                filter = JsonFilter(
-                    kinds = listOf(PrivateDmEvent.kind),
-                    authors = myPeer.users.map { it },
-                    tags = mapOf("p" to listOf(account.userProfile().pubkeyHex)),
-                    since = latestEOSEs.users[account.userProfile()]?.followList?.get(withRoom.hashCode().toString())?.relayList
-                )
+                filter =
+                    JsonFilter(
+                        kinds = listOf(PrivateDmEvent.KIND),
+                        authors = myPeer.users.map { it },
+                        tags = mapOf("p" to listOf(account.userProfile().pubkeyHex)),
+                        since =
+                            latestEOSEs.users[account.userProfile()]
+                                ?.followList
+                                ?.get(withRoom.hashCode().toString())
+                                ?.relayList,
+                    ),
             )
         } else {
             null
@@ -44,12 +72,17 @@ object NostrChatroomDataSource : NostrDataSource("ChatroomFeed") {
         return if (myPeer != null) {
             TypedFilter(
                 types = setOf(FeedType.PRIVATE_DMS),
-                filter = JsonFilter(
-                    kinds = listOf(PrivateDmEvent.kind),
-                    authors = listOf(account.userProfile().pubkeyHex),
-                    tags = mapOf("p" to myPeer.users.map { it }),
-                    since = latestEOSEs.users[account.userProfile()]?.followList?.get(withRoom.hashCode().toString())?.relayList
-                )
+                filter =
+                    JsonFilter(
+                        kinds = listOf(PrivateDmEvent.KIND),
+                        authors = listOf(account.userProfile().pubkeyHex),
+                        tags = mapOf("p" to myPeer.users.map { it }),
+                        since =
+                            latestEOSEs.users[account.userProfile()]
+                                ?.followList
+                                ?.get(withRoom.hashCode().toString())
+                                ?.relayList,
+                    ),
             )
         } else {
             null
@@ -60,14 +93,17 @@ object NostrChatroomDataSource : NostrDataSource("ChatroomFeed") {
         latestEOSEs.removeDataFor(account.userProfile())
     }
 
-    val inandoutChannel = requestNewChannel { time, relayUrl ->
-        latestEOSEs.addOrUpdate(account.userProfile(), withRoom.hashCode().toString(), relayUrl, time)
-    }
+    val inandoutChannel =
+        requestNewChannel { time, relayUrl ->
+            latestEOSEs.addOrUpdate(account.userProfile(), withRoom.hashCode().toString(), relayUrl, time)
+        }
 
     override fun updateChannelFilters() {
-        inandoutChannel.typedFilters = listOfNotNull(
-            createMessagesToMeFilter(),
-            createMessagesFromMeFilter()
-        ).ifEmpty { null }
+        inandoutChannel.typedFilters =
+            listOfNotNull(
+                createMessagesToMeFilter(),
+                createMessagesFromMeFilter(),
+            )
+                .ifEmpty { null }
     }
 }

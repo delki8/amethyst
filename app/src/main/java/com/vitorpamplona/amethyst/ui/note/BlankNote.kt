@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.note
 
 import androidx.compose.foundation.layout.Arrangement
@@ -27,31 +47,36 @@ import com.vitorpamplona.amethyst.ui.theme.Size35dp
 import kotlinx.collections.immutable.ImmutableSet
 
 @Composable
-fun BlankNote(modifier: Modifier = Modifier, showDivider: Boolean = false, idHex: String? = null) {
+fun BlankNote(
+    modifier: Modifier = Modifier,
+    showDivider: Boolean = false,
+    idHex: String? = null,
+) {
     Column(modifier = modifier) {
-        Row() {
-            Column() {
+        Row {
+            Column {
                 Row(
-                    modifier = Modifier.padding(
-                        start = 20.dp,
-                        end = 20.dp,
-                        bottom = 8.dp,
-                        top = 15.dp
-                    ),
+                    modifier =
+                        Modifier.padding(
+                            start = 20.dp,
+                            end = 20.dp,
+                            bottom = 8.dp,
+                            top = 15.dp,
+                        ),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
+                    horizontalArrangement = Arrangement.Center,
                 ) {
                     Text(
                         text = stringResource(R.string.post_not_found) + if (idHex != null) ": $idHex" else "",
                         modifier = Modifier.padding(30.dp),
-                        color = Color.Gray
+                        color = Color.Gray,
                     )
                 }
 
                 if (!showDivider) {
                     Divider(
                         modifier = Modifier.padding(vertical = 10.dp),
-                        thickness = DividerThickness
+                        thickness = DividerThickness,
                     )
                 }
             }
@@ -68,21 +93,21 @@ fun HiddenNote(
     modifier: Modifier = Modifier,
     isQuote: Boolean = false,
     nav: (String) -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Row(
             modifier = Modifier.padding(start = if (!isQuote) 30.dp else 25.dp, end = 20.dp),
             horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.padding(30.dp)
+                modifier = Modifier.padding(30.dp),
             ) {
                 Text(
                     text = stringResource(R.string.post_was_flagged_as_inappropriate_by),
-                    color = Color.Gray
+                    color = Color.Gray,
                 )
                 FlowRow(modifier = Modifier.padding(top = 10.dp)) {
                     if (isHiddenAuthor) {
@@ -90,7 +115,7 @@ fun HiddenNote(
                             user = accountViewModel.userProfile(),
                             size = Size35dp,
                             nav = nav,
-                            accountViewModel = accountViewModel
+                            accountViewModel = accountViewModel,
                         )
                     }
                     reports.forEach {
@@ -98,7 +123,7 @@ fun HiddenNote(
                             baseNote = it,
                             size = Size35dp,
                             nav = nav,
-                            accountViewModel = accountViewModel
+                            accountViewModel = accountViewModel,
                         )
                     }
                 }
@@ -107,11 +132,11 @@ fun HiddenNote(
                     modifier = Modifier.padding(top = 10.dp),
                     onClick = onClick,
                     shape = ButtonBorder,
-                    colors = ButtonDefaults
-                        .buttonColors(
-                            contentColor = MaterialTheme.colorScheme.primary
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            contentColor = MaterialTheme.colorScheme.primary,
                         ),
-                    contentPadding = ButtonPadding
+                    contentPadding = ButtonPadding,
                 ) {
                     Text(text = stringResource(R.string.show_anyway), color = Color.White)
                 }
@@ -119,7 +144,7 @@ fun HiddenNote(
         }
 
         Divider(
-            thickness = DividerThickness
+            thickness = DividerThickness,
         )
     }
 }

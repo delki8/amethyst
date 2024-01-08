@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.navigation
 
 import androidx.compose.foundation.clickable
@@ -67,7 +87,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AccountSwitchBottomSheet(
     accountViewModel: AccountViewModel,
-    accountStateViewModel: AccountStateViewModel
+    accountStateViewModel: AccountStateViewModel,
 ) {
     val accounts = LocalPreferences.allSavedAccounts()
 
@@ -76,23 +96,17 @@ fun AccountSwitchBottomSheet(
 
     Column(modifier = Modifier.verticalScroll(scrollState)) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Size10dp),
+            modifier = Modifier.fillMaxWidth().padding(Size10dp),
             horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(stringResource(R.string.account_switch_select_account), fontWeight = FontWeight.Bold)
         }
-        accounts.forEach { acc ->
-            DisplayAccount(acc, accountViewModel, accountStateViewModel)
-        }
+        accounts.forEach { acc -> DisplayAccount(acc, accountViewModel, accountStateViewModel) }
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = Size10dp, bottom = Size55dp),
+            modifier = Modifier.fillMaxWidth().padding(top = Size10dp, bottom = Size55dp),
             horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             TextButton(onClick = { popupExpanded = true }) {
                 Text(stringResource(R.string.account_switch_add_account_btn))
@@ -103,21 +117,22 @@ fun AccountSwitchBottomSheet(
     if (popupExpanded) {
         Dialog(
             onDismissRequest = { popupExpanded = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
+            properties = DialogProperties(usePlatformDefaultWidth = false),
         ) {
             Surface(modifier = Modifier.fillMaxSize()) {
                 Box {
                     LoginPage(accountStateViewModel, isFirstLogin = false)
                     TopAppBar(
-                        title = { Text(text = stringResource(R.string.account_switch_add_account_dialog_title)) },
-                        navigationIcon = {
-                            IconButton(onClick = { popupExpanded = false }) {
-                                ArrowBackIcon()
-                            }
+                        title = {
+                            Text(text = stringResource(R.string.account_switch_add_account_dialog_title))
                         },
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = MaterialTheme.colorScheme.surface
-                        )
+                        navigationIcon = {
+                            IconButton(onClick = { popupExpanded = false }) { ArrowBackIcon() }
+                        },
+                        colors =
+                            TopAppBarDefaults.topAppBarColors(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                            ),
                     )
                 }
             }
@@ -129,68 +144,63 @@ fun AccountSwitchBottomSheet(
 fun DisplayAccount(
     acc: AccountInfo,
     accountViewModel: AccountViewModel,
-    accountStateViewModel: AccountStateViewModel
+    accountStateViewModel: AccountStateViewModel,
 ) {
     var baseUser by remember {
         mutableStateOf<User?>(
             LocalCache.getUserIfExists(
                 decodePublicKey(
-                    acc.npub
-                ).toHexKey()
-            )
+                    acc.npub,
+                )
+                    .toHexKey(),
+            ),
         )
     }
 
     if (baseUser == null) {
         LaunchedEffect(key1 = acc.npub) {
             launch(Dispatchers.IO) {
-                baseUser = try {
-                    LocalCache.getOrCreateUser(
-                        decodePublicKey(acc.npub).toHexKey()
-                    )
-                } catch (e: Exception) {
-                    null
-                }
+                baseUser =
+                    try {
+                        LocalCache.getOrCreateUser(
+                            decodePublicKey(acc.npub).toHexKey(),
+                        )
+                    } catch (e: Exception) {
+                        null
+                    }
             }
         }
     }
 
     baseUser?.let {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable {
-                    accountStateViewModel.switchUser(acc)
-                }
-                .padding(16.dp, 16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier =
+                Modifier.fillMaxWidth()
+                    .clickable { accountStateViewModel.switchUser(acc) }
+                    .padding(16.dp, 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Row(
                 modifier = Modifier.weight(1f),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(
                     modifier = Modifier.weight(1f),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Box(
-                        modifier = Modifier
-                            .width(55.dp)
-                            .padding(0.dp)
+                        modifier = Modifier.width(55.dp).padding(0.dp),
                     ) {
-                        val automaticallyShowProfilePicture = remember {
-                            accountViewModel.settings.showProfilePictures.value
-                        }
+                        val automaticallyShowProfilePicture =
+                            remember {
+                                accountViewModel.settings.showProfilePictures.value
+                            }
 
                         AccountPicture(it, automaticallyShowProfilePicture)
                     }
                     Spacer(modifier = Modifier.width(16.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        AccountName(acc, it)
-                    }
-                    Column(modifier = Modifier.width(32.dp)) {
-                        ActiveMarker(acc, accountViewModel)
-                    }
+                    Column(modifier = Modifier.weight(1f)) { AccountName(acc, it) }
+                    Column(modifier = Modifier.width(32.dp)) { ActiveMarker(acc, accountViewModel) }
                 }
             }
 
@@ -200,24 +210,29 @@ fun DisplayAccount(
 }
 
 @Composable
-private fun ActiveMarker(acc: AccountInfo, accountViewModel: AccountViewModel) {
-    val isCurrentUser by remember(accountViewModel) {
-        derivedStateOf {
-            accountViewModel.account.userProfile().pubkeyNpub() == acc.npub
+private fun ActiveMarker(
+    acc: AccountInfo,
+    accountViewModel: AccountViewModel,
+) {
+    val isCurrentUser by
+        remember(accountViewModel) {
+            derivedStateOf { accountViewModel.account.userProfile().pubkeyNpub() == acc.npub }
         }
-    }
 
     if (isCurrentUser) {
         Icon(
             imageVector = Icons.Default.RadioButtonChecked,
             contentDescription = stringResource(R.string.account_switch_active_account),
-            tint = MaterialTheme.colorScheme.secondary
+            tint = MaterialTheme.colorScheme.secondary,
         )
     }
 }
 
 @Composable
-private fun AccountPicture(user: User, loadProfilePicture: Boolean) {
+private fun AccountPicture(
+    user: User,
+    loadProfilePicture: Boolean,
+) {
     val profilePicture by user.live().profilePictureChanges.observeAsState()
 
     RobohashFallbackAsyncImage(
@@ -225,83 +240,76 @@ private fun AccountPicture(user: User, loadProfilePicture: Boolean) {
         model = profilePicture,
         contentDescription = stringResource(R.string.profile_image),
         modifier = AccountPictureModifier,
-        loadProfilePicture = loadProfilePicture
+        loadProfilePicture = loadProfilePicture,
     )
 }
 
 @Composable
 private fun AccountName(
     acc: AccountInfo,
-    user: User
+    user: User,
 ) {
-    val displayName by user.live().metadata.map {
-        user.bestDisplayName()
-    }.observeAsState()
+    val displayName by user.live().metadata.map { user.bestDisplayName() }.observeAsState()
 
-    val tags by user.live().metadata.map {
-        user.info?.latestMetadata?.tags?.toImmutableListOfLists()
-    }.observeAsState()
+    val tags by
+        user
+            .live()
+            .metadata
+            .map { user.info?.latestMetadata?.tags?.toImmutableListOfLists() }
+            .observeAsState()
 
     displayName?.let {
         CreateTextWithEmoji(
             text = it,
             tags = tags,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
     }
 
     Text(
-        text = remember(user) { acc.npub.toShortenHex() }
+        text = remember(user) { acc.npub.toShortenHex() },
     )
 }
 
 @Composable
 private fun LogoutButton(
     acc: AccountInfo,
-    accountStateViewModel: AccountStateViewModel
+    accountStateViewModel: AccountStateViewModel,
 ) {
     var logoutDialog by remember { mutableStateOf(false) }
     if (logoutDialog) {
         AlertDialog(
-            title = {
-                Text(text = stringResource(R.string.log_out))
-            },
-            text = {
-                Text(text = stringResource(R.string.are_you_sure_you_want_to_log_out))
-            },
-            onDismissRequest = {
-                logoutDialog = false
-            },
+            title = { Text(text = stringResource(R.string.log_out)) },
+            text = { Text(text = stringResource(R.string.are_you_sure_you_want_to_log_out)) },
+            onDismissRequest = { logoutDialog = false },
             confirmButton = {
                 TextButton(
                     onClick = {
                         logoutDialog = false
                         accountStateViewModel.logOff(acc)
-                    }
+                    },
                 ) {
                     Text(text = stringResource(R.string.log_out))
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = {
-                        logoutDialog = false
-                    }
+                    onClick = { logoutDialog = false },
                 ) {
                     Text(text = stringResource(R.string.cancel))
                 }
-            }
+            },
         )
     }
 
     IconButton(
-        onClick = { logoutDialog = true }
+        onClick = { logoutDialog = true },
     ) {
         Icon(
             imageVector = Icons.Default.Logout,
             contentDescription = stringResource(R.string.log_out),
-            tint = MaterialTheme.colorScheme.onSurface
+            tint = MaterialTheme.colorScheme.onSurface,
         )
     }
 }

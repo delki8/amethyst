@@ -1,18 +1,33 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.benchmark
 
 import androidx.benchmark.junit4.BenchmarkRule
 import androidx.benchmark.junit4.measureRepeated
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.vitorpamplona.quartz.crypto.CryptoUtils
-import com.vitorpamplona.quartz.encoders.toHexKey
 import com.vitorpamplona.quartz.crypto.KeyPair
 import com.vitorpamplona.quartz.events.ChatMessageEvent
-import com.vitorpamplona.quartz.events.Event
 import com.vitorpamplona.quartz.events.GiftWrapEvent
-import com.vitorpamplona.quartz.events.Gossip
 import com.vitorpamplona.quartz.events.SealedGossipEvent
 import com.vitorpamplona.quartz.signers.NostrSignerInternal
-import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -23,14 +38,12 @@ import java.util.concurrent.TimeUnit
 /**
  * Benchmark, which will execute on an Android device.
  *
- * The body of [BenchmarkRule.measureRepeated] is measured in a loop, and Studio will
- * output the result. Modify your code to see how it affects performance.
+ * The body of [BenchmarkRule.measureRepeated] is measured in a loop, and Studio will output the
+ * result. Modify your code to see how it affects performance.
  */
 @RunWith(AndroidJUnit4::class)
 class GiftWrapSigningBenchmark {
-
-    @get:Rule
-    val benchmarkRule = BenchmarkRule()
+    @get:Rule val benchmarkRule = BenchmarkRule()
 
     @Test
     fun createMessageEvent() {
@@ -50,7 +63,7 @@ class GiftWrapSigningBenchmark {
                 markAsSensitive = true,
                 zapRaiserAmount = 10000,
                 geohash = null,
-                signer = sender
+                signer = sender,
             ) {
                 countDownLatch.countDown()
             }
@@ -78,7 +91,7 @@ class GiftWrapSigningBenchmark {
             markAsSensitive = true,
             zapRaiserAmount = 10000,
             geohash = null,
-            signer = sender
+            signer = sender,
         ) {
             msg = it
             countDownLatch.countDown()
@@ -91,7 +104,7 @@ class GiftWrapSigningBenchmark {
             SealedGossipEvent.create(
                 event = msg!!,
                 encryptTo = receiver.pubKey,
-                signer = sender
+                signer = sender,
             ) {
                 countDownLatch2.countDown()
             }
@@ -119,12 +132,12 @@ class GiftWrapSigningBenchmark {
             markAsSensitive = true,
             zapRaiserAmount = 10000,
             geohash = null,
-            signer = sender
+            signer = sender,
         ) {
             SealedGossipEvent.create(
                 event = it,
                 encryptTo = receiver.pubKey,
-                signer = sender
+                signer = sender,
             ) {
                 seal = it
                 countDownLatch.countDown()
@@ -137,7 +150,7 @@ class GiftWrapSigningBenchmark {
             val countDownLatch2 = CountDownLatch(1)
             GiftWrapEvent.create(
                 event = seal!!,
-                recipientPubKey = receiver.pubKey
+                recipientPubKey = receiver.pubKey,
             ) {
                 countDownLatch2.countDown()
             }
@@ -164,16 +177,16 @@ class GiftWrapSigningBenchmark {
             markAsSensitive = true,
             zapRaiserAmount = 10000,
             geohash = null,
-            signer = sender
+            signer = sender,
         ) {
             SealedGossipEvent.create(
                 event = it,
                 encryptTo = receiver.pubKey,
-                signer = sender
+                signer = sender,
             ) {
                 GiftWrapEvent.create(
                     event = it,
-                    recipientPubKey = receiver.pubKey
+                    recipientPubKey = receiver.pubKey,
                 ) {
                     wrap = it
                     countDownLatch.countDown()
@@ -183,8 +196,6 @@ class GiftWrapSigningBenchmark {
 
         assertTrue(countDownLatch.await(1, TimeUnit.SECONDS))
 
-        benchmarkRule.measureRepeated {
-            wrap!!.toJson()
-        }
+        benchmarkRule.measureRepeated { wrap!!.toJson() }
     }
 }

@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.service
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
@@ -23,7 +43,11 @@ class Nip05NostrAddressVerifier() {
         return null
     }
 
-    suspend fun fetchNip05Json(nip05: String, onSuccess: (String) -> Unit, onError: (String) -> Unit) = withContext(Dispatchers.IO) {
+    suspend fun fetchNip05Json(
+        nip05: String,
+        onSuccess: (String) -> Unit,
+        onError: (String) -> Unit,
+    ) = withContext(Dispatchers.IO) {
         checkNotInMainThread()
 
         val url = assembleUrl(nip05)
@@ -34,35 +58,54 @@ class Nip05NostrAddressVerifier() {
         }
 
         try {
-            val request = Request.Builder()
-                .header("User-Agent", "Amethyst/${BuildConfig.VERSION_NAME}")
-                .url(url)
-                .build()
+            val request =
+                Request.Builder()
+                    .header("User-Agent", "Amethyst/${BuildConfig.VERSION_NAME}")
+                    .url(url)
+                    .build()
 
-            HttpClient.getHttpClient().newCall(request).enqueue(object : Callback {
-                override fun onResponse(call: Call, response: Response) {
-                    checkNotInMainThread()
+            HttpClient.getHttpClient()
+                .newCall(request)
+                .enqueue(
+                    object : Callback {
+                        override fun onResponse(
+                            call: Call,
+                            response: Response,
+                        ) {
+                            checkNotInMainThread()
 
-                    response.use {
-                        if (it.isSuccessful) {
-                            onSuccess(it.body.string())
-                        } else {
-                            onError("Could not resolve $nip05. Error: ${it.code}. Check if the server is up and if the address $nip05 is correct")
+                            response.use {
+                                if (it.isSuccessful) {
+                                    onSuccess(it.body.string())
+                                } else {
+                                    onError(
+                                        "Could not resolve $nip05. Error: ${it.code}. Check if the server is up and if the address $nip05 is correct",
+                                    )
+                                }
+                            }
                         }
-                    }
-                }
 
-                override fun onFailure(call: Call, e: java.io.IOException) {
-                    onError("Could not resolve $url. Check if the server is up and if the address $nip05 is correct")
-                    e.printStackTrace()
-                }
-            })
+                        override fun onFailure(
+                            call: Call,
+                            e: java.io.IOException,
+                        ) {
+                            onError(
+                                "Could not resolve $url. Check if the server is up and if the address $nip05 is correct",
+                            )
+                            e.printStackTrace()
+                        }
+                    },
+                )
         } catch (e: java.lang.Exception) {
             onError("Could not resolve '$url': ${e.message}")
         }
     }
 
-    suspend fun verifyNip05(nip05: String, onSuccess: (String) -> Unit, onError: (String) -> Unit) {
+    suspend fun verifyNip05(
+        nip05: String,
+        onSuccess: (String) -> Unit,
+        onError: (String) -> Unit,
+    ) {
         // check fails on tests
         checkNotInMainThread()
 
@@ -76,19 +119,21 @@ class Nip05NostrAddressVerifier() {
                 // NIP05 usernames are case insensitive, but JSON properties are not
                 // converts the json to lowercase and then tries to access the username via a
                 // lowercase version of the username.
-                val nip05url = try {
-                    mapper.readTree(it.lowercase())
-                } catch (t: Throwable) {
-                    onError("Error Parsing JSON from Lightning Address. Check the user's lightning setup")
-                    null
-                }
+                val nip05url =
+                    try {
+                        mapper.readTree(it.lowercase())
+                    } catch (t: Throwable) {
+                        onError("Error Parsing JSON from Lightning Address. Check the user's lightning setup")
+                        null
+                    }
 
                 val parts = nip05.split("@")
-                val user = if (parts.size == 2) {
-                    parts[0].lowercase()
-                } else {
-                    "_"
-                }
+                val user =
+                    if (parts.size == 2) {
+                        parts[0].lowercase()
+                    } else {
+                        "_"
+                    }
 
                 val hexKey = nip05url?.get("names")?.get(user)?.asText()
 
@@ -98,7 +143,7 @@ class Nip05NostrAddressVerifier() {
                     onSuccess(hexKey)
                 }
             },
-            onError = onError
+            onError = onError,
         )
     }
 }

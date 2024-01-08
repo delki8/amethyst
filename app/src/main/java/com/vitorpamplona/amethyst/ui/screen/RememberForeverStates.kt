@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.screen
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -38,17 +58,19 @@ object PagerStateKeys {
 fun rememberForeverLazyGridState(
     key: String,
     initialFirstVisibleItemIndex: Int = 0,
-    initialFirstVisibleItemScrollOffset: Int = 0
+    initialFirstVisibleItemScrollOffset: Int = 0,
 ): LazyGridState {
-    val scrollState = rememberSaveable(saver = LazyGridState.Saver) {
-        val savedValue = savedScrollStates[key]
-        val savedIndex = savedValue?.index ?: initialFirstVisibleItemIndex
-        val savedOffset = savedValue?.scrollOffsetFraction ?: initialFirstVisibleItemScrollOffset.toFloat()
-        LazyGridState(
-            savedIndex,
-            savedOffset.roundToInt()
-        )
-    }
+    val scrollState =
+        rememberSaveable(saver = LazyGridState.Saver) {
+            val savedValue = savedScrollStates[key]
+            val savedIndex = savedValue?.index ?: initialFirstVisibleItemIndex
+            val savedOffset =
+                savedValue?.scrollOffsetFraction ?: initialFirstVisibleItemScrollOffset.toFloat()
+            LazyGridState(
+                savedIndex,
+                savedOffset.roundToInt(),
+            )
+        }
     DisposableEffect(scrollState) {
         onDispose {
             val lastIndex = scrollState.firstVisibleItemIndex
@@ -63,17 +85,19 @@ fun rememberForeverLazyGridState(
 fun rememberForeverLazyListState(
     key: String,
     initialFirstVisibleItemIndex: Int = 0,
-    initialFirstVisibleItemScrollOffset: Int = 0
+    initialFirstVisibleItemScrollOffset: Int = 0,
 ): LazyListState {
-    val scrollState = rememberSaveable(saver = LazyListState.Saver) {
-        val savedValue = savedScrollStates[key]
-        val savedIndex = savedValue?.index ?: initialFirstVisibleItemIndex
-        val savedOffset = savedValue?.scrollOffsetFraction ?: initialFirstVisibleItemScrollOffset.toFloat()
-        LazyListState(
-            savedIndex,
-            savedOffset.roundToInt()
-        )
-    }
+    val scrollState =
+        rememberSaveable(saver = LazyListState.Saver) {
+            val savedValue = savedScrollStates[key]
+            val savedIndex = savedValue?.index ?: initialFirstVisibleItemIndex
+            val savedOffset =
+                savedValue?.scrollOffsetFraction ?: initialFirstVisibleItemScrollOffset.toFloat()
+            LazyListState(
+                savedIndex,
+                savedOffset.roundToInt(),
+            )
+        }
     DisposableEffect(scrollState) {
         onDispose {
             val lastIndex = scrollState.firstVisibleItemIndex
@@ -90,17 +114,18 @@ fun rememberForeverPagerState(
     key: String,
     initialFirstVisibleItemIndex: Int = 0,
     initialFirstVisibleItemScrollOffset: Float = 0.0f,
-    pageCount: () -> Int
+    pageCount: () -> Int,
 ): PagerState {
     val savedValue = savedScrollStates[key]
     val savedIndex = savedValue?.index ?: initialFirstVisibleItemIndex
     val savedOffset = savedValue?.scrollOffsetFraction ?: initialFirstVisibleItemScrollOffset
 
-    val scrollState = rememberPagerState(
-        savedIndex,
-        savedOffset,
-        pageCount
-    )
+    val scrollState =
+        rememberPagerState(
+            savedIndex,
+            savedOffset,
+            pageCount,
+        )
 
     DisposableEffect(scrollState) {
         onDispose {

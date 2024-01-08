@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.service
 
 import com.vitorpamplona.amethyst.Amethyst
@@ -28,13 +48,14 @@ object NostrDiscoveryDataSource : NostrDataSource("DiscoveryFeed") {
 
     override fun start() {
         job?.cancel()
-        job = scope.launch(Dispatchers.IO) {
-            account.liveDiscoveryFollowLists.collect {
-                if (this@NostrDiscoveryDataSource::account.isInitialized) {
-                    invalidateFilters()
+        job =
+            scope.launch(Dispatchers.IO) {
+                account.liveDiscoveryFollowLists.collect {
+                    if (this@NostrDiscoveryDataSource::account.isInitialized) {
+                        invalidateFilters()
+                    }
                 }
             }
-        }
         super.start()
     }
 
@@ -51,43 +72,62 @@ object NostrDiscoveryDataSource : NostrDataSource("DiscoveryFeed") {
         return listOfNotNull(
             TypedFilter(
                 types = setOf(FeedType.GLOBAL),
-                filter = JsonFilter(
-                    authors = follows,
-                    kinds = listOf(ClassifiedsEvent.kind),
-                    limit = 300,
-                    since = latestEOSEs.users[account.userProfile()]?.followList?.get(account.defaultDiscoveryFollowList.value)?.relayList
-                )
+                filter =
+                    JsonFilter(
+                        authors = follows,
+                        kinds = listOf(ClassifiedsEvent.KIND),
+                        limit = 300,
+                        since =
+                            latestEOSEs.users[account.userProfile()]
+                                ?.followList
+                                ?.get(account.defaultDiscoveryFollowList.value)
+                                ?.relayList,
+                    ),
             ),
             hashToLoad?.let {
                 TypedFilter(
                     types = setOf(FeedType.GLOBAL),
-                    filter = JsonFilter(
-                        kinds = listOf(ClassifiedsEvent.kind),
-                        tags = mapOf(
-                            "t" to it.map {
-                                listOf(it, it.lowercase(), it.uppercase(), it.capitalize())
-                            }.flatten()
+                    filter =
+                        JsonFilter(
+                            kinds = listOf(ClassifiedsEvent.KIND),
+                            tags =
+                                mapOf(
+                                    "t" to
+                                        it
+                                            .map { listOf(it, it.lowercase(), it.uppercase(), it.capitalize()) }
+                                            .flatten(),
+                                ),
+                            limit = 300,
+                            since =
+                                latestEOSEs.users[account.userProfile()]
+                                    ?.followList
+                                    ?.get(account.defaultDiscoveryFollowList.value)
+                                    ?.relayList,
                         ),
-                        limit = 300,
-                        since = latestEOSEs.users[account.userProfile()]?.followList?.get(account.defaultDiscoveryFollowList.value)?.relayList
-                    )
                 )
             },
             geohashToLoad?.let {
                 TypedFilter(
                     types = setOf(FeedType.GLOBAL),
-                    filter = JsonFilter(
-                        kinds = listOf(ClassifiedsEvent.kind),
-                        tags = mapOf(
-                            "g" to it.map {
-                                listOf(it, it.lowercase(), it.uppercase(), it.capitalize())
-                            }.flatten()
+                    filter =
+                        JsonFilter(
+                            kinds = listOf(ClassifiedsEvent.KIND),
+                            tags =
+                                mapOf(
+                                    "g" to
+                                        it
+                                            .map { listOf(it, it.lowercase(), it.uppercase(), it.capitalize()) }
+                                            .flatten(),
+                                ),
+                            limit = 300,
+                            since =
+                                latestEOSEs.users[account.userProfile()]
+                                    ?.followList
+                                    ?.get(account.defaultDiscoveryFollowList.value)
+                                    ?.relayList,
                         ),
-                        limit = 300,
-                        since = latestEOSEs.users[account.userProfile()]?.followList?.get(account.defaultDiscoveryFollowList.value)?.relayList
-                    )
                 )
-            }
+            },
         )
     }
 
@@ -97,24 +137,34 @@ object NostrDiscoveryDataSource : NostrDataSource("DiscoveryFeed") {
         return listOfNotNull(
             TypedFilter(
                 types = setOf(FeedType.GLOBAL),
-                filter = JsonFilter(
-                    authors = follows,
-                    kinds = listOf(LiveActivitiesChatMessageEvent.kind, LiveActivitiesEvent.kind),
-                    limit = 300,
-                    since = latestEOSEs.users[account.userProfile()]?.followList?.get(account.defaultDiscoveryFollowList.value)?.relayList
-                )
+                filter =
+                    JsonFilter(
+                        authors = follows,
+                        kinds = listOf(LiveActivitiesChatMessageEvent.KIND, LiveActivitiesEvent.KIND),
+                        limit = 300,
+                        since =
+                            latestEOSEs.users[account.userProfile()]
+                                ?.followList
+                                ?.get(account.defaultDiscoveryFollowList.value)
+                                ?.relayList,
+                    ),
             ),
             follows?.let {
                 TypedFilter(
                     types = setOf(FeedType.GLOBAL),
-                    filter = JsonFilter(
-                        tags = mapOf("p" to it),
-                        kinds = listOf(LiveActivitiesEvent.kind),
-                        limit = 100,
-                        since = latestEOSEs.users[account.userProfile()]?.followList?.get(account.defaultDiscoveryFollowList.value)?.relayList
-                    )
+                    filter =
+                        JsonFilter(
+                            tags = mapOf("p" to it),
+                            kinds = listOf(LiveActivitiesEvent.KIND),
+                            limit = 100,
+                            since =
+                                latestEOSEs.users[account.userProfile()]
+                                    ?.followList
+                                    ?.get(account.defaultDiscoveryFollowList.value)
+                                    ?.relayList,
+                        ),
                 )
-            }
+            },
         )
     }
 
@@ -125,26 +175,37 @@ object NostrDiscoveryDataSource : NostrDataSource("DiscoveryFeed") {
         return listOfNotNull(
             TypedFilter(
                 types = setOf(FeedType.PUBLIC_CHATS),
-                filter = JsonFilter(
-                    authors = follows,
-                    kinds = listOf(ChannelCreateEvent.kind, ChannelMetadataEvent.kind, ChannelMessageEvent.kind),
-                    limit = 300,
-                    since = latestEOSEs.users[account.userProfile()]?.followList?.get(account.defaultDiscoveryFollowList.value)?.relayList
-                )
+                filter =
+                    JsonFilter(
+                        authors = follows,
+                        kinds =
+                            listOf(ChannelCreateEvent.KIND, ChannelMetadataEvent.KIND, ChannelMessageEvent.KIND),
+                        limit = 300,
+                        since =
+                            latestEOSEs.users[account.userProfile()]
+                                ?.followList
+                                ?.get(account.defaultDiscoveryFollowList.value)
+                                ?.relayList,
+                    ),
             ),
             if (followChats.isNotEmpty()) {
                 TypedFilter(
                     types = setOf(FeedType.PUBLIC_CHATS),
-                    filter = JsonFilter(
-                        ids = followChats,
-                        kinds = listOf(ChannelCreateEvent.kind),
-                        limit = 300,
-                        since = latestEOSEs.users[account.userProfile()]?.followList?.get(account.defaultDiscoveryFollowList.value)?.relayList
-                    )
+                    filter =
+                        JsonFilter(
+                            ids = followChats,
+                            kinds = listOf(ChannelCreateEvent.KIND),
+                            limit = 300,
+                            since =
+                                latestEOSEs.users[account.userProfile()]
+                                    ?.followList
+                                    ?.get(account.defaultDiscoveryFollowList.value)
+                                    ?.relayList,
+                        ),
                 )
             } else {
                 null
-            }
+            },
         )
     }
 
@@ -153,12 +214,17 @@ object NostrDiscoveryDataSource : NostrDataSource("DiscoveryFeed") {
 
         return TypedFilter(
             types = setOf(FeedType.GLOBAL),
-            filter = JsonFilter(
-                authors = follows,
-                kinds = listOf(CommunityDefinitionEvent.kind, CommunityPostApprovalEvent.kind),
-                limit = 300,
-                since = latestEOSEs.users[account.userProfile()]?.followList?.get(account.defaultDiscoveryFollowList.value)?.relayList
-            )
+            filter =
+                JsonFilter(
+                    authors = follows,
+                    kinds = listOf(CommunityDefinitionEvent.KIND, CommunityPostApprovalEvent.KIND),
+                    limit = 300,
+                    since =
+                        latestEOSEs.users[account.userProfile()]
+                            ?.followList
+                            ?.get(account.defaultDiscoveryFollowList.value)
+                            ?.relayList,
+                ),
         )
     }
 
@@ -169,16 +235,23 @@ object NostrDiscoveryDataSource : NostrDataSource("DiscoveryFeed") {
 
         return TypedFilter(
             types = setOf(FeedType.GLOBAL),
-            filter = JsonFilter(
-                kinds = listOf(LiveActivitiesChatMessageEvent.kind, LiveActivitiesEvent.kind),
-                tags = mapOf(
-                    "t" to hashToLoad.map {
-                        listOf(it, it.lowercase(), it.uppercase(), it.capitalize())
-                    }.flatten()
+            filter =
+                JsonFilter(
+                    kinds = listOf(LiveActivitiesChatMessageEvent.KIND, LiveActivitiesEvent.KIND),
+                    tags =
+                        mapOf(
+                            "t" to
+                                hashToLoad
+                                    .map { listOf(it, it.lowercase(), it.uppercase(), it.capitalize()) }
+                                    .flatten(),
+                        ),
+                    limit = 300,
+                    since =
+                        latestEOSEs.users[account.userProfile()]
+                            ?.followList
+                            ?.get(account.defaultDiscoveryFollowList.value)
+                            ?.relayList,
                 ),
-                limit = 300,
-                since = latestEOSEs.users[account.userProfile()]?.followList?.get(account.defaultDiscoveryFollowList.value)?.relayList
-            )
         )
     }
 
@@ -189,16 +262,23 @@ object NostrDiscoveryDataSource : NostrDataSource("DiscoveryFeed") {
 
         return TypedFilter(
             types = setOf(FeedType.GLOBAL),
-            filter = JsonFilter(
-                kinds = listOf(LiveActivitiesChatMessageEvent.kind, LiveActivitiesEvent.kind),
-                tags = mapOf(
-                    "g" to hashToLoad.map {
-                        listOf(it, it.lowercase(), it.uppercase(), it.capitalize())
-                    }.flatten()
+            filter =
+                JsonFilter(
+                    kinds = listOf(LiveActivitiesChatMessageEvent.KIND, LiveActivitiesEvent.KIND),
+                    tags =
+                        mapOf(
+                            "g" to
+                                hashToLoad
+                                    .map { listOf(it, it.lowercase(), it.uppercase(), it.capitalize()) }
+                                    .flatten(),
+                        ),
+                    limit = 300,
+                    since =
+                        latestEOSEs.users[account.userProfile()]
+                            ?.followList
+                            ?.get(account.defaultDiscoveryFollowList.value)
+                            ?.relayList,
                 ),
-                limit = 300,
-                since = latestEOSEs.users[account.userProfile()]?.followList?.get(account.defaultDiscoveryFollowList.value)?.relayList
-            )
         )
     }
 
@@ -209,16 +289,24 @@ object NostrDiscoveryDataSource : NostrDataSource("DiscoveryFeed") {
 
         return TypedFilter(
             types = setOf(FeedType.PUBLIC_CHATS),
-            filter = JsonFilter(
-                kinds = listOf(ChannelCreateEvent.kind, ChannelMetadataEvent.kind, ChannelMessageEvent.kind),
-                tags = mapOf(
-                    "t" to hashToLoad.map {
-                        listOf(it, it.lowercase(), it.uppercase(), it.capitalize())
-                    }.flatten()
+            filter =
+                JsonFilter(
+                    kinds =
+                        listOf(ChannelCreateEvent.KIND, ChannelMetadataEvent.KIND, ChannelMessageEvent.KIND),
+                    tags =
+                        mapOf(
+                            "t" to
+                                hashToLoad
+                                    .map { listOf(it, it.lowercase(), it.uppercase(), it.capitalize()) }
+                                    .flatten(),
+                        ),
+                    limit = 300,
+                    since =
+                        latestEOSEs.users[account.userProfile()]
+                            ?.followList
+                            ?.get(account.defaultDiscoveryFollowList.value)
+                            ?.relayList,
                 ),
-                limit = 300,
-                since = latestEOSEs.users[account.userProfile()]?.followList?.get(account.defaultDiscoveryFollowList.value)?.relayList
-            )
         )
     }
 
@@ -229,16 +317,24 @@ object NostrDiscoveryDataSource : NostrDataSource("DiscoveryFeed") {
 
         return TypedFilter(
             types = setOf(FeedType.PUBLIC_CHATS),
-            filter = JsonFilter(
-                kinds = listOf(ChannelCreateEvent.kind, ChannelMetadataEvent.kind, ChannelMessageEvent.kind),
-                tags = mapOf(
-                    "g" to hashToLoad.map {
-                        listOf(it, it.lowercase(), it.uppercase(), it.capitalize())
-                    }.flatten()
+            filter =
+                JsonFilter(
+                    kinds =
+                        listOf(ChannelCreateEvent.KIND, ChannelMetadataEvent.KIND, ChannelMessageEvent.KIND),
+                    tags =
+                        mapOf(
+                            "g" to
+                                hashToLoad
+                                    .map { listOf(it, it.lowercase(), it.uppercase(), it.capitalize()) }
+                                    .flatten(),
+                        ),
+                    limit = 300,
+                    since =
+                        latestEOSEs.users[account.userProfile()]
+                            ?.followList
+                            ?.get(account.defaultDiscoveryFollowList.value)
+                            ?.relayList,
                 ),
-                limit = 300,
-                since = latestEOSEs.users[account.userProfile()]?.followList?.get(account.defaultDiscoveryFollowList.value)?.relayList
-            )
         )
     }
 
@@ -249,16 +345,23 @@ object NostrDiscoveryDataSource : NostrDataSource("DiscoveryFeed") {
 
         return TypedFilter(
             types = setOf(FeedType.GLOBAL),
-            filter = JsonFilter(
-                kinds = listOf(CommunityDefinitionEvent.kind, CommunityPostApprovalEvent.kind),
-                tags = mapOf(
-                    "t" to hashToLoad.map {
-                        listOf(it, it.lowercase(), it.uppercase(), it.capitalize())
-                    }.flatten()
+            filter =
+                JsonFilter(
+                    kinds = listOf(CommunityDefinitionEvent.KIND, CommunityPostApprovalEvent.KIND),
+                    tags =
+                        mapOf(
+                            "t" to
+                                hashToLoad
+                                    .map { listOf(it, it.lowercase(), it.uppercase(), it.capitalize()) }
+                                    .flatten(),
+                        ),
+                    limit = 300,
+                    since =
+                        latestEOSEs.users[account.userProfile()]
+                            ?.followList
+                            ?.get(account.defaultDiscoveryFollowList.value)
+                            ?.relayList,
                 ),
-                limit = 300,
-                since = latestEOSEs.users[account.userProfile()]?.followList?.get(account.defaultDiscoveryFollowList.value)?.relayList
-            )
         )
     }
 
@@ -269,37 +372,52 @@ object NostrDiscoveryDataSource : NostrDataSource("DiscoveryFeed") {
 
         return TypedFilter(
             types = setOf(FeedType.GLOBAL),
-            filter = JsonFilter(
-                kinds = listOf(CommunityDefinitionEvent.kind, CommunityPostApprovalEvent.kind),
-                tags = mapOf(
-                    "g" to hashToLoad.map {
-                        listOf(it, it.lowercase(), it.uppercase(), it.capitalize())
-                    }.flatten()
+            filter =
+                JsonFilter(
+                    kinds = listOf(CommunityDefinitionEvent.KIND, CommunityPostApprovalEvent.KIND),
+                    tags =
+                        mapOf(
+                            "g" to
+                                hashToLoad
+                                    .map { listOf(it, it.lowercase(), it.uppercase(), it.capitalize()) }
+                                    .flatten(),
+                        ),
+                    limit = 300,
+                    since =
+                        latestEOSEs.users[account.userProfile()]
+                            ?.followList
+                            ?.get(account.defaultDiscoveryFollowList.value)
+                            ?.relayList,
                 ),
-                limit = 300,
-                since = latestEOSEs.users[account.userProfile()]?.followList?.get(account.defaultDiscoveryFollowList.value)?.relayList
-            )
         )
     }
 
-    val discoveryFeedChannel = requestNewChannel() { time, relayUrl ->
-        latestEOSEs.addOrUpdate(account.userProfile(), account.defaultDiscoveryFollowList.value, relayUrl, time)
-    }
+    val discoveryFeedChannel =
+        requestNewChannel { time, relayUrl ->
+            latestEOSEs.addOrUpdate(
+                account.userProfile(),
+                account.defaultDiscoveryFollowList.value,
+                relayUrl,
+                time,
+            )
+        }
 
     override fun updateChannelFilters() {
-        discoveryFeedChannel.typedFilters = createLiveStreamFilter()
-            .plus(createPublicChatFilter())
-            .plus(createMarketplaceFilter())
-            .plus(
-                listOfNotNull(
-                    createLiveStreamTagsFilter(),
-                    createLiveStreamGeohashesFilter(),
-                    createCommunitiesFilter(),
-                    createCommunitiesTagsFilter(),
-                    createCommunitiesGeohashesFilter(),
-                    createPublicChatsTagsFilter(),
-                    createPublicChatsGeohashesFilter()
+        discoveryFeedChannel.typedFilters =
+            createLiveStreamFilter()
+                .plus(createPublicChatFilter())
+                .plus(createMarketplaceFilter())
+                .plus(
+                    listOfNotNull(
+                        createLiveStreamTagsFilter(),
+                        createLiveStreamGeohashesFilter(),
+                        createCommunitiesFilter(),
+                        createCommunitiesTagsFilter(),
+                        createCommunitiesGeohashesFilter(),
+                        createPublicChatsTagsFilter(),
+                        createPublicChatsGeohashesFilter(),
+                    ),
                 )
-            ).ifEmpty { null }
+                .ifEmpty { null }
     }
 }

@@ -1,12 +1,29 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.quartz.events
 
 import androidx.compose.runtime.Immutable
-import com.vitorpamplona.quartz.utils.TimeUtils
-import com.vitorpamplona.quartz.encoders.toHexKey
-import com.vitorpamplona.quartz.crypto.CryptoUtils
-import com.vitorpamplona.quartz.encoders.ATag
 import com.vitorpamplona.quartz.encoders.HexKey
 import com.vitorpamplona.quartz.signers.NostrSigner
+import com.vitorpamplona.quartz.utils.TimeUtils
 
 @Immutable
 class AudioTrackEvent(
@@ -15,20 +32,22 @@ class AudioTrackEvent(
     createdAt: Long,
     tags: Array<Array<String>>,
     content: String,
-    sig: HexKey
-) : BaseAddressableEvent(id, pubKey, createdAt, kind, tags, content, sig) {
-
+    sig: HexKey,
+) : BaseAddressableEvent(id, pubKey, createdAt, KIND, tags, content, sig) {
     fun participants() = tags.filter { it.size > 1 && it[0] == "p" }.map { Participant(it[1], it.getOrNull(2)) }
+
     fun type() = tags.firstOrNull { it.size > 1 && it[0] == TYPE }?.get(1)
+
     fun price() = tags.firstOrNull { it.size > 1 && it[0] == PRICE }?.get(1)
+
     fun cover() = tags.firstOrNull { it.size > 1 && it[0] == COVER }?.get(1)
 
     // fun subject() = tags.firstOrNull { it.size > 1 && it[0] == SUBJECT }?.get(1)
     fun media() = tags.firstOrNull { it.size > 1 && it[0] == MEDIA }?.get(1)
 
     companion object {
-        const val kind = 31337
-        const val alt = "Audio track"
+        const val KIND = 31337
+        const val ALT = "Audio track"
 
         private const val TYPE = "c"
         private const val PRICE = "price"
@@ -44,21 +63,22 @@ class AudioTrackEvent(
             subject: String? = null,
             signer: NostrSigner,
             createdAt: Long = TimeUtils.now(),
-            onReady: (AudioTrackEvent) -> Unit
+            onReady: (AudioTrackEvent) -> Unit,
         ) {
-            val tags = listOfNotNull(
-                arrayOf(MEDIA, media),
-                arrayOf(TYPE, type),
-                price?.let { arrayOf(PRICE, it) },
-                cover?.let { arrayOf(COVER, it) },
-                subject?.let { arrayOf(SUBJECT, it) },
-                arrayOf("alt", alt)
-            ).toTypedArray()
+            val tags =
+                listOfNotNull(
+                    arrayOf(MEDIA, media),
+                    arrayOf(TYPE, type),
+                    price?.let { arrayOf(PRICE, it) },
+                    cover?.let { arrayOf(COVER, it) },
+                    subject?.let { arrayOf(SUBJECT, it) },
+                    arrayOf("alt", ALT),
+                )
+                    .toTypedArray()
 
-            signer.sign(createdAt, kind, tags, "", onReady)
+            signer.sign(createdAt, KIND, tags, "", onReady)
         }
     }
 }
 
-@Immutable
-data class Participant(val key: String, val role: String?)
+@Immutable data class Participant(val key: String, val role: String?)

@@ -1,12 +1,30 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.quartz.events
 
 import androidx.compose.runtime.Immutable
-import com.vitorpamplona.quartz.utils.TimeUtils
-import com.vitorpamplona.quartz.encoders.toHexKey
-import com.vitorpamplona.quartz.crypto.CryptoUtils
 import com.vitorpamplona.quartz.encoders.ATag
 import com.vitorpamplona.quartz.encoders.HexKey
 import com.vitorpamplona.quartz.signers.NostrSigner
+import com.vitorpamplona.quartz.utils.TimeUtils
 
 @Immutable
 class ClassifiedsEvent(
@@ -15,25 +33,33 @@ class ClassifiedsEvent(
     createdAt: Long,
     tags: Array<Array<String>>,
     content: String,
-    sig: HexKey
-) : BaseAddressableEvent(id, pubKey, createdAt, kind, tags, content, sig) {
+    sig: HexKey,
+) : BaseAddressableEvent(id, pubKey, createdAt, KIND, tags, content, sig) {
     fun title() = tags.firstOrNull { it.size > 1 && it[0] == "title" }?.get(1)
+
     fun image() = tags.firstOrNull { it.size > 1 && it[0] == "image" }?.get(1)
+
     fun condition() = tags.firstOrNull { it.size > 1 && it[0] == "condition" }?.get(1)
+
     fun images() = tags.filter { it.size > 1 && it[0] == "image" }.map { it[1] }
+
     fun summary() = tags.firstOrNull { it.size > 1 && it[0] == "summary" }?.get(1)
-    fun price() = tags.firstOrNull { it.size > 1 && it[0] == "price" }?.let {
-        Price(it[1], it.getOrNull(2), it.getOrNull(3))
-    }
+
+    fun price() =
+        tags
+            .firstOrNull { it.size > 1 && it[0] == "price" }
+            ?.let { Price(it[1], it.getOrNull(2), it.getOrNull(3)) }
+
     fun location() = tags.firstOrNull { it.size > 1 && it[0] == "location" }?.get(1)
 
-    fun publishedAt() = try {
-        tags.firstOrNull { it.size > 1 && it[0] == "published_at" }?.get(1)?.toLongOrNull()
-    } catch (_: Exception) {
-        null
-    }
+    fun publishedAt() =
+        try {
+            tags.firstOrNull { it.size > 1 && it[0] == "published_at" }?.get(1)?.toLongOrNull()
+        } catch (_: Exception) {
+            null
+        }
 
-    enum class CONDITION(val value: String){
+    enum class CONDITION(val value: String) {
         NEW("new"),
         USED_LIKE_NEW("like new"),
         USED_GOOD("good"),
@@ -41,9 +67,9 @@ class ClassifiedsEvent(
     }
 
     companion object {
-        const val kind = 30402
+        const val KIND = 30402
         private val imageExtensions = listOf("png", "jpg", "gif", "bmp", "jpeg", "webp", "svg")
-        const val alt = "Classifieds listing"
+        const val ALT = "Classifieds listing"
 
         fun create(
             dTag: String,
@@ -67,7 +93,7 @@ class ClassifiedsEvent(
             nip94attachments: List<Event>? = null,
             signer: NostrSigner,
             createdAt: Long = TimeUtils.now(),
-            onReady: (ClassifiedsEvent) -> Unit
+            onReady: (ClassifiedsEvent) -> Unit,
         ) {
             val tags = mutableListOf<Array<String>>()
 
@@ -120,12 +146,14 @@ class ClassifiedsEvent(
                 tags.add(arrayOf("zap", it.lnAddressOrPubKeyHex, it.relay ?: "", it.weight.toString()))
             }
             findURLs(message).forEach {
-                val removedParamsFromUrl =  if (it.contains("?"))
-                    it.split("?")[0].lowercase()
-                else if (it.contains("#"))
-                    it.split("#")[0].lowercase()
-                else
-                    it
+                val removedParamsFromUrl =
+                    if (it.contains("?")) {
+                        it.split("?")[0].lowercase()
+                    } else if (it.contains("#")) {
+                        it.split("#")[0].lowercase()
+                    } else {
+                        it
+                    }
 
                 if (imageExtensions.any { removedParamsFromUrl.endsWith(it) }) {
                     tags.add(arrayOf("image", it))
@@ -135,20 +163,16 @@ class ClassifiedsEvent(
             if (markAsSensitive) {
                 tags.add(arrayOf("content-warning", ""))
             }
-            zapRaiserAmount?.let {
-                tags.add(arrayOf("zapraiser", "$it"))
-            }
-            geohash?.let {
-                tags.addAll(geohashMipMap(it))
-            }
+            zapRaiserAmount?.let { tags.add(arrayOf("zapraiser", "$it")) }
+            geohash?.let { tags.addAll(geohashMipMap(it)) }
             nip94attachments?.let {
                 it.forEach {
-                    //tags.add(arrayOf("nip94", it.toJson()))
+                    // tags.add(arrayOf("nip94", it.toJson()))
                 }
             }
-            tags.add(arrayOf("alt", alt))
+            tags.add(arrayOf("alt", ALT))
 
-            signer.sign(createdAt, kind, tags.toTypedArray(), message, onReady)
+            signer.sign(createdAt, KIND, tags.toTypedArray(), message, onReady)
         }
     }
 }

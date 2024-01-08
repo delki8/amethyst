@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.note
 
 import androidx.compose.animation.animateContentSize
@@ -126,66 +146,65 @@ class UpdateReactionTypeViewModel(val account: Account) : ViewModel() {
 fun UpdateReactionTypeDialog(
     onClose: () -> Unit,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    val postViewModel: UpdateReactionTypeViewModel = viewModel(
-        key = "UpdateReactionTypeViewModel",
-        factory = UpdateReactionTypeViewModel.Factory(accountViewModel.account)
-    )
+    val postViewModel: UpdateReactionTypeViewModel =
+        viewModel(
+            key = "UpdateReactionTypeViewModel",
+            factory = UpdateReactionTypeViewModel.Factory(accountViewModel.account),
+        )
 
-    LaunchedEffect(accountViewModel) {
-        postViewModel.load()
-    }
+    LaunchedEffect(accountViewModel) { postViewModel.load() }
 
     Dialog(
         onDismissRequest = { onClose() },
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            dismissOnClickOutside = false,
-            decorFitsSystemWindows = false
-        )
+        properties =
+            DialogProperties(
+                usePlatformDefaultWidth = false,
+                dismissOnClickOutside = false,
+                decorFitsSystemWindows = false,
+            ),
     ) {
         Surface(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Column(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .imePadding()
+                modifier = Modifier.padding(10.dp).imePadding(),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    CloseButton(onPress = {
-                        postViewModel.cancel()
-                        onClose()
-                    })
+                    CloseButton(
+                        onPress = {
+                            postViewModel.cancel()
+                            onClose()
+                        },
+                    )
 
                     SaveButton(
                         onPost = {
                             postViewModel.sendPost()
                             onClose()
                         },
-                        isActive = postViewModel.hasChanged()
+                        isActive = postViewModel.hasChanged(),
                     )
                 }
 
                 Spacer(modifier = Modifier.height(10.dp))
 
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
                     Column(
-                        modifier = Modifier.verticalScroll(rememberScrollState())
+                        modifier = Modifier.verticalScroll(rememberScrollState()),
                     ) {
                         Row(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.animateContentSize()) {
                                 FlowRow(
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.Center
+                                    horizontalArrangement = Arrangement.Center,
                                 ) {
                                     postViewModel.reactionSet.forEach { reactionType ->
                                         RenderReactionOption(reactionType, postViewModel)
@@ -197,39 +216,35 @@ fun UpdateReactionTypeDialog(
                         Spacer(modifier = Modifier.height(10.dp))
 
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 5.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             OutlinedTextField(
                                 label = { Text(text = stringResource(R.string.new_reaction_symbol)) },
                                 value = postViewModel.nextChoice,
-                                onValueChange = {
-                                    postViewModel.nextChoice = it
-                                },
-                                keyboardOptions = KeyboardOptions.Default.copy(
-                                    capitalization = KeyboardCapitalization.None,
-                                    keyboardType = KeyboardType.Text
-                                ),
+                                onValueChange = { postViewModel.nextChoice = it },
+                                keyboardOptions =
+                                    KeyboardOptions.Default.copy(
+                                        capitalization = KeyboardCapitalization.None,
+                                        keyboardType = KeyboardType.Text,
+                                    ),
                                 placeholder = {
                                     Text(
                                         text = "\uD83D\uDCAF, \uD83C\uDF89, \uD83D\uDC4E",
-                                        color = MaterialTheme.colorScheme.placeholderText
+                                        color = MaterialTheme.colorScheme.placeholderText,
                                     )
                                 },
                                 singleLine = true,
-                                modifier = Modifier
-                                    .padding(end = 10.dp)
-                                    .weight(1f)
+                                modifier = Modifier.padding(end = 10.dp).weight(1f),
                             )
 
                             Button(
                                 onClick = { postViewModel.addChoice() },
                                 shape = ButtonBorder,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary
-                                )
+                                colors =
+                                    ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                    ),
                             ) {
                                 Text(text = stringResource(R.string.add), color = Color.White)
                             }
@@ -239,7 +254,7 @@ fun UpdateReactionTypeDialog(
 
                 EmojiSelector(
                     accountViewModel = accountViewModel,
-                    nav = nav
+                    nav = nav,
                 ) {
                     postViewModel.addChoice(it)
                 }
@@ -251,32 +266,33 @@ fun UpdateReactionTypeDialog(
 @Composable
 private fun RenderReactionOption(
     reactionType: String,
-    postViewModel: UpdateReactionTypeViewModel
+    postViewModel: UpdateReactionTypeViewModel,
 ) {
     Button(
         modifier = Modifier.padding(horizontal = 3.dp),
         shape = ButtonBorder,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary
-        ),
-        onClick = {
-            postViewModel.removeChoice(reactionType)
-        },
-        contentPadding = PaddingValues(horizontal = 5.dp)
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+            ),
+        onClick = { postViewModel.removeChoice(reactionType) },
+        contentPadding = PaddingValues(horizontal = 5.dp),
     ) {
         if (reactionType.startsWith(":")) {
             val noStartColon = reactionType.removePrefix(":")
             val url = noStartColon.substringAfter(":")
 
-            val renderable = listOf(
-                ImageUrlType(url),
-                TextType(" ✖")
-            ).toImmutableList()
+            val renderable =
+                listOf(
+                    ImageUrlType(url),
+                    TextType(" ✖"),
+                )
+                    .toImmutableList()
 
             InLineIconRenderer(
                 renderable,
                 style = SpanStyle(color = Color.White),
-                maxLines = 1
+                maxLines = 1,
             )
         } else {
             when (reactionType) {
@@ -285,71 +301,83 @@ private fun RenderReactionOption(
                         painter = painterResource(R.drawable.ic_liked),
                         null,
                         modifier = remember { Modifier.size(16.dp) },
-                        tint = Color.White
+                        tint = Color.White,
                     )
                     Text(
                         text = " ✖",
                         color = Color.White,
-                        textAlign = TextAlign.Center
+                        textAlign = TextAlign.Center,
                     )
                 }
-
-                "-" -> Text(
-                    text = "\uD83D\uDC4E ✖",
-                    color = Color.White,
-                    textAlign = TextAlign.Center
-                )
-
-                else -> Text(
-                    text = "$reactionType ✖",
-                    color = Color.White,
-                    textAlign = TextAlign.Center
-                )
+                "-" ->
+                    Text(
+                        text = "\uD83D\uDC4E ✖",
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                    )
+                else ->
+                    Text(
+                        text = "$reactionType ✖",
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                    )
             }
         }
     }
 }
 
 @Composable
-private fun EmojiSelector(accountViewModel: AccountViewModel, nav: (String) -> Unit, onClick: ((EmojiUrl) -> Unit)? = null) {
+private fun EmojiSelector(
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+    onClick: ((EmojiUrl) -> Unit)? = null,
+) {
     LoadAddressableNote(
-        aTag = ATag(
-            EmojiPackSelectionEvent.kind,
-            accountViewModel.userProfile().pubkeyHex,
-            "",
-            null
-        ),
-        accountViewModel
+        aTag =
+            ATag(
+                EmojiPackSelectionEvent.KIND,
+                accountViewModel.userProfile().pubkeyHex,
+                "",
+                null,
+            ),
+        accountViewModel,
     ) { emptyNote ->
         emptyNote?.let { usersEmojiList ->
-            val collections by usersEmojiList.live().metadata.map {
-                (it.note.event as? EmojiPackSelectionEvent)?.taggedAddresses()?.toImmutableList()
-            }.distinctUntilChanged().observeAsState(
-                (usersEmojiList.event as? EmojiPackSelectionEvent)?.taggedAddresses()?.toImmutableList()
-            )
+            val collections by
+                usersEmojiList
+                    .live()
+                    .metadata
+                    .map { (it.note.event as? EmojiPackSelectionEvent)?.taggedAddresses()?.toImmutableList() }
+                    .distinctUntilChanged()
+                    .observeAsState(
+                        (usersEmojiList.event as? EmojiPackSelectionEvent)
+                            ?.taggedAddresses()
+                            ?.toImmutableList(),
+                    )
 
-            collections?.let {
-                EmojiCollectionGallery(it, accountViewModel, nav, onClick)
-            }
+            collections?.let { EmojiCollectionGallery(it, accountViewModel, nav, onClick) }
         }
     }
 }
 
 @Composable
-fun EmojiCollectionGallery(emojiCollections: ImmutableList<ATag>, accountViewModel: AccountViewModel, nav: (String) -> Unit, onClick: ((EmojiUrl) -> Unit)? = null) {
+fun EmojiCollectionGallery(
+    emojiCollections: ImmutableList<ATag>,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+    onClick: ((EmojiUrl) -> Unit)? = null,
+) {
     val color = MaterialTheme.colorScheme.background
     val bgColor = remember { mutableStateOf(color) }
 
     val listState = rememberLazyListState()
 
     LazyColumn(
-        state = listState
+        state = listState,
     ) {
         itemsIndexed(emojiCollections, key = { _, item -> item.toTag() }) { _, item ->
             LoadAddressableNote(aTag = item, accountViewModel) {
-                it?.let {
-                    WatchAndRenderNote(it, bgColor, accountViewModel, nav, onClick)
-                }
+                it?.let { WatchAndRenderNote(it, bgColor, accountViewModel, nav, onClick) }
             }
         }
     }
@@ -361,27 +389,21 @@ private fun WatchAndRenderNote(
     bgColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    onClick: ((EmojiUrl) -> Unit)?
+    onClick: ((EmojiUrl) -> Unit)?,
 ) {
     val scope = rememberCoroutineScope()
 
     Column(
-        Modifier
-            .fillMaxWidth()
-            .clickable {
-                scope.launch {
-                    routeFor(emojiPack, accountViewModel.userProfile())?.let {
-                        nav(it)
-                    }
-                }
-            }
+        Modifier.fillMaxWidth().clickable {
+            scope.launch { routeFor(emojiPack, accountViewModel.userProfile())?.let { nav(it) } }
+        },
     ) {
         RenderEmojiPack(
             baseNote = emojiPack,
             actionable = false,
             backgroundColor = bgColor,
             accountViewModel = accountViewModel,
-            onClick = onClick
+            onClick = onClick,
         )
     }
 }

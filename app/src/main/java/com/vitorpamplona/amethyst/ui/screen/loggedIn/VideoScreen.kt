@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn
 
 import androidx.compose.animation.Crossfade
@@ -86,24 +106,23 @@ import kotlinx.coroutines.launch
 fun VideoScreen(
     videoFeedView: NostrVideoFeedViewModel,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val lifeCycleOwner = LocalLifecycleOwner.current
 
     WatchAccountForVideoScreen(videoFeedView = videoFeedView, accountViewModel = accountViewModel)
 
     DisposableEffect(lifeCycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                println("Video Start")
-                NostrVideoDataSource.start()
+        val observer =
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    println("Video Start")
+                    NostrVideoDataSource.start()
+                }
             }
-        }
 
         lifeCycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifeCycleOwner.lifecycle.removeObserver(observer)
-        }
+        onDispose { lifeCycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Column(Modifier.fillMaxHeight()) {
@@ -111,13 +130,16 @@ fun VideoScreen(
             videoFeedView = videoFeedView,
             pagerStateKey = ScrollStateKeys.VIDEO_SCREEN,
             accountViewModel = accountViewModel,
-            nav = nav
+            nav = nav,
         )
     }
 }
 
 @Composable
-fun WatchAccountForVideoScreen(videoFeedView: NostrVideoFeedViewModel, accountViewModel: AccountViewModel) {
+fun WatchAccountForVideoScreen(
+    videoFeedView: NostrVideoFeedViewModel,
+    accountViewModel: AccountViewModel,
+) {
     val listState by accountViewModel.account.liveStoriesFollowLists.collectAsStateWithLifecycle()
     val hiddenUsers = accountViewModel.account.flowHiddenUsers.collectAsStateWithLifecycle()
 
@@ -131,7 +153,7 @@ fun WatchAccountForVideoScreen(videoFeedView: NostrVideoFeedViewModel, accountVi
 @Composable
 public fun WatchScrollToTop(
     viewModel: FeedViewModel,
-    pagerState: PagerState
+    pagerState: PagerState,
 ) {
     val scrollToTop by viewModel.scrollToTop.collectAsStateWithLifecycle()
 
@@ -148,28 +170,25 @@ fun RenderPage(
     videoFeedView: NostrVideoFeedViewModel,
     pagerStateKey: String?,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val feedState by videoFeedView.feedContent.collectAsStateWithLifecycle()
 
     Crossfade(
         targetState = feedState,
         animationSpec = tween(durationMillis = 100),
-        label = "RenderPage"
+        label = "RenderPage",
     ) { state ->
         when (state) {
             is FeedState.Empty -> {
                 FeedEmpty {}
             }
-
             is FeedState.FeedError -> {
                 FeedError(state.errorMessage) {}
             }
-
             is FeedState.Loaded -> {
                 LoadedState(state, pagerStateKey, videoFeedView, accountViewModel, nav)
             }
-
             is FeedState.Loading -> {
                 LoadingFeed()
             }
@@ -184,13 +203,14 @@ private fun LoadedState(
     pagerStateKey: String?,
     videoFeedView: NostrVideoFeedViewModel,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    val pagerState = if (pagerStateKey != null) {
-        rememberForeverPagerState(pagerStateKey) { state.feed.value.size }
-    } else {
-        rememberPagerState { state.feed.value.size }
-    }
+    val pagerState =
+        if (pagerStateKey != null) {
+            rememberForeverPagerState(pagerStateKey) { state.feed.value.size }
+        } else {
+            rememberPagerState { state.feed.value.size }
+        }
 
     WatchScrollToTop(videoFeedView, pagerState)
 
@@ -200,7 +220,7 @@ private fun LoadedState(
             pagerState,
             state.showHidden.value,
             accountViewModel,
-            nav
+            nav,
         )
     }
 }
@@ -212,15 +232,13 @@ fun SlidingCarousel(
     pagerState: PagerState,
     showHidden: Boolean,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     VerticalPager(
         state = pagerState,
         beyondBoundsPageCount = 1,
         modifier = Modifier.fillMaxSize(),
-        key = { index ->
-            feed.value.getOrNull(index)?.idHex ?: "$index"
-        }
+        key = { index -> feed.value.getOrNull(index)?.idHex ?: "$index" },
     ) { index ->
         feed.value.getOrNull(index)?.let { note ->
             LoadedVideoCompose(note, showHidden, accountViewModel, nav)
@@ -233,22 +251,21 @@ fun LoadedVideoCompose(
     note: Note,
     showHidden: Boolean,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    var state by remember(note) {
-        mutableStateOf(
-            AccountViewModel.NoteComposeReportState()
-        )
-    }
+    var state by
+        remember(note) {
+            mutableStateOf(
+                AccountViewModel.NoteComposeReportState(),
+            )
+        }
 
     if (!showHidden) {
         val scope = rememberCoroutineScope()
 
         WatchForReports(note, accountViewModel) { newState ->
             if (state != newState) {
-                scope.launch(Dispatchers.Main) {
-                    state = newState
-                }
+                scope.launch(Dispatchers.Main) { state = newState }
             }
         }
     }
@@ -258,7 +275,7 @@ fun LoadedVideoCompose(
             it,
             note,
             accountViewModel,
-            nav
+            nav,
         )
     }
 }
@@ -268,11 +285,12 @@ fun RenderReportState(
     state: AccountViewModel.NoteComposeReportState,
     note: Note,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     var showReportedNote by remember { mutableStateOf(false) }
 
-    Crossfade(targetState = (!state.isAcceptable || state.isHiddenAuthor) && !showReportedNote) { showHiddenNote ->
+    Crossfade(targetState = (!state.isAcceptable || state.isHiddenAuthor) && !showReportedNote) {
+            showHiddenNote ->
         if (showHiddenNote) {
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center) {
                 HiddenNote(
@@ -282,14 +300,14 @@ fun RenderReportState(
                     Modifier.fillMaxWidth(),
                     false,
                     nav,
-                    onClick = { showReportedNote = true }
+                    onClick = { showReportedNote = true },
                 )
             }
         } else {
             RenderVideoOrPictureNote(
                 note,
                 accountViewModel,
-                nav
+                nav,
             )
         }
     }
@@ -299,7 +317,7 @@ fun RenderReportState(
 private fun RenderVideoOrPictureNote(
     note: Note,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     Column(remember { Modifier.fillMaxSize(1f) }, verticalArrangement = Arrangement.Center) {
         Row(remember { Modifier.weight(1f) }, verticalAlignment = Alignment.CenterVertically) {
@@ -318,12 +336,8 @@ private fun RenderVideoOrPictureNote(
         }
 
         Column(
-            remember {
-                Modifier
-                    .width(65.dp)
-                    .padding(bottom = 10.dp)
-            },
-            verticalArrangement = Arrangement.Center
+            remember { Modifier.width(65.dp).padding(bottom = 10.dp) },
+            verticalArrangement = Arrangement.Center,
         ) {
             Row(horizontalArrangement = Arrangement.Center) {
                 ReactionsColumn(note, accountViewModel, nav)
@@ -336,7 +350,7 @@ private fun RenderVideoOrPictureNote(
 private fun RenderAuthorInformation(
     note: Note,
     nav: (String) -> Unit,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
     Row(remember { Modifier.padding(10.dp) }, verticalAlignment = Alignment.Bottom) {
         Column(remember { Modifier.size(55.dp) }, verticalArrangement = Arrangement.Center) {
@@ -344,13 +358,8 @@ private fun RenderAuthorInformation(
         }
 
         Column(
-            remember {
-                Modifier
-                    .padding(start = 10.dp, end = 10.dp)
-                    .height(65.dp)
-                    .weight(1f)
-            },
-            verticalArrangement = Arrangement.Center
+            remember { Modifier.padding(start = 10.dp, end = 10.dp).height(65.dp).weight(1f) },
+            verticalArrangement = Arrangement.Center,
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 NoteUsernameDisplay(note, remember { Modifier.weight(1f) })
@@ -361,12 +370,12 @@ private fun RenderAuthorInformation(
                     remember { note.author!! },
                     remember { Modifier.weight(1f) },
                     accountViewModel,
-                    nav = nav
+                    nav = nav,
                 )
             }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(top = 2.dp)
+                modifier = Modifier.padding(top = 2.dp),
             ) {
                 RelayBadges(baseNote = note, accountViewModel, nav)
             }
@@ -377,82 +386,96 @@ private fun RenderAuthorInformation(
 @Composable
 private fun VideoUserOptionAction(
     note: Note,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
     val popupExpanded = remember { mutableStateOf(false) }
-    val enablePopup = remember {
-        { popupExpanded.value = true }
-    }
+    val enablePopup = remember { { popupExpanded.value = true } }
 
     IconButton(
         modifier = remember { Modifier.size(22.dp) },
-        onClick = enablePopup
+        onClick = enablePopup,
     ) {
         Icon(
             imageVector = Icons.Default.MoreVert,
             null,
             modifier = remember { Modifier.size(20.dp) },
-            tint = MaterialTheme.colorScheme.placeholderText
+            tint = MaterialTheme.colorScheme.placeholderText,
         )
 
         NoteDropDownMenu(
             note,
             popupExpanded,
-            accountViewModel
+            accountViewModel,
         )
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun RelayBadges(baseNote: Note, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+private fun RelayBadges(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     val noteRelays by baseNote.live().relayInfo.observeAsState(baseNote.relays)
 
-    FlowRow {
-        noteRelays?.forEach { relayInfo ->
-            RenderRelay(relayInfo, accountViewModel, nav)
-        }
-    }
+    FlowRow { noteRelays?.forEach { relayInfo -> RenderRelay(relayInfo, accountViewModel, nav) } }
 }
 
 @Composable
-fun ReactionsColumn(baseNote: Note, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
-    var wantsToReplyTo by remember {
-        mutableStateOf<Note?>(null)
-    }
+fun ReactionsColumn(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
+    var wantsToReplyTo by remember { mutableStateOf<Note?>(null) }
 
-    var wantsToQuote by remember {
-        mutableStateOf<Note?>(null)
-    }
+    var wantsToQuote by remember { mutableStateOf<Note?>(null) }
 
     if (wantsToReplyTo != null) {
-        NewPostView(onClose = { wantsToReplyTo = null }, baseReplyTo = wantsToReplyTo, quote = null, accountViewModel = accountViewModel, nav = nav)
+        NewPostView(
+            onClose = { wantsToReplyTo = null },
+            baseReplyTo = wantsToReplyTo,
+            quote = null,
+            accountViewModel = accountViewModel,
+            nav = nav,
+        )
     }
 
     if (wantsToQuote != null) {
-        NewPostView(onClose = { wantsToQuote = null }, baseReplyTo = null, quote = wantsToQuote, accountViewModel = accountViewModel, nav = nav)
+        NewPostView(
+            onClose = { wantsToQuote = null },
+            baseReplyTo = null,
+            quote = wantsToQuote,
+            accountViewModel = accountViewModel,
+            nav = nav,
+        )
     }
 
     Spacer(modifier = Modifier.height(8.dp))
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(bottom = 75.dp, end = 20.dp)) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.padding(bottom = 75.dp, end = 20.dp),
+    ) {
         ReplyReaction(
             baseNote = baseNote,
             grayTint = MaterialTheme.colorScheme.onBackground,
             accountViewModel = accountViewModel,
-            iconSizeModifier = Size40Modifier
+            iconSizeModifier = Size40Modifier,
         ) {
             routeFor(
                 baseNote,
-                accountViewModel.userProfile()
-            )?.let { nav(it) }
+                accountViewModel.userProfile(),
+            )
+                ?.let { nav(it) }
         }
         BoostReaction(
             baseNote = baseNote,
             grayTint = MaterialTheme.colorScheme.onBackground,
             accountViewModel = accountViewModel,
             iconSizeModifier = Size40Modifier,
-            iconSize = Size40dp
+            iconSize = Size40dp,
         ) {
             wantsToQuote = baseNote
         }
@@ -463,7 +486,7 @@ fun ReactionsColumn(baseNote: Note, accountViewModel: AccountViewModel, nav: (St
             nav = nav,
             iconSize = Size40dp,
             heartSizeModifier = Size35Modifier,
-            28.sp
+            28.sp,
         )
         ZapReaction(
             baseNote = baseNote,
@@ -472,13 +495,13 @@ fun ReactionsColumn(baseNote: Note, accountViewModel: AccountViewModel, nav: (St
             iconSize = Size40dp,
             iconSizeModifier = Size40Modifier,
             animationSize = Size35dp,
-            nav = nav
+            nav = nav,
         )
         ViewCountReaction(
             note = baseNote,
             grayTint = MaterialTheme.colorScheme.onBackground,
             barChartModifier = Size39Modifier,
-            viewCountColorFilter = MaterialTheme.colorScheme.onBackgroundColorFilter
+            viewCountColorFilter = MaterialTheme.colorScheme.onBackgroundColorFilter,
         )
     }
 }

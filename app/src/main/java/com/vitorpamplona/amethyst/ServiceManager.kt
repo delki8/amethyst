@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst
 
 import android.os.Build
@@ -42,7 +62,8 @@ import kotlinx.coroutines.launch
 
 @Stable
 class ServiceManager {
-    private var isStarted: Boolean = false // to not open amber in a loop trying to use auth relays and registering for notifications
+    private var isStarted: Boolean =
+        false // to not open amber in a loop trying to use auth relays and registering for notifications
     private var account: Account? = null
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -66,14 +87,16 @@ class ServiceManager {
         HttpClient.start(account?.proxy)
         LocalCache.antiSpam.active = account?.filterSpamFromStrangers ?: true
         Coil.setImageLoader {
-            Amethyst.instance.imageLoaderBuilder().components {
-                if (Build.VERSION.SDK_INT >= 28) {
-                    add(ImageDecoderDecoder.Factory())
-                } else {
-                    add(GifDecoder.Factory())
-                }
-                add(SvgDecoder.Factory())
-            } // .logger(DebugLogger())
+            Amethyst.instance
+                .imageLoaderBuilder()
+                .components {
+                    if (Build.VERSION.SDK_INT >= 28) {
+                        add(ImageDecoderDecoder.Factory())
+                    } else {
+                        add(GifDecoder.Factory())
+                    }
+                    add(SvgDecoder.Factory())
+                } // .logger(DebugLogger())
                 .okHttpClient { HttpClient.getHttpClient() }
                 .precision(Precision.INEXACT)
                 .respectCacheHeaders(false)
@@ -87,24 +110,26 @@ class ServiceManager {
 
             collectorJob?.cancel()
             collectorJob = null
-            collectorJob = scope.launch {
-                myAccount.userProfile().flow().relays.stateFlow.collect {
-                    if (isStarted) {
-                        val newRelaySet = myAccount.activeRelays() ?: myAccount.convertLocalRelays()
-                        Client.reconnect(newRelaySet, onlyIfChanged = true)
+            collectorJob =
+                scope.launch {
+                    myAccount.userProfile().flow().relays.stateFlow.collect {
+                        if (isStarted) {
+                            val newRelaySet = myAccount.activeRelays() ?: myAccount.convertLocalRelays()
+                            Client.reconnect(newRelaySet, onlyIfChanged = true)
+                        }
                     }
                 }
-            }
 
             // start services
             NostrAccountDataSource.account = myAccount
-            NostrAccountDataSource.otherAccounts = LocalPreferences.allSavedAccounts().mapNotNull {
-                try {
-                    it.npub.bechToBytes().toHexKey()
-                } catch (e: Exception) {
-                    null
+            NostrAccountDataSource.otherAccounts =
+                LocalPreferences.allSavedAccounts().mapNotNull {
+                    try {
+                        it.npub.bechToBytes().toHexKey()
+                    } catch (e: Exception) {
+                        null
+                    }
                 }
-            }
             NostrHomeDataSource.account = myAccount
             NostrChatroomListDataSource.account = myAccount
             NostrVideoDataSource.account = myAccount
@@ -163,9 +188,8 @@ class ServiceManager {
     fun trimMemory() {
         LocalCache.cleanObservers()
 
-        val accounts = LocalPreferences.allSavedAccounts().mapNotNull {
-            decodePublicKeyAsHexOrNull(it.npub)
-        }.toSet()
+        val accounts =
+            LocalPreferences.allSavedAccounts().mapNotNull { decodePublicKeyAsHexOrNull(it.npub) }.toSet()
 
         account?.let {
             LocalCache.pruneOldAndHiddenMessages(it)
@@ -182,7 +206,11 @@ class ServiceManager {
     // This method keeps the pause/start in a Syncronized block to
     // avoid concurrent pauses and starts.
     @Synchronized
-    fun forceRestart(account: Account? = null, start: Boolean = true, pause: Boolean = true) {
+    fun forceRestart(
+        account: Account? = null,
+        start: Boolean = true,
+        pause: Boolean = true,
+    ) {
         if (pause) {
             pause()
         }

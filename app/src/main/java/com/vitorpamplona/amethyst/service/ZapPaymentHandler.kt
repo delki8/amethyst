@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.service
 
 import android.content.Context
@@ -20,13 +40,12 @@ import kotlinx.coroutines.withContext
 import kotlin.math.round
 
 class ZapPaymentHandler(val account: Account) {
-
     @Immutable
     data class Payable(
         val info: ZapSplitSetup,
         val user: User?,
         val amountMilliSats: Long,
-        val invoice: String
+        val invoice: String,
     )
 
     suspend fun zap(
@@ -38,31 +57,32 @@ class ZapPaymentHandler(val account: Account) {
         onError: (String, String) -> Unit,
         onProgress: (percent: Float) -> Unit,
         onPayViaIntent: (ImmutableList<Payable>) -> Unit,
-        zapType: LnZapEvent.ZapType
+        zapType: LnZapEvent.ZapType,
     ) = withContext(Dispatchers.IO) {
         val zapSplitSetup = note.event?.zapSplitSetup()
 
         val noteEvent = note.event
 
-        val zapsToSend = if (!zapSplitSetup.isNullOrEmpty()) {
-            zapSplitSetup
-        } else if (noteEvent is LiveActivitiesEvent && noteEvent.hasHost()) {
-            noteEvent.hosts().map {
-                ZapSplitSetup(it, null, weight = 1.0, false)
-            }
-        } else {
-            val lud16 = note.author?.info?.lud16?.trim() ?: note.author?.info?.lud06?.trim()
+        val zapsToSend =
+            if (!zapSplitSetup.isNullOrEmpty()) {
+                zapSplitSetup
+            } else if (noteEvent is LiveActivitiesEvent && noteEvent.hasHost()) {
+                noteEvent.hosts().map { ZapSplitSetup(it, null, weight = 1.0, false) }
+            } else {
+                val lud16 = note.author?.info?.lud16?.trim() ?: note.author?.info?.lud06?.trim()
 
-            if (lud16.isNullOrBlank()) {
-                onError(
-                    context.getString(R.string.missing_lud16),
-                    context.getString(R.string.user_does_not_have_a_lightning_address_setup_to_receive_sats)
-                )
-                return@withContext
-            }
+                if (lud16.isNullOrBlank()) {
+                    onError(
+                        context.getString(R.string.missing_lud16),
+                        context.getString(
+                            R.string.user_does_not_have_a_lightning_address_setup_to_receive_sats,
+                        ),
+                    )
+                    return@withContext
+                }
 
-            listOf(ZapSplitSetup(lud16, null, weight = 1.0, true))
-        }
+                listOf(ZapSplitSetup(lud16, null, weight = 1.0, true))
+            }
 
         val totalWeight = zapsToSend.sumOf { it.weight }
 
@@ -72,8 +92,7 @@ class ZapPaymentHandler(val account: Account) {
             val outerProgressMin = index / zapsToSend.size.toFloat()
             val outerProgressMax = (index + 1) / zapsToSend.size.toFloat()
 
-            val zapValue =
-                round((amountMilliSats * value.weight / totalWeight) / 1000f).toLong() * 1000
+            val zapValue = round((amountMilliSats * value.weight / totalWeight) / 1000f).toLong() * 1000
 
             if (value.isLnAddress) {
                 innerZap(
@@ -94,10 +113,10 @@ class ZapPaymentHandler(val account: Account) {
                                 info = value,
                                 user = null,
                                 amountMilliSats = zapValue,
-                                invoice = it
-                            )
+                                invoice = it,
+                            ),
                         )
-                    }
+                    },
                 )
             } else {
                 val user = LocalCache.getUserIfExists(value.lnAddressOrPubKeyHex)
@@ -123,20 +142,20 @@ class ZapPaymentHandler(val account: Account) {
                                     info = value,
                                     user = user,
                                     amountMilliSats = zapValue,
-                                    invoice = it
-                                )
+                                    invoice = it,
+                                ),
                             )
-                        }
+                        },
                     )
                 } else {
                     onError(
                         context.getString(
-                            R.string.missing_lud16
+                            R.string.missing_lud16,
                         ),
                         context.getString(
                             R.string.user_x_does_not_have_a_lightning_address_setup_to_receive_sats,
-                            user?.toBestDisplayName() ?: value.lnAddressOrPubKeyHex
-                        )
+                            user?.toBestDisplayName() ?: value.lnAddressOrPubKeyHex,
+                        ),
                     )
                 }
             }
@@ -169,7 +188,7 @@ class ZapPaymentHandler(val account: Account) {
         message: String,
         zapType: LnZapEvent.ZapType,
         overrideUser: User? = null,
-        onReady: (String?) -> Unit
+        onReady: (String?) -> Unit,
     ) {
         if (zapType != LnZapEvent.ZapType.NONZAP) {
             account.createZapRequestFor(note, pollOption, message, zapType, overrideUser) { zapRequest ->
@@ -191,51 +210,51 @@ class ZapPaymentHandler(val account: Account) {
         onProgress: (percent: Float) -> Unit,
         onPayInvoiceThroughIntent: (String) -> Unit,
         zapType: LnZapEvent.ZapType,
-        overrideUser: User? = null
+        overrideUser: User? = null,
     ) {
         onProgress(0.05f)
 
         prepareZapRequestIfNeeded(note, pollOption, message, zapType, overrideUser) { zapRequestJson ->
             onProgress(0.10f)
 
-            LightningAddressResolver().lnAddressInvoice(
-                lud16,
-                amount,
-                message,
-                zapRequestJson,
-                onSuccess = {
-                    onProgress(0.7f)
-                    if (account.hasWalletConnectSetup()) {
-                        account.sendZapPaymentRequestFor(
-                            bolt11 = it,
-                            note,
-                            onResponse = { response ->
-                                if (response is PayInvoiceErrorResponse) {
-                                    onProgress(0.0f)
-                                    onError(
-                                        context.getString(R.string.error_dialog_pay_invoice_error),
-                                        context.getString(
-                                            R.string.wallet_connect_pay_invoice_error_error,
-                                            response.error?.message
-                                                ?: response.error?.code?.toString()
-                                                ?: "Error parsing error message"
+            LightningAddressResolver()
+                .lnAddressInvoice(
+                    lud16,
+                    amount,
+                    message,
+                    zapRequestJson,
+                    onSuccess = {
+                        onProgress(0.7f)
+                        if (account.hasWalletConnectSetup()) {
+                            account.sendZapPaymentRequestFor(
+                                bolt11 = it,
+                                note,
+                                onResponse = { response ->
+                                    if (response is PayInvoiceErrorResponse) {
+                                        onProgress(0.0f)
+                                        onError(
+                                            context.getString(R.string.error_dialog_pay_invoice_error),
+                                            context.getString(
+                                                R.string.wallet_connect_pay_invoice_error_error,
+                                                response.error?.message
+                                                    ?: response.error?.code?.toString() ?: "Error parsing error message",
+                                            ),
                                         )
-                                    )
-                                } else {
-                                    onProgress(1f)
-                                }
-                            }
-                        )
-                        onProgress(0.8f)
-                    } else {
-                        onPayInvoiceThroughIntent(it)
-                        onProgress(0f)
-                    }
-                },
-                onError = onError,
-                onProgress = onProgress,
-                context = context
-            )
+                                    } else {
+                                        onProgress(1f)
+                                    }
+                                },
+                            )
+                            onProgress(0.8f)
+                        } else {
+                            onPayInvoiceThroughIntent(it)
+                            onProgress(0f)
+                        }
+                    },
+                    onError = onError,
+                    onProgress = onProgress,
+                    context = context,
+                )
         }
     }
 }

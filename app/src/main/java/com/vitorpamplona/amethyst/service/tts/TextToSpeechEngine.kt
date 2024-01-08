@@ -1,9 +1,23 @@
-/*
- * Created by Ayaan on 02/02/23, 10:30 pm
- * Copyright (c) 2023 . All rights reserved.
- * Last modified 02/02/23, 9:56 pm
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
 package com.vitorpamplona.amethyst.service.tts
 
 import android.content.Context
@@ -13,16 +27,17 @@ import java.util.Locale
 
 const val DEF_SPEECH_AND_PITCH = 0.8f
 
-fun getErrorText(errorCode: Int): String = when (errorCode) {
-    TextToSpeech.ERROR -> "ERROR"
-    TextToSpeech.ERROR_INVALID_REQUEST -> "ERROR_INVALID_REQUEST"
-    TextToSpeech.ERROR_NETWORK -> "ERROR_NETWORK"
-    TextToSpeech.ERROR_NETWORK_TIMEOUT -> "ERROR_NETWORK_TIMEOUT"
-    TextToSpeech.ERROR_SERVICE -> "ERROR_SERVICE"
-    TextToSpeech.ERROR_SYNTHESIS -> "ERROR_SYNTHESIS"
-    TextToSpeech.ERROR_NOT_INSTALLED_YET -> "ERROR_NOT_INSTALLED_YET"
-    else -> "UNKNOWN"
-}
+fun getErrorText(errorCode: Int): String =
+    when (errorCode) {
+        TextToSpeech.ERROR -> "ERROR"
+        TextToSpeech.ERROR_INVALID_REQUEST -> "ERROR_INVALID_REQUEST"
+        TextToSpeech.ERROR_NETWORK -> "ERROR_NETWORK"
+        TextToSpeech.ERROR_NETWORK_TIMEOUT -> "ERROR_NETWORK_TIMEOUT"
+        TextToSpeech.ERROR_SERVICE -> "ERROR_SERVICE"
+        TextToSpeech.ERROR_SYNTHESIS -> "ERROR_SYNTHESIS"
+        TextToSpeech.ERROR_NOT_INSTALLED_YET -> "ERROR_NOT_INSTALLED_YET"
+        else -> "UNKNOWN"
+    }
 
 class TextToSpeechEngine private constructor() {
     private var tts: TextToSpeech? = null
@@ -38,6 +53,7 @@ class TextToSpeechEngine private constructor() {
 
     companion object {
         private var instance: TextToSpeechEngine? = null
+
         fun getInstance(): TextToSpeechEngine {
             if (instance == null) {
                 instance = TextToSpeechEngine()
@@ -46,37 +62,33 @@ class TextToSpeechEngine private constructor() {
         }
     }
 
-    fun initTTS(context: Context, message: String) {
-        tts = TextToSpeech(context) {
-            if (it == TextToSpeech.SUCCESS) {
-                tts?.let {
-                    it.language = defLanguage
-                    it.setPitch(defaultPitch)
-                    it.setSpeechRate(defaultSpeed)
-                    it.setListener(
-                        onStart = {
-                            onStartListener?.invoke()
-                        },
-                        onError = { e ->
-                            e?.let { error ->
-                                onErrorListener?.invoke(error)
-                            }
-                        },
-                        onRange = { start, end ->
-                            if (this@TextToSpeechEngine.message != null) {
-                                onHighlightListener?.invoke(start, end)
-                            }
-                        },
-                        onDone = {
-                            onStartListener?.invoke()
-                        }
-                    )
-                    speak(message)
+    fun initTTS(
+        context: Context,
+        message: String,
+    ) {
+        tts =
+            TextToSpeech(context) {
+                if (it == TextToSpeech.SUCCESS) {
+                    tts?.let {
+                        it.language = defLanguage
+                        it.setPitch(defaultPitch)
+                        it.setSpeechRate(defaultSpeed)
+                        it.setListener(
+                            onStart = { onStartListener?.invoke() },
+                            onError = { e -> e?.let { error -> onErrorListener?.invoke(error) } },
+                            onRange = { start, end ->
+                                if (this@TextToSpeechEngine.message != null) {
+                                    onHighlightListener?.invoke(start, end)
+                                }
+                            },
+                            onDone = { onStartListener?.invoke() },
+                        )
+                        speak(message)
+                    }
+                } else {
+                    onErrorListener?.invoke(getErrorText(it))
                 }
-            } else {
-                onErrorListener?.invoke(getErrorText(it))
             }
-        }
     }
 
     private fun speak(message: String): TextToSpeechEngine {
@@ -84,12 +96,15 @@ class TextToSpeechEngine private constructor() {
             message,
             TextToSpeech.QUEUE_FLUSH,
             null,
-            TextToSpeech.ACTION_TTS_QUEUE_PROCESSING_COMPLETED
+            TextToSpeech.ACTION_TTS_QUEUE_PROCESSING_COMPLETED,
         )
         return this
     }
 
-    fun setPitchAndSpeed(pitch: Float, speed: Float) {
+    fun setPitchAndSpeed(
+        pitch: Float,
+        speed: Float,
+    ) {
         defaultPitch = pitch
         defaultSpeed = speed
     }
@@ -140,25 +155,32 @@ inline fun TextToSpeech.setListener(
     crossinline onStart: (String?) -> Unit = {},
     crossinline onError: (String?) -> Unit = {},
     crossinline onRange: (Int, Int) -> Unit = { _, _ -> },
-    crossinline onDone: (String?) -> Unit
+    crossinline onDone: (String?) -> Unit,
 ) = this.apply {
-    setOnUtteranceProgressListener(object : UtteranceProgressListener() {
-        override fun onStart(p0: String?) {
-            onStart.invoke(p0)
-        }
+    setOnUtteranceProgressListener(
+        object : UtteranceProgressListener() {
+            override fun onStart(p0: String?) {
+                onStart.invoke(p0)
+            }
 
-        override fun onDone(p0: String?) {
-            onDone.invoke(p0)
-        }
+            override fun onDone(p0: String?) {
+                onDone.invoke(p0)
+            }
 
-        @Deprecated("Deprecated in Java", ReplaceWith("onError.invoke(p0)"))
-        override fun onError(p0: String?) {
-            onError.invoke(p0)
-        }
+            @Deprecated("Deprecated in Java", ReplaceWith("onError.invoke(p0)"))
+            override fun onError(p0: String?) {
+                onError.invoke(p0)
+            }
 
-        override fun onRangeStart(utteranceId: String?, start: Int, end: Int, frame: Int) {
-            super.onRangeStart(utteranceId, start, end, frame)
-            onRange.invoke(start, end)
-        }
-    })
+            override fun onRangeStart(
+                utteranceId: String?,
+                start: Int,
+                end: Int,
+                frame: Int,
+            ) {
+                super.onRangeStart(utteranceId, start, end, frame)
+                onRange.invoke(start, end)
+            }
+        },
+    )
 }

@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.screen
 
 import androidx.compose.animation.Crossfade
@@ -10,6 +30,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
@@ -31,6 +52,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vitorpamplona.amethyst.R
 import com.vitorpamplona.amethyst.ui.note.NoteCompose
@@ -45,7 +67,7 @@ fun RefresheableFeedView(
     enablePullRefresh: Boolean = true,
     scrollStateKey: String? = null,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     RefresheableView(viewModel, enablePullRefresh) {
         SaveableFeedState(viewModel, routeForLastRead, scrollStateKey, accountViewModel, nav)
@@ -56,21 +78,24 @@ fun RefresheableFeedView(
 fun RefresheableView(
     viewModel: InvalidatableViewModel,
     enablePullRefresh: Boolean = true,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     var refreshing by remember { mutableStateOf(false) }
-    val refresh = { refreshing = true; viewModel.invalidateData(); refreshing = false }
+    val refresh = {
+        refreshing = true
+        viewModel.invalidateData()
+        refreshing = false
+    }
     val pullRefreshState = rememberPullRefreshState(refreshing, onRefresh = refresh)
 
-    val modifier = remember {
-        if (enablePullRefresh) {
-            Modifier
-                .fillMaxSize()
-                .pullRefresh(pullRefreshState)
-        } else {
-            Modifier.fillMaxSize()
+    val modifier =
+        remember {
+            if (enablePullRefresh) {
+                Modifier.fillMaxSize().pullRefresh(pullRefreshState)
+            } else {
+                Modifier.fillMaxSize()
+            }
         }
-    }
 
     Box(modifier) {
         content()
@@ -79,9 +104,7 @@ fun RefresheableView(
             PullRefreshIndicator(
                 refreshing = refreshing,
                 state = pullRefreshState,
-                modifier = remember {
-                    Modifier.align(Alignment.TopCenter)
-                }
+                modifier = remember { Modifier.align(Alignment.TopCenter) },
             )
         }
     }
@@ -93,7 +116,7 @@ private fun SaveableFeedState(
     routeForLastRead: String?,
     scrollStateKey: String? = null,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     SaveableFeedState(viewModel, scrollStateKey) { listState ->
         RenderFeed(viewModel, accountViewModel, listState, nav, routeForLastRead)
@@ -104,13 +127,14 @@ private fun SaveableFeedState(
 fun SaveableFeedState(
     viewModel: FeedViewModel,
     scrollStateKey: String? = null,
-    content: @Composable (LazyListState) -> Unit
+    content: @Composable (LazyListState) -> Unit,
 ) {
-    val listState = if (scrollStateKey != null) {
-        rememberForeverLazyListState(scrollStateKey)
-    } else {
-        rememberLazyListState()
-    }
+    val listState =
+        if (scrollStateKey != null) {
+            rememberForeverLazyListState(scrollStateKey)
+        } else {
+            rememberLazyListState()
+        }
 
     WatchScrollToTop(viewModel, listState)
 
@@ -121,13 +145,14 @@ fun SaveableFeedState(
 fun SaveableGridFeedState(
     viewModel: FeedViewModel,
     scrollStateKey: String? = null,
-    content: @Composable (LazyGridState) -> Unit
+    content: @Composable (LazyGridState) -> Unit,
 ) {
-    val gridState = if (scrollStateKey != null) {
-        rememberForeverLazyGridState(scrollStateKey)
-    } else {
-        rememberLazyGridState()
-    }
+    val gridState =
+        if (scrollStateKey != null) {
+            rememberForeverLazyGridState(scrollStateKey)
+        } else {
+            rememberLazyGridState()
+        }
 
     WatchScrollToTop(viewModel, gridState)
 
@@ -140,37 +165,30 @@ private fun RenderFeed(
     accountViewModel: AccountViewModel,
     listState: LazyListState,
     nav: (String) -> Unit,
-    routeForLastRead: String?
+    routeForLastRead: String?,
 ) {
     val feedState by viewModel.feedContent.collectAsStateWithLifecycle()
 
     Crossfade(
         targetState = feedState,
-        animationSpec = tween(durationMillis = 100)
+        animationSpec = tween(durationMillis = 100),
     ) { state ->
         when (state) {
             is FeedState.Empty -> {
-                FeedEmpty {
-                    viewModel.invalidateData()
-                }
+                FeedEmpty { viewModel.invalidateData() }
             }
-
             is FeedState.FeedError -> {
-                FeedError(state.errorMessage) {
-                    viewModel.invalidateData()
-                }
+                FeedError(state.errorMessage) { viewModel.invalidateData() }
             }
-
             is FeedState.Loaded -> {
                 FeedLoaded(
                     state = state,
                     listState = listState,
                     routeForLastRead = routeForLastRead,
                     accountViewModel = accountViewModel,
-                    nav = nav
+                    nav = nav,
                 )
             }
-
             is FeedState.Loading -> {
                 LoadingFeed()
             }
@@ -181,7 +199,7 @@ private fun RenderFeed(
 @Composable
 private fun WatchScrollToTop(
     viewModel: FeedViewModel,
-    listState: LazyListState
+    listState: LazyListState,
 ) {
     val scrollToTop by viewModel.scrollToTop.collectAsStateWithLifecycle()
 
@@ -196,7 +214,7 @@ private fun WatchScrollToTop(
 @Composable
 private fun WatchScrollToTop(
     viewModel: FeedViewModel,
-    listState: LazyGridState
+    listState: LazyGridState,
 ) {
     val scrollToTop by viewModel.scrollToTop.collectAsStateWithLifecycle()
 
@@ -215,18 +233,15 @@ private fun FeedLoaded(
     listState: LazyListState,
     routeForLastRead: String?,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     LazyColumn(
         contentPadding = FeedPadding,
-        state = listState
+        state = listState,
     ) {
         itemsIndexed(state.feed.value, key = { _, item -> item.idHex }) { _, item ->
-            val defaultModifier = remember {
-                Modifier
-                    .fillMaxWidth()
-                    .animateItemPlacement()
-            }
+            val defaultModifier = remember { Modifier.fillMaxWidth().padding(start = 32.dp, end = 32.dp)
+                    .animateItemPlacement() }
 
             Row(defaultModifier) {
                 NoteCompose(
@@ -236,7 +251,7 @@ private fun FeedLoaded(
                     isBoostedNote = false,
                     showHidden = state.showHidden.value,
                     accountViewModel = accountViewModel,
-                    nav = nav
+                    nav = nav,
                 )
             }
         }
@@ -246,29 +261,28 @@ private fun FeedLoaded(
 @Composable
 fun LoadingFeed() {
     Column(
-        Modifier
-            .fillMaxHeight()
-            .fillMaxWidth(),
+        Modifier.fillMaxHeight().fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(stringResource(R.string.loading_feed))
     }
 }
 
 @Composable
-fun FeedError(errorMessage: String, onRefresh: () -> Unit) {
+fun FeedError(
+    errorMessage: String,
+    onRefresh: () -> Unit,
+) {
     Column(
-        Modifier
-            .fillMaxHeight()
-            .fillMaxWidth(),
+        Modifier.fillMaxHeight().fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Text("${stringResource(R.string.error_loading_replies)} $errorMessage")
         Button(
             modifier = Modifier.align(Alignment.CenterHorizontally),
-            onClick = onRefresh
+            onClick = onRefresh,
         ) {
             Text(text = stringResource(R.string.try_again))
         }
@@ -280,11 +294,9 @@ fun FeedEmpty(onRefresh: () -> Unit) {
     Column(
         Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         Text(stringResource(R.string.feed_is_empty))
-        OutlinedButton(onClick = onRefresh) {
-            Text(text = stringResource(R.string.refresh))
-        }
+        OutlinedButton(onClick = onRefresh) { Text(text = stringResource(R.string.refresh)) }
     }
 }

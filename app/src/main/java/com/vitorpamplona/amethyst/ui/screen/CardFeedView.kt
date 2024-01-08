@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.screen
 
 import androidx.compose.animation.Crossfade
@@ -40,24 +60,25 @@ fun RefresheableCardView(
     nav: (String) -> Unit,
     routeForLastRead: String,
     scrollStateKey: String? = null,
-    enablePullRefresh: Boolean = true
+    enablePullRefresh: Boolean = true,
 ) {
     var refreshing by remember { mutableStateOf(false) }
-    val pullRefreshState = rememberPullRefreshState(
-        refreshing,
-        onRefresh =
-        {
-            refreshing = true
-            viewModel.invalidateData()
-            refreshing = false
-        }
-    )
+    val pullRefreshState =
+        rememberPullRefreshState(
+            refreshing,
+            onRefresh = {
+                refreshing = true
+                viewModel.invalidateData()
+                refreshing = false
+            },
+        )
 
-    val modifier = if (enablePullRefresh) {
-        Modifier.fillMaxSize().pullRefresh(pullRefreshState)
-    } else {
-        Modifier.fillMaxSize()
-    }
+    val modifier =
+        if (enablePullRefresh) {
+            Modifier.fillMaxSize().pullRefresh(pullRefreshState)
+        } else {
+            Modifier.fillMaxSize()
+        }
 
     Box(modifier) {
         SaveableCardFeedState(viewModel, accountViewModel, nav, routeForLastRead, scrollStateKey)
@@ -74,13 +95,14 @@ private fun SaveableCardFeedState(
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
     routeForLastRead: String,
-    scrollStateKey: String? = null
+    scrollStateKey: String? = null,
 ) {
-    val listState = if (scrollStateKey != null) {
-        rememberForeverLazyListState(scrollStateKey)
-    } else {
-        rememberLazyListState()
-    }
+    val listState =
+        if (scrollStateKey != null) {
+            rememberForeverLazyListState(scrollStateKey)
+        } else {
+            rememberLazyListState()
+        }
 
     WatchScrollToTop(viewModel, listState)
 
@@ -90,7 +112,7 @@ private fun SaveableCardFeedState(
 @Composable
 private fun WatchScrollToTop(
     viewModel: CardFeedViewModel,
-    listState: LazyListState
+    listState: LazyListState,
 ) {
     val scrollToTop by viewModel.scrollToTop.collectAsStateWithLifecycle()
 
@@ -108,25 +130,21 @@ fun RenderCardFeed(
     accountViewModel: AccountViewModel,
     listState: LazyListState,
     nav: (String) -> Unit,
-    routeForLastRead: String
+    routeForLastRead: String,
 ) {
     val feedState by viewModel.feedContent.collectAsStateWithLifecycle()
 
     Crossfade(
         modifier = Modifier.fillMaxSize(),
         targetState = feedState,
-        animationSpec = tween(durationMillis = 100)
+        animationSpec = tween(durationMillis = 100),
     ) { state ->
         when (state) {
             is CardFeedState.Empty -> {
-                FeedEmpty {
-                    viewModel.invalidateData()
-                }
+                FeedEmpty { viewModel.invalidateData() }
             }
             is CardFeedState.FeedError -> {
-                FeedError(state.errorMessage) {
-                    viewModel.invalidateData()
-                }
+                FeedError(state.errorMessage) { viewModel.invalidateData() }
             }
             is CardFeedState.Loaded -> {
                 FeedLoaded(
@@ -134,7 +152,7 @@ fun RenderCardFeed(
                     listState = listState,
                     routeForLastRead = routeForLastRead,
                     accountViewModel = accountViewModel,
-                    nav = nav
+                    nav = nav,
                 )
             }
             CardFeedState.Loading -> {
@@ -151,20 +169,24 @@ private fun FeedLoaded(
     listState: LazyListState,
     routeForLastRead: String,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = FeedPadding,
-        state = listState
+        state = listState,
     ) {
         itemsIndexed(state.feed.value, key = { _, item -> item.id() }) { _, item ->
-            val defaultModifier = remember {
-                Modifier.fillMaxWidth().animateItemPlacement()
-            }
+            val defaultModifier = remember { Modifier.fillMaxWidth().animateItemPlacement() }
 
             Row(defaultModifier) {
-                RenderCardItem(item, routeForLastRead, showHidden = state.showHidden.value, accountViewModel, nav)
+                RenderCardItem(
+                    item,
+                    routeForLastRead,
+                    showHidden = state.showHidden.value,
+                    accountViewModel,
+                    nav,
+                )
             }
         }
     }
@@ -176,49 +198,50 @@ private fun RenderCardItem(
     routeForLastRead: String,
     showHidden: Boolean,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     when (item) {
-        is NoteCard -> NoteCardCompose(
-            item,
-            isBoostedNote = false,
-            accountViewModel = accountViewModel,
-            showHidden = showHidden,
-            nav = nav,
-            routeForLastRead = routeForLastRead
-        )
-
-        is ZapUserSetCard -> ZapUserSetCompose(
-            item,
-            isInnerNote = false,
-            accountViewModel = accountViewModel,
-            nav = nav,
-            routeForLastRead = routeForLastRead
-        )
-
-        is MultiSetCard -> MultiSetCompose(
-            item,
-            accountViewModel = accountViewModel,
-            showHidden = showHidden,
-            nav = nav,
-            routeForLastRead = routeForLastRead
-        )
-
-        is BadgeCard -> BadgeCompose(
-            item,
-            accountViewModel = accountViewModel,
-            showHidden = showHidden,
-            nav = nav,
-            routeForLastRead = routeForLastRead
-        )
-
-        is MessageSetCard -> MessageSetCompose(
-            messageSetCard = item,
-            routeForLastRead = routeForLastRead,
-            showHidden = showHidden,
-            accountViewModel = accountViewModel,
-            nav = nav
-        )
+        is NoteCard ->
+            NoteCardCompose(
+                item,
+                isBoostedNote = false,
+                accountViewModel = accountViewModel,
+                showHidden = showHidden,
+                nav = nav,
+                routeForLastRead = routeForLastRead,
+            )
+        is ZapUserSetCard ->
+            ZapUserSetCompose(
+                item,
+                isInnerNote = false,
+                accountViewModel = accountViewModel,
+                nav = nav,
+                routeForLastRead = routeForLastRead,
+            )
+        is MultiSetCard ->
+            MultiSetCompose(
+                item,
+                accountViewModel = accountViewModel,
+                showHidden = showHidden,
+                nav = nav,
+                routeForLastRead = routeForLastRead,
+            )
+        is BadgeCard ->
+            BadgeCompose(
+                item,
+                accountViewModel = accountViewModel,
+                showHidden = showHidden,
+                nav = nav,
+                routeForLastRead = routeForLastRead,
+            )
+        is MessageSetCard ->
+            MessageSetCompose(
+                messageSetCard = item,
+                routeForLastRead = routeForLastRead,
+                showHidden = showHidden,
+                accountViewModel = accountViewModel,
+                nav = nav,
+            )
     }
 }
 
@@ -235,11 +258,9 @@ fun NoteCardCompose(
     showHidden: Boolean = false,
     parentBackgroundColor: MutableState<Color>? = null,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    val note = remember(baseNote) {
-        baseNote.note
-    }
+    val note = remember(baseNote) { baseNote.note }
 
     NoteCompose(
         baseNote = note,
@@ -253,6 +274,6 @@ fun NoteCardCompose(
         showHidden = showHidden,
         parentBackgroundColor = parentBackgroundColor,
         accountViewModel = accountViewModel,
-        nav = nav
+        nav = nav,
     )
 }

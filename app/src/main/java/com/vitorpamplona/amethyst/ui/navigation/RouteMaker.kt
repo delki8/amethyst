@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.navigation
 
 import com.vitorpamplona.amethyst.model.Channel
@@ -16,10 +36,17 @@ import com.vitorpamplona.quartz.events.LiveActivitiesEvent
 import kotlinx.collections.immutable.persistentSetOf
 import java.net.URLEncoder
 
-fun routeFor(note: Note, loggedIn: User): String? {
+fun routeFor(
+    note: Note,
+    loggedIn: User,
+): String? {
     val noteEvent = note.event
 
-    if (noteEvent is ChannelMessageEvent || noteEvent is ChannelCreateEvent || noteEvent is ChannelMetadataEvent) {
+    if (
+        noteEvent is ChannelMessageEvent ||
+        noteEvent is ChannelCreateEvent ||
+        noteEvent is ChannelMetadataEvent
+    ) {
         note.channelHex()?.let {
             return "Channel/$it"
         }
@@ -40,7 +67,11 @@ fun routeFor(note: Note, loggedIn: User): String? {
     return null
 }
 
-fun routeToMessage(user: HexKey, draftMessage: String?, accountViewModel: AccountViewModel): String {
+fun routeToMessage(
+    user: HexKey,
+    draftMessage: String?,
+    accountViewModel: AccountViewModel,
+): String {
     val withKey = ChatroomKey(persistentSetOf(user))
     accountViewModel.account.userProfile().createChatroom(withKey)
     return if (draftMessage != null) {
@@ -50,7 +81,11 @@ fun routeToMessage(user: HexKey, draftMessage: String?, accountViewModel: Accoun
     }
 }
 
-fun routeToMessage(user: User, draftMessage: String?, accountViewModel: AccountViewModel): String {
+fun routeToMessage(
+    user: User,
+    draftMessage: String?,
+    accountViewModel: AccountViewModel,
+): String {
     return routeToMessage(user.pubkeyHex, draftMessage, accountViewModel)
 }
 

@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.note
 
 import androidx.compose.runtime.Immutable
@@ -29,7 +49,7 @@ data class PollOption(
     val zappedValue: BigDecimal,
     val tally: BigDecimal,
     val consensusThreadhold: Boolean,
-    val zappedByLoggedIn: Boolean
+    val zappedByLoggedIn: Boolean,
 )
 
 @Stable
@@ -53,7 +73,10 @@ class PollNoteViewModel : ViewModel() {
     private val _tallies = MutableStateFlow<List<PollOption>>(emptyList())
     val tallies = _tallies.asStateFlow()
 
-    fun load(acc: Account, note: Note?) {
+    fun load(
+        acc: Account,
+        note: Note?,
+    ) {
         account = acc
         pollNote = note
         pollEvent = pollNote?.event as PollNoteEvent
@@ -62,7 +85,8 @@ class PollNoteViewModel : ViewModel() {
         valueMinimum = pollEvent?.getTagLong(VALUE_MINIMUM)
         valueMinimumBD = valueMinimum?.let { BigDecimal(it) }
         valueMaximumBD = valueMaximum?.let { BigDecimal(it) }
-        consensusThreshold = pollEvent?.getTagLong(CONSENSUS_THRESHOLD)?.toFloat()?.div(100)?.toBigDecimal()
+        consensusThreshold =
+            pollEvent?.getTagLong(CONSENSUS_THRESHOLD)?.toFloat()?.div(100)?.toBigDecimal()
         closedAt = pollEvent?.getTagLong(CLOSED_AT)
     }
 
@@ -70,28 +94,36 @@ class PollNoteViewModel : ViewModel() {
         viewModelScope.launch(Dispatchers.Default) {
             totalZapped = totalZapped()
             wasZappedByLoggedInAccount = false
-            account?.calculateIfNoteWasZappedByAccount(pollNote) {
-                wasZappedByLoggedInAccount = true
-            }
+            account?.calculateIfNoteWasZappedByAccount(pollNote) { wasZappedByLoggedInAccount = true }
 
-            val newOptions = pollOptions?.keys?.map { option ->
-                val zappedInOption = zappedPollOptionAmount(option)
+            val newOptions =
+                pollOptions?.keys?.map { option ->
+                    val zappedInOption = zappedPollOptionAmount(option)
 
-                val myTally = if (totalZapped.compareTo(BigDecimal.ZERO) > 0) {
-                    zappedInOption.divide(totalZapped, 2, RoundingMode.HALF_UP)
-                } else {
-                    BigDecimal.ZERO
+                    val myTally =
+                        if (totalZapped.compareTo(BigDecimal.ZERO) > 0) {
+                            zappedInOption.divide(totalZapped, 2, RoundingMode.HALF_UP)
+                        } else {
+                            BigDecimal.ZERO
+                        }
+
+                    val cachedZappedByLoggedIn =
+                        account?.userProfile()?.let { it1 -> cachedIsPollOptionZappedBy(option, it1) } ?: false
+
+                    val consensus = consensusThreshold != null && myTally >= consensusThreshold!!
+
+                    PollOption(
+                        option,
+                        pollOptions?.get(option) ?: "",
+                        zappedInOption,
+                        myTally,
+                        consensus,
+                        cachedZappedByLoggedIn,
+                    )
                 }
 
-                val cachedZappedByLoggedIn = account?.userProfile()?.let { it1 -> cachedIsPollOptionZappedBy(option, it1) } ?: false
-
-                val consensus = consensusThreshold != null && myTally >= consensusThreshold!!
-
-                PollOption(option, pollOptions?.get(option) ?: "", zappedInOption, myTally, consensus, cachedZappedByLoggedIn)
-            }
-
             _tallies.emit(
-                newOptions ?: emptyList()
+                newOptions ?: emptyList(),
             )
         }
     }
@@ -104,25 +136,32 @@ class PollNoteViewModel : ViewModel() {
 
     fun isVoteAmountAtomic() = valueMaximum != null && valueMinimum != null && valueMinimum == valueMaximum
 
-    fun isPollClosed(): Boolean = closedAt?.let { // allow 2 minute leeway for zap to propagate
-        pollNote?.createdAt()?.plus(it * (86400 + 120))!! < TimeUtils.now()
-    } == true
+    fun isPollClosed(): Boolean =
+        closedAt?.let { // allow 2 minute leeway for zap to propagate
+            pollNote?.createdAt()?.plus(it * (86400 + 120))!! < TimeUtils.now()
+        } == true
 
-    fun voteAmountPlaceHolderText(sats: String): String = if (valueMinimum == null && valueMaximum == null) {
-        sats
-    } else if (valueMinimum == null) {
-        "1—$valueMaximum $sats"
-    } else if (valueMaximum == null) {
-        ">$valueMinimum $sats"
-    } else {
-        "$valueMinimum—$valueMaximum $sats"
-    }
+    fun voteAmountPlaceHolderText(sats: String): String =
+        if (valueMinimum == null && valueMaximum == null) {
+            sats
+        } else if (valueMinimum == null) {
+            "1—$valueMaximum $sats"
+        } else if (valueMaximum == null) {
+            ">$valueMinimum $sats"
+        } else {
+            "$valueMinimum—$valueMaximum $sats"
+        }
 
-    fun inputVoteAmountLong(textAmount: String) = if (textAmount.isEmpty()) { null } else {
-        try {
-            textAmount.toLong()
-        } catch (e: Exception) { null }
-    }
+    fun inputVoteAmountLong(textAmount: String) =
+        if (textAmount.isEmpty()) {
+            null
+        } else {
+            try {
+                textAmount.toLong()
+            } catch (e: Exception) {
+                null
+            }
+        }
 
     fun isValidInputVoteAmount(amount: BigDecimal?): Boolean {
         if (amount == null) {
@@ -170,17 +209,24 @@ class PollNoteViewModel : ViewModel() {
         return false
     }
 
-    fun isPollOptionZappedBy(option: Int, user: User, onWasZappedByAuthor: () -> Unit) {
+    fun isPollOptionZappedBy(
+        option: Int,
+        user: User,
+        onWasZappedByAuthor: () -> Unit,
+    ) {
         pollNote?.isZappedBy(option, user, account!!, onWasZappedByAuthor)
     }
 
-    fun cachedIsPollOptionZappedBy(option: Int, user: User): Boolean {
-        return pollNote!!.zaps
-            .any {
-                val zapEvent = it.value?.event as? LnZapEvent
-                val privateZapAuthor = (it.key.event as? LnZapRequestEvent)?.cachedPrivateZap()
-                zapEvent?.zappedPollOption() == option && (it.key.author?.pubkeyHex == user.pubkeyHex || privateZapAuthor?.pubKey == user.pubkeyHex)
-            }
+    fun cachedIsPollOptionZappedBy(
+        option: Int,
+        user: User,
+    ): Boolean {
+        return pollNote!!.zaps.any {
+            val zapEvent = it.value?.event as? LnZapEvent
+            val privateZapAuthor = (it.key.event as? LnZapRequestEvent)?.cachedPrivateZap()
+            zapEvent?.zappedPollOption() == option &&
+                (it.key.author?.pubkeyHex == user.pubkeyHex || privateZapAuthor?.pubKey == user.pubkeyHex)
+        }
     }
 
     private fun zappedPollOptionAmount(option: Int): BigDecimal {
@@ -194,7 +240,8 @@ class PollNoteViewModel : ViewModel() {
             } else {
                 BigDecimal.ZERO
             }
-        } ?: BigDecimal.ZERO
+        }
+            ?: BigDecimal.ZERO
     }
 
     private fun totalZapped(): BigDecimal {
@@ -208,11 +255,14 @@ class PollNoteViewModel : ViewModel() {
             } else {
                 BigDecimal.ZERO
             }
-        } ?: BigDecimal.ZERO
+        }
+            ?: BigDecimal.ZERO
     }
 
     fun createZapOptionsThatMatchThePollingParameters(): List<Long> {
-        val options = account?.zapAmountChoices?.filter { isValidInputVoteAmount(it) }?.toMutableList() ?: mutableListOf()
+        val options =
+            account?.zapAmountChoices?.filter { isValidInputVoteAmount(it) }?.toMutableList()
+                ?: mutableListOf()
         if (options.isEmpty()) {
             valueMinimum?.let { minimum ->
                 valueMaximum?.let { maximum ->

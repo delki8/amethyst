@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.note
 
 import android.content.Context
@@ -91,8 +111,7 @@ class ZapOptionstViewModel : ViewModel() {
         }
     }
 
-    fun cancel() {
-    }
+    fun cancel() {}
 }
 
 @Composable
@@ -102,46 +121,68 @@ fun ZapCustomDialog(
     onProgress: (percent: Float) -> Unit,
     onPayViaIntent: (ImmutableList<ZapPaymentHandler.Payable>) -> Unit,
     accountViewModel: AccountViewModel,
-    baseNote: Note
+    baseNote: Note,
 ) {
     val context = LocalContext.current
     val postViewModel: ZapOptionstViewModel = viewModel()
 
-    LaunchedEffect(accountViewModel) {
-        postViewModel.load(accountViewModel.account)
-    }
+    LaunchedEffect(accountViewModel) { postViewModel.load(accountViewModel.account) }
 
-    val zapTypes = listOf(
-        Triple(LnZapEvent.ZapType.PUBLIC, stringResource(id = R.string.zap_type_public), stringResource(id = R.string.zap_type_public_explainer)),
-        Triple(LnZapEvent.ZapType.PRIVATE, stringResource(id = R.string.zap_type_private), stringResource(id = R.string.zap_type_private_explainer)),
-        Triple(LnZapEvent.ZapType.ANONYMOUS, stringResource(id = R.string.zap_type_anonymous), stringResource(id = R.string.zap_type_anonymous_explainer)),
-        Triple(LnZapEvent.ZapType.NONZAP, stringResource(id = R.string.zap_type_nonzap), stringResource(id = R.string.zap_type_nonzap_explainer))
-    )
+    val zapTypes =
+        listOf(
+            Triple(
+                LnZapEvent.ZapType.PUBLIC,
+                stringResource(id = R.string.zap_type_public),
+                stringResource(id = R.string.zap_type_public_explainer),
+            ),
+            Triple(
+                LnZapEvent.ZapType.PRIVATE,
+                stringResource(id = R.string.zap_type_private),
+                stringResource(id = R.string.zap_type_private_explainer),
+            ),
+            Triple(
+                LnZapEvent.ZapType.ANONYMOUS,
+                stringResource(id = R.string.zap_type_anonymous),
+                stringResource(id = R.string.zap_type_anonymous_explainer),
+            ),
+            Triple(
+                LnZapEvent.ZapType.NONZAP,
+                stringResource(id = R.string.zap_type_nonzap),
+                stringResource(id = R.string.zap_type_nonzap_explainer),
+            ),
+        )
 
-    val zapOptions = remember { zapTypes.map { TitleExplainer(it.second, it.third) }.toImmutableList() }
-    var selectedZapType by remember(accountViewModel) { mutableStateOf(accountViewModel.account.defaultZapType) }
+    val zapOptions =
+        remember {
+            zapTypes.map { TitleExplainer(it.second, it.third) }.toImmutableList()
+        }
+    var selectedZapType by
+        remember(accountViewModel) { mutableStateOf(accountViewModel.account.defaultZapType) }
 
     Dialog(
         onDismissRequest = { onClose() },
-        properties = DialogProperties(
-            dismissOnClickOutside = false,
-            usePlatformDefaultWidth = false
-        )
+        properties =
+            DialogProperties(
+                dismissOnClickOutside = false,
+                usePlatformDefaultWidth = false,
+            ),
     ) {
-        Surface() {
+        Surface {
             Column(modifier = Modifier.padding(10.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    CloseButton(onPress = {
-                        postViewModel.cancel()
-                        onClose()
-                    })
+                    CloseButton(
+                        onPress = {
+                            postViewModel.cancel()
+                            onClose()
+                        },
+                    )
 
                     ZapButton(
-                        isActive = postViewModel.canSend()
+                        isActive = postViewModel.canSend(),
                     ) {
                         accountViewModel.zap(
                             baseNote,
@@ -152,65 +193,61 @@ fun ZapCustomDialog(
                             onError = onError,
                             onProgress = onProgress,
                             onPayViaIntent = onPayViaIntent,
-                            zapType = selectedZapType
+                            zapType = selectedZapType,
                         )
                         onClose()
                     }
                 }
 
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 5.dp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     OutlinedTextField(
                         // stringResource(R.string.new_amount_in_sats
                         label = { Text(text = stringResource(id = R.string.amount_in_sats)) },
                         value = postViewModel.customAmount,
-                        onValueChange = {
-                            postViewModel.customAmount = it
-                        },
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            capitalization = KeyboardCapitalization.None,
-                            keyboardType = KeyboardType.Number
-                        ),
+                        onValueChange = { postViewModel.customAmount = it },
+                        keyboardOptions =
+                            KeyboardOptions.Default.copy(
+                                capitalization = KeyboardCapitalization.None,
+                                keyboardType = KeyboardType.Number,
+                            ),
                         placeholder = {
                             Text(
                                 text = "100, 1000, 5000",
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
                         },
                         singleLine = true,
-                        modifier = Modifier
-                            .padding(end = 5.dp)
-                            .weight(1f)
+                        modifier = Modifier.padding(end = 5.dp).weight(1f),
                     )
 
                     TextSpinner(
                         label = stringResource(id = R.string.zap_type),
-                        placeholder = zapTypes.filter { it.first == accountViewModel.account.defaultZapType }.first().second,
+                        placeholder =
+                            zapTypes
+                                .filter { it.first == accountViewModel.account.defaultZapType }
+                                .first()
+                                .second,
                         options = zapOptions,
-                        onSelect = {
-                            selectedZapType = zapTypes[it].first
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 5.dp)
+                        onSelect = { selectedZapType = zapTypes[it].first },
+                        modifier = Modifier.weight(1f).padding(end = 5.dp),
                     )
                 }
 
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     OutlinedTextField(
                         // stringResource(R.string.new_amount_in_sats
                         label = {
-                            if (selectedZapType == LnZapEvent.ZapType.PUBLIC || selectedZapType == LnZapEvent.ZapType.ANONYMOUS) {
+                            if (
+                                selectedZapType == LnZapEvent.ZapType.PUBLIC ||
+                                selectedZapType == LnZapEvent.ZapType.ANONYMOUS
+                            ) {
                                 Text(text = stringResource(id = R.string.custom_zaps_add_a_message))
                             } else if (selectedZapType == LnZapEvent.ZapType.PRIVATE) {
                                 Text(text = stringResource(id = R.string.custom_zaps_add_a_message_private))
@@ -219,23 +256,20 @@ fun ZapCustomDialog(
                             }
                         },
                         value = postViewModel.customMessage,
-                        onValueChange = {
-                            postViewModel.customMessage = it
-                        },
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            capitalization = KeyboardCapitalization.None,
-                            keyboardType = KeyboardType.Text
-                        ),
+                        onValueChange = { postViewModel.customMessage = it },
+                        keyboardOptions =
+                            KeyboardOptions.Default.copy(
+                                capitalization = KeyboardCapitalization.None,
+                                keyboardType = KeyboardType.Text,
+                            ),
                         placeholder = {
                             Text(
                                 text = stringResource(id = R.string.custom_zaps_add_a_message_example),
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
                         },
                         singleLine = true,
-                        modifier = Modifier
-                            .padding(end = 5.dp)
-                            .weight(1f)
+                        modifier = Modifier.padding(end = 5.dp).weight(1f),
                     )
                 }
             }
@@ -244,13 +278,17 @@ fun ZapCustomDialog(
 }
 
 @Composable
-fun ZapButton(isActive: Boolean, onPost: () -> Unit) {
+fun ZapButton(
+    isActive: Boolean,
+    onPost: () -> Unit,
+) {
     Button(
         onClick = { onPost() },
         shape = ButtonBorder,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isActive) MaterialTheme.colorScheme.primary else Color.Gray
-        )
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = if (isActive) MaterialTheme.colorScheme.primary else Color.Gray,
+            ),
     ) {
         Text(text = "⚡Zap ", color = Color.White)
     }
@@ -262,49 +300,45 @@ fun ErrorMessageDialog(
     textContent: String,
     buttonColors: ButtonColors = ButtonDefaults.buttonColors(),
     onClickStartMessage: (() -> Unit)? = null,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(title)
-        },
-        text = {
-            SelectionContainer {
-                Text(textContent)
-            }
-        },
+        title = { Text(title) },
+        text = { SelectionContainer { Text(textContent) } },
         confirmButton = {
             Row(
-                modifier = Modifier
-                    .padding(vertical = 8.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier.padding(vertical = 8.dp).fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 onClickStartMessage?.let {
                     TextButton(onClick = onClickStartMessage) {
                         Icon(
                             painter = painterResource(R.drawable.ic_dm),
-                            contentDescription = null
+                            contentDescription = null,
                         )
                         Spacer(StdHorzSpacer)
                         Text(stringResource(R.string.error_dialog_talk_to_user))
                     }
                 }
-                Button(onClick = onDismiss, colors = buttonColors, contentPadding = PaddingValues(horizontal = Size16dp)) {
+                Button(
+                    onClick = onDismiss,
+                    colors = buttonColors,
+                    contentPadding = PaddingValues(horizontal = Size16dp),
+                ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Done,
-                            contentDescription = null
+                            contentDescription = null,
                         )
                         Spacer(StdHorzSpacer)
                         Text(stringResource(R.string.error_dialog_button_ok))
                     }
                 }
             }
-        }
+        },
     )
 }
 
@@ -313,7 +347,7 @@ fun PayViaIntentDialog(
     payingInvoices: ImmutableList<ZapPaymentHandler.Payable>,
     accountViewModel: AccountViewModel,
     onClose: () -> Unit,
-    onError: (String) -> Unit
+    onError: (String) -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -323,16 +357,17 @@ fun PayViaIntentDialog(
     } else {
         Dialog(
             onDismissRequest = onClose,
-            properties = DialogProperties(
-                dismissOnClickOutside = false,
-                usePlatformDefaultWidth = false
-            )
+            properties =
+                DialogProperties(
+                    dismissOnClickOutside = false,
+                    usePlatformDefaultWidth = false,
+                ),
         ) {
-            Surface() {
+            Surface {
                 Column(modifier = Modifier.padding(10.dp)) {
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         CloseButton(onPress = onClose)
                     }
@@ -340,11 +375,12 @@ fun PayViaIntentDialog(
                     Spacer(modifier = DoubleVertSpacer)
 
                     payingInvoices.forEachIndexed { index, it ->
-                        val paid = remember {
-                            mutableStateOf(false)
-                        }
+                        val paid = remember { mutableStateOf(false) }
 
-                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = Size10dp)) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(vertical = Size10dp),
+                        ) {
                             if (it.user != null) {
                                 BaseUserPicture(it.user, Size55dp, accountViewModel = accountViewModel)
                             } else {
@@ -362,16 +398,16 @@ fun PayViaIntentDialog(
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 18.sp
+                                        fontSize = 18.sp,
                                     )
                                 }
-                                Row() {
+                                Row {
                                     Text(
                                         text = showAmount((it.amountMilliSats / 1000.0f).toBigDecimal()),
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 18.sp
+                                        fontSize = 18.sp,
                                     )
                                     Spacer(modifier = StdHorzSpacer)
                                     Text(
@@ -379,7 +415,7 @@ fun PayViaIntentDialog(
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
                                         fontWeight = FontWeight.Bold,
-                                        fontSize = 18.sp
+                                        fontSize = 18.sp,
                                     )
                                 }
                             }
@@ -399,7 +435,11 @@ fun PayViaIntentDialog(
     }
 }
 
-fun payViaIntent(invoice: String, context: Context, onError: (String) -> Unit) {
+fun payViaIntent(
+    invoice: String,
+    context: Context,
+    onError: (String) -> Unit,
+) {
     try {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("lightning:$invoice"))
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -415,15 +455,20 @@ fun payViaIntent(invoice: String, context: Context, onError: (String) -> Unit) {
 }
 
 @Composable
-fun PayButton(isActive: Boolean, modifier: Modifier = Modifier, onPost: () -> Unit = {}) {
+fun PayButton(
+    isActive: Boolean,
+    modifier: Modifier = Modifier,
+    onPost: () -> Unit = {},
+) {
     Button(
         modifier = modifier,
         onClick = onPost,
         shape = ButtonBorder,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isActive) MaterialTheme.colorScheme.primary else Color.Gray
-        ),
-        contentPadding = ZeroPadding
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = if (isActive) MaterialTheme.colorScheme.primary else Color.Gray,
+            ),
+        contentPadding = ZeroPadding,
     ) {
         if (isActive) {
             Text(text = stringResource(R.string.pay), color = Color.White)

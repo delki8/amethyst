@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.navigation
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -97,31 +117,30 @@ fun DrawerContent(
     nav: (String) -> Unit,
     drawerState: DrawerState,
     openSheet: () -> Unit,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
     val coroutineScope = rememberCoroutineScope()
     val onClickUser = {
         nav("User/${accountViewModel.userProfile().pubkeyHex}")
-        coroutineScope.launch {
-            drawerState.close()
-        }
+        coroutineScope.launch { drawerState.close() }
         Unit
     }
 
-    val automaticallyShowProfilePicture = remember {
-        accountViewModel.settings.showProfilePictures.value
-    }
+    val automaticallyShowProfilePicture =
+        remember {
+            accountViewModel.settings.showProfilePictures.value
+        }
 
     ModalDrawerSheet(
         drawerContainerColor = MaterialTheme.colorScheme.background,
-        drawerTonalElevation = 0.dp
+        drawerTonalElevation = 0.dp,
     ) {
-        Column() {
+        Column {
             ProfileContent(
                 baseAccountUser = accountViewModel.account.userProfile(),
                 modifier = profileContentHeaderModifier,
                 accountViewModel,
-                onClickUser
+                onClickUser,
             )
 
             Column(drawerSpacing) {
@@ -132,24 +151,22 @@ fun DrawerContent(
 
             Divider(
                 thickness = DividerThickness,
-                modifier = Modifier.padding(top = 20.dp)
+                modifier = Modifier.padding(top = 20.dp),
             )
 
             ListContent(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
+                modifier = Modifier.fillMaxWidth().weight(1f),
                 drawerState,
                 openSheet,
                 accountViewModel,
-                nav
+                nav,
             )
 
             BottomContent(
                 accountViewModel.account.userProfile(),
                 drawerState,
                 automaticallyShowProfilePicture,
-                nav
+                nav,
             )
         }
     }
@@ -160,7 +177,7 @@ fun ProfileContent(
     baseAccountUser: User,
     modifier: Modifier = Modifier,
     accountViewModel: AccountViewModel,
-    onClickUser: () -> Unit
+    onClickUser: () -> Unit,
 ) {
     val userInfo by baseAccountUser.live().userMetadataInfo.observeAsState()
 
@@ -172,7 +189,7 @@ fun ProfileContent(
         tags = userInfo?.tags,
         modifier = modifier,
         accountViewModel = accountViewModel,
-        onClick = onClickUser
+        onClick = onClickUser,
     )
 }
 
@@ -185,7 +202,7 @@ fun ProfileContentTemplate(
     tags: ImmutableListOfLists<String>?,
     modifier: Modifier,
     accountViewModel: AccountViewModel,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Box {
         if (profileBanner != null) {
@@ -193,14 +210,14 @@ fun ProfileContentTemplate(
                 model = profileBanner,
                 contentDescription = stringResource(id = R.string.profile_image),
                 contentScale = ContentScale.FillWidth,
-                modifier = bannerModifier
+                modifier = bannerModifier,
             )
         } else {
             Image(
                 painter = painterResource(R.drawable.profile_banner),
                 contentDescription = stringResource(R.string.profile_banner),
                 contentScale = ContentScale.FillWidth,
-                modifier = bannerModifier
+                modifier = bannerModifier,
             )
         }
 
@@ -209,27 +226,25 @@ fun ProfileContentTemplate(
                 robot = profilePubHex,
                 model = profilePicture,
                 contentDescription = stringResource(id = R.string.profile_image),
-                modifier = Modifier
-                    .width(100.dp)
-                    .height(100.dp)
-                    .clip(shape = CircleShape)
-                    .border(3.dp, MaterialTheme.colorScheme.background, CircleShape)
-                    .background(MaterialTheme.colorScheme.background)
-                    .clickable(onClick = onClick),
-                loadProfilePicture = accountViewModel.settings.showProfilePictures.value
+                modifier =
+                    Modifier.width(100.dp)
+                        .height(100.dp)
+                        .clip(shape = CircleShape)
+                        .border(3.dp, MaterialTheme.colorScheme.background, CircleShape)
+                        .background(MaterialTheme.colorScheme.background)
+                        .clickable(onClick = onClick),
+                loadProfilePicture = accountViewModel.settings.showProfilePictures.value,
             )
 
             if (bestDisplayName != null) {
                 CreateTextWithEmoji(
                     text = bestDisplayName,
                     tags = tags,
-                    modifier = Modifier
-                        .padding(top = 7.dp)
-                        .clickable(onClick = onClick),
+                    modifier = Modifier.padding(top = 7.dp).clickable(onClick = onClick),
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -237,7 +252,10 @@ fun ProfileContentTemplate(
 }
 
 @Composable
-private fun EditStatusBoxes(baseAccountUser: User, accountViewModel: AccountViewModel) {
+private fun EditStatusBoxes(
+    baseAccountUser: User,
+    accountViewModel: AccountViewModel,
+) {
     LoadStatuses(user = baseAccountUser, accountViewModel) { statuses ->
         if (statuses.isEmpty()) {
             StatusEditBar(accountViewModel = accountViewModel)
@@ -255,18 +273,12 @@ private fun EditStatusBoxes(baseAccountUser: User, accountViewModel: AccountView
 fun StatusEditBar(
     savedStatus: String? = null,
     tag: ATag? = null,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
     val focusManager = LocalFocusManager.current
 
-    val currentStatus = remember {
-        mutableStateOf(savedStatus ?: "")
-    }
-    val hasChanged = remember {
-        derivedStateOf {
-            currentStatus.value != (savedStatus ?: "")
-        }
-    }
+    val currentStatus = remember { mutableStateOf(savedStatus ?: "") }
+    val hasChanged = remember { derivedStateOf { currentStatus.value != (savedStatus ?: "") } }
 
     OutlinedTextField(
         value = currentStatus.value,
@@ -276,24 +288,26 @@ fun StatusEditBar(
         placeholder = {
             Text(
                 text = stringResource(R.string.status_update),
-                color = MaterialTheme.colorScheme.placeholderText
+                color = MaterialTheme.colorScheme.placeholderText,
             )
         },
-        keyboardOptions = KeyboardOptions.Default.copy(
-            imeAction = ImeAction.Send,
-            capitalization = KeyboardCapitalization.Sentences
-        ),
-        keyboardActions = KeyboardActions(
-            onSend = {
-                if (tag == null) {
-                    accountViewModel.createStatus(currentStatus.value)
-                } else {
-                    accountViewModel.updateStatus(tag, currentStatus.value)
-                }
+        keyboardOptions =
+            KeyboardOptions.Default.copy(
+                imeAction = ImeAction.Send,
+                capitalization = KeyboardCapitalization.Sentences,
+            ),
+        keyboardActions =
+            KeyboardActions(
+                onSend = {
+                    if (tag == null) {
+                        accountViewModel.createStatus(currentStatus.value)
+                    } else {
+                        accountViewModel.updateStatus(tag, currentStatus.value)
+                    }
 
-                focusManager.clearFocus(true)
-            }
-        ),
+                    focusManager.clearFocus(true)
+                },
+            ),
         singleLine = true,
         trailingIcon = {
             if (hasChanged.value) {
@@ -313,7 +327,7 @@ fun StatusEditBar(
                     }
                 }
             }
-        }
+        },
     )
 }
 
@@ -321,13 +335,13 @@ fun StatusEditBar(
 fun SendButton(onClick: () -> Unit) {
     IconButton(
         modifier = Size26Modifier,
-        onClick = onClick
+        onClick = onClick,
     ) {
         Icon(
             imageVector = Icons.Default.Send,
             null,
             modifier = Size20Modifier,
-            tint = MaterialTheme.colorScheme.placeholderText
+            tint = MaterialTheme.colorScheme.placeholderText,
         )
     }
 }
@@ -336,19 +350,22 @@ fun SendButton(onClick: () -> Unit) {
 fun UserStatusDeleteButton(onClick: () -> Unit) {
     IconButton(
         modifier = Size26Modifier,
-        onClick = onClick
+        onClick = onClick,
     ) {
         Icon(
             imageVector = Icons.Default.Delete,
             null,
             modifier = Size20Modifier,
-            tint = MaterialTheme.colorScheme.placeholderText
+            tint = MaterialTheme.colorScheme.placeholderText,
         )
     }
 }
 
 @Composable
-private fun FollowingAndFollowerCounts(baseAccountUser: User, onClick: () -> Unit) {
+private fun FollowingAndFollowerCounts(
+    baseAccountUser: User,
+    onClick: () -> Unit,
+) {
     var followingCount by remember { mutableStateOf("--") }
     var followerCount by remember { mutableStateOf("--") }
 
@@ -365,11 +382,11 @@ private fun FollowingAndFollowerCounts(baseAccountUser: User, onClick: () -> Uni
     }
 
     Row(
-        modifier = drawerSpacing.clickable(onClick = onClick)
+        modifier = drawerSpacing.clickable(onClick = onClick),
     ) {
         Text(
             text = followingCount,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
 
         Text(stringResource(R.string.following))
@@ -378,7 +395,7 @@ private fun FollowingAndFollowerCounts(baseAccountUser: User, onClick: () -> Uni
 
         Text(
             text = followerCount,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
 
         Text(stringResource(R.string.followers))
@@ -386,7 +403,10 @@ private fun FollowingAndFollowerCounts(baseAccountUser: User, onClick: () -> Uni
 }
 
 @Composable
-fun WatchFollow(baseAccountUser: User, onReady: (String) -> Unit) {
+fun WatchFollow(
+    baseAccountUser: User,
+    onReady: (String) -> Unit,
+) {
     val accountUserFollowsState by baseAccountUser.live().follows.observeAsState()
 
     LaunchedEffect(key1 = accountUserFollowsState) {
@@ -397,7 +417,10 @@ fun WatchFollow(baseAccountUser: User, onReady: (String) -> Unit) {
 }
 
 @Composable
-fun WatchFollower(baseAccountUser: User, onReady: (String) -> Unit) {
+fun WatchFollower(
+    baseAccountUser: User,
+    onReady: (String) -> Unit,
+) {
     val accountUserFollowersState by baseAccountUser.live().followers.observeAsState()
 
     LaunchedEffect(key1 = accountUserFollowersState) {
@@ -413,11 +436,9 @@ fun ListContent(
     drawerState: DrawerState,
     openSheet: () -> Unit,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    val route = remember(accountViewModel) {
-        "User/${accountViewModel.userProfile().pubkeyHex}"
-    }
+    val route = remember(accountViewModel) { "User/${accountViewModel.userProfile().pubkeyHex}" }
 
     val coroutineScope = rememberCoroutineScope()
     var wantsToEditRelays by remember { mutableStateOf(false) }
@@ -430,9 +451,7 @@ fun ListContent(
     val context = LocalContext.current
 
     Column(
-        modifier = modifier
-            .fillMaxHeight()
-            .verticalScroll(rememberScrollState())
+        modifier = modifier.fillMaxHeight().verticalScroll(rememberScrollState()),
     ) {
         NavigationRow(
             title = stringResource(R.string.profile),
@@ -440,7 +459,7 @@ fun ListContent(
             tint = MaterialTheme.colorScheme.primary,
             nav = nav,
             drawerState = drawerState,
-            route = route
+            route = route,
         )
 
         NavigationRow(
@@ -449,17 +468,15 @@ fun ListContent(
             tint = MaterialTheme.colorScheme.onBackground,
             nav = nav,
             drawerState = drawerState,
-            route = Route.Bookmarks.route
+            route = Route.Bookmarks.route,
         )
 
         IconRowRelays(
             accountViewModel = accountViewModel,
             onClick = {
-                coroutineScope.launch {
-                    drawerState.close()
-                }
+                coroutineScope.launch { drawerState.close() }
                 wantsToEditRelays = true
-            }
+            },
         )
 
         NavigationRow(
@@ -468,7 +485,7 @@ fun ListContent(
             tint = MaterialTheme.colorScheme.onBackground,
             nav = nav,
             drawerState = drawerState,
-            route = Route.BlockedUsers.route
+            route = Route.BlockedUsers.route,
         )
 
         accountViewModel.account.keyPair.privKey?.let {
@@ -477,34 +494,33 @@ fun ListContent(
                 icon = R.drawable.ic_key,
                 tint = MaterialTheme.colorScheme.onBackground,
                 onClick = {
-                    coroutineScope.launch {
-                        drawerState.close()
-                    }
+                    coroutineScope.launch { drawerState.close() }
                     backupDialogOpen = true
-                }
+                },
             )
         }
 
         IconRow(
-            title = if (checked) stringResource(R.string.disconnect_from_your_orbot_setup) else stringResource(R.string.connect_via_tor_short),
+            title =
+                if (checked) {
+                    stringResource(R.string.disconnect_from_your_orbot_setup)
+                } else {
+                    stringResource(R.string.connect_via_tor_short)
+                },
             icon = R.drawable.ic_tor,
             tint = MaterialTheme.colorScheme.onBackground,
             onLongClick = {
-                coroutineScope.launch {
-                    drawerState.close()
-                }
+                coroutineScope.launch { drawerState.close() }
                 conectOrbotDialogOpen = true
             },
             onClick = {
                 if (checked) {
                     disconnectTorDialog = true
                 } else {
-                    coroutineScope.launch {
-                        drawerState.close()
-                    }
+                    coroutineScope.launch { drawerState.close() }
                     conectOrbotDialogOpen = true
                 }
-            }
+            },
         )
 
         NavigationRow(
@@ -513,7 +529,7 @@ fun ListContent(
             tint = MaterialTheme.colorScheme.onBackground,
             nav = nav,
             drawerState = drawerState,
-            route = Route.Settings.route
+            route = Route.Settings.route,
         )
 
         Spacer(modifier = Modifier.weight(1f))
@@ -522,7 +538,7 @@ fun ListContent(
             title = stringResource(R.string.drawer_accounts),
             icon = R.drawable.manage_accounts,
             tint = MaterialTheme.colorScheme.onBackground,
-            onClick = openSheet
+            onClick = openSheet,
         )
     }
 
@@ -544,44 +560,36 @@ fun ListContent(
             onError = {
                 accountViewModel.toast(
                     context.getString(R.string.could_not_connect_to_tor),
-                    it
+                    it,
                 )
             },
-            proxyPort
+            proxyPort,
         )
     }
 
     if (disconnectTorDialog) {
         AlertDialog(
-            title = {
-                Text(text = stringResource(R.string.do_you_really_want_to_disable_tor_title))
-            },
-            text = {
-                Text(text = stringResource(R.string.do_you_really_want_to_disable_tor_text))
-            },
-            onDismissRequest = {
-                disconnectTorDialog = false
-            },
+            title = { Text(text = stringResource(R.string.do_you_really_want_to_disable_tor_title)) },
+            text = { Text(text = stringResource(R.string.do_you_really_want_to_disable_tor_text)) },
+            onDismissRequest = { disconnectTorDialog = false },
             confirmButton = {
                 TextButton(
                     onClick = {
                         disconnectTorDialog = false
                         checked = false
                         accountViewModel.enableTor(false, proxyPort)
-                    }
+                    },
                 ) {
                     Text(text = stringResource(R.string.yes))
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = {
-                        disconnectTorDialog = false
-                    }
+                    onClick = { disconnectTorDialog = false },
                 ) {
                     Text(text = stringResource(R.string.no))
                 }
-            }
+            },
         )
     }
 }
@@ -594,31 +602,27 @@ private fun RelayStatus(accountViewModel: AccountViewModel) {
 }
 
 @Composable
-private fun RenderRelayStatus(
-    relayPool: RelayPoolStatus
-) {
-    val text by remember(relayPool) {
-        derivedStateOf {
-            "${relayPool.connected}/${relayPool.available}"
-        }
-    }
+private fun RenderRelayStatus(relayPool: RelayPoolStatus) {
+    val text by
+        remember(relayPool) { derivedStateOf { "${relayPool.connected}/${relayPool.available}" } }
 
     val placeHolder = MaterialTheme.colorScheme.placeholderText
 
-    val color by remember(relayPool) {
-        derivedStateOf {
-            if (relayPool.isConnected) {
-                placeHolder
-            } else {
-                Color.Red
+    val color by
+        remember(relayPool) {
+            derivedStateOf {
+                if (relayPool.isConnected) {
+                    placeHolder
+                } else {
+                    Color.Red
+                }
             }
         }
-    }
 
     Text(
         text = text,
         color = color,
-        style = MaterialTheme.typography.titleMedium
+        style = MaterialTheme.typography.titleMedium,
     )
 }
 
@@ -629,71 +633,79 @@ fun NavigationRow(
     tint: Color,
     nav: (String) -> Unit,
     drawerState: DrawerState,
-    route: String
+    route: String,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    IconRow(title, icon, tint, onClick = {
-        nav(route)
-        coroutineScope.launch {
-            drawerState.close()
-        }
-    })
+    IconRow(
+        title,
+        icon,
+        tint,
+        onClick = {
+            nav(route)
+            coroutineScope.launch { drawerState.close() }
+        },
+    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun IconRow(title: String, icon: Int, tint: Color, onClick: () -> Unit, onLongClick: (() -> Unit)? = null) {
+fun IconRow(
+    title: String,
+    icon: Int,
+    tint: Color,
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
+) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
-            )
+        modifier =
+            Modifier.fillMaxWidth()
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = onLongClick,
+                ),
     ) {
         Row(
             modifier = IconRowModifier,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 painter = painterResource(icon),
                 null,
                 modifier = Size22Modifier,
-                tint = tint
+                tint = tint,
             )
             Text(
                 modifier = IconRowTextModifier,
                 text = title,
-                fontSize = Font18SP
+                fontSize = Font18SP,
             )
         }
     }
 }
 
 @Composable
-fun IconRowRelays(accountViewModel: AccountViewModel, onClick: () -> Unit) {
+fun IconRowRelays(
+    accountViewModel: AccountViewModel,
+    onClick: () -> Unit,
+) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 15.dp, horizontal = 25.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth().padding(vertical = 15.dp, horizontal = 25.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 painter = painterResource(R.drawable.relays),
                 null,
                 modifier = Modifier.size(22.dp),
-                tint = MaterialTheme.colorScheme.onSurface
+                tint = MaterialTheme.colorScheme.onSurface,
             )
 
             Text(
                 modifier = Modifier.padding(start = 16.dp),
                 text = stringResource(id = R.string.relay_setup),
-                fontSize = 18.sp
+                fontSize = 18.sp,
             )
 
             Spacer(modifier = Modifier.width(Size16dp))
@@ -704,60 +716,61 @@ fun IconRowRelays(accountViewModel: AccountViewModel, onClick: () -> Unit) {
 }
 
 @Composable
-fun BottomContent(user: User, drawerState: DrawerState, loadProfilePicture: Boolean, nav: (String) -> Unit) {
+fun BottomContent(
+    user: User,
+    drawerState: DrawerState,
+    loadProfilePicture: Boolean,
+    nav: (String) -> Unit,
+) {
     val coroutineScope = rememberCoroutineScope()
 
     // store the dialog open or close state
-    var dialogOpen by remember {
-        mutableStateOf(false)
-    }
+    var dialogOpen by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier) {
         Divider(
             modifier = Modifier.padding(top = 15.dp),
-            thickness = DividerThickness
+            thickness = DividerThickness,
         )
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 15.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 15.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 modifier = Modifier.padding(start = 16.dp),
                 text = "v" + BuildConfig.VERSION_NAME + "-" + BuildConfig.FLAVOR.uppercase(),
                 fontSize = 12.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
-            /*
+      /*
+      IconButton(
+          onClick = {
+              when (AppCompatDelegate.getDefaultNightMode()) {
+                  AppCompatDelegate.MODE_NIGHT_NO -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                  AppCompatDelegate.MODE_NIGHT_YES -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                  else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+              }
+          }
+      ) {
+          Icon(
+              painter = painterResource(R.drawable.ic_theme),
+              null,
+              modifier = Modifier.size(24.dp),
+              tint = MaterialTheme.colorScheme.primary
+          )
+      }*/
+            Box(modifier = Modifier.weight(1F))
             IconButton(
                 onClick = {
-                    when (AppCompatDelegate.getDefaultNightMode()) {
-                        AppCompatDelegate.MODE_NIGHT_NO -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-                        AppCompatDelegate.MODE_NIGHT_YES -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                        else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-                    }
-                }
+                    dialogOpen = true
+                    coroutineScope.launch { drawerState.close() }
+                },
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_theme),
-                    null,
-                    modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }*/
-            Box(modifier = Modifier.weight(1F))
-            IconButton(onClick = {
-                dialogOpen = true
-                coroutineScope.launch {
-                    drawerState.close()
-                }
-            }) {
                 Icon(
                     painter = painterResource(R.drawable.ic_qrcode),
                     null,
                     modifier = Modifier.size(24.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.primary,
                 )
             }
         }
@@ -769,12 +782,10 @@ fun BottomContent(user: User, drawerState: DrawerState, loadProfilePicture: Bool
             loadProfilePicture = loadProfilePicture,
             onScan = {
                 dialogOpen = false
-                coroutineScope.launch {
-                    drawerState.close()
-                }
+                coroutineScope.launch { drawerState.close() }
                 nav(it)
             },
-            onClose = { dialogOpen = false }
+            onClose = { dialogOpen = false },
         )
     }
 }

@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.screen
 
 import androidx.appcompat.app.AppCompatDelegate
@@ -38,37 +58,41 @@ class SettingsState() {
     var windowSizeClass = mutableStateOf<WindowSizeClass?>(null)
     var displayFeatures = mutableStateOf<List<DisplayFeature>>(emptyList())
 
-    val showProfilePictures = derivedStateOf {
-        when (automaticallyShowProfilePictures) {
-            ConnectivityType.WIFI_ONLY -> !isOnMobileData.value
-            ConnectivityType.NEVER -> false
-            ConnectivityType.ALWAYS -> true
+    val showProfilePictures =
+        derivedStateOf {
+            when (automaticallyShowProfilePictures) {
+                ConnectivityType.WIFI_ONLY -> !isOnMobileData.value
+                ConnectivityType.NEVER -> false
+                ConnectivityType.ALWAYS -> true
+            }
         }
-    }
 
-    val showUrlPreview = derivedStateOf {
-        when (automaticallyShowUrlPreview) {
-            ConnectivityType.WIFI_ONLY -> !isOnMobileData.value
-            ConnectivityType.NEVER -> false
-            ConnectivityType.ALWAYS -> true
+    val showUrlPreview =
+        derivedStateOf {
+            when (automaticallyShowUrlPreview) {
+                ConnectivityType.WIFI_ONLY -> !isOnMobileData.value
+                ConnectivityType.NEVER -> false
+                ConnectivityType.ALWAYS -> true
+            }
         }
-    }
 
-    val startVideoPlayback = derivedStateOf {
-        when (automaticallyStartPlayback) {
-            ConnectivityType.WIFI_ONLY -> !isOnMobileData.value
-            ConnectivityType.NEVER -> false
-            ConnectivityType.ALWAYS -> true
+    val startVideoPlayback =
+        derivedStateOf {
+            when (automaticallyStartPlayback) {
+                ConnectivityType.WIFI_ONLY -> !isOnMobileData.value
+                ConnectivityType.NEVER -> false
+                ConnectivityType.ALWAYS -> true
+            }
         }
-    }
 
-    val showImages = derivedStateOf {
-        when (automaticallyShowImages) {
-            ConnectivityType.WIFI_ONLY -> !isOnMobileData.value
-            ConnectivityType.NEVER -> false
-            ConnectivityType.ALWAYS -> true
+    val showImages =
+        derivedStateOf {
+            when (automaticallyShowImages) {
+                ConnectivityType.WIFI_ONLY -> !isOnMobileData.value
+                ConnectivityType.NEVER -> false
+                ConnectivityType.ALWAYS -> true
+            }
         }
-    }
 }
 
 @Stable
@@ -77,9 +101,9 @@ class SharedPreferencesViewModel : ViewModel() {
 
     fun init() {
         viewModelScope.launch(Dispatchers.IO) {
-            val savedSettings = LocalPreferences.loadSharedSettings()
-                ?: LocalPreferences.migrateOldSharedSettings()
-                ?: Settings()
+            val savedSettings =
+                LocalPreferences.loadSharedSettings()
+                    ?: LocalPreferences.migrateOldSharedSettings() ?: Settings()
 
             sharedPrefs.theme = savedSettings.theme
             sharedPrefs.language = savedSettings.preferredLanguage
@@ -89,7 +113,8 @@ class SharedPreferencesViewModel : ViewModel() {
             sharedPrefs.automaticallyHideNavigationBars = savedSettings.automaticallyHideNavigationBars
             sharedPrefs.automaticallyShowProfilePictures = savedSettings.automaticallyShowProfilePictures
             sharedPrefs.dontShowPushNotificationSelector = savedSettings.dontShowPushNotificationSelector
-            sharedPrefs.dontAskForNotificationPermissions = savedSettings.dontAskForNotificationPermissions
+            sharedPrefs.dontAskForNotificationPermissions =
+                savedSettings.dontAskForNotificationPermissions
 
             updateLanguageInTheUI()
         }
@@ -115,7 +140,7 @@ class SharedPreferencesViewModel : ViewModel() {
         if (sharedPrefs.language != null) {
             viewModelScope.launch(Dispatchers.Main) {
                 AppCompatDelegate.setApplicationLocales(
-                    LocaleListCompat.forLanguageTags(sharedPrefs.language)
+                    LocaleListCompat.forLanguageTags(sharedPrefs.language),
                 )
             }
         }
@@ -176,7 +201,10 @@ class SharedPreferencesViewModel : ViewModel() {
         }
     }
 
-    fun updateDisplaySettings(windowSizeClass: WindowSizeClass, displayFeatures: List<DisplayFeature>) {
+    fun updateDisplaySettings(
+        windowSizeClass: WindowSizeClass,
+        displayFeatures: List<DisplayFeature>,
+    ) {
         if (sharedPrefs.windowSizeClass.value != windowSizeClass) {
             sharedPrefs.windowSizeClass.value = windowSizeClass
         }
@@ -197,8 +225,8 @@ class SharedPreferencesViewModel : ViewModel() {
                     sharedPrefs.automaticallyHideNavigationBars,
                     sharedPrefs.automaticallyShowProfilePictures,
                     sharedPrefs.dontShowPushNotificationSelector,
-                    sharedPrefs.dontAskForNotificationPermissions
-                )
+                    sharedPrefs.dontAskForNotificationPermissions,
+                ),
             )
         }
     }

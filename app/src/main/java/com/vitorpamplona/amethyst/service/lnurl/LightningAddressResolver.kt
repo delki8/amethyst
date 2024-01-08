@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.service.lnurl
 
 import android.content.Context
@@ -35,7 +55,7 @@ class LightningAddressResolver() {
         lnaddress: String,
         onSuccess: (String) -> Unit,
         onError: (String, String) -> Unit,
-        context: Context
+        context: Context,
     ) {
         checkNotInMainThread()
 
@@ -46,17 +66,18 @@ class LightningAddressResolver() {
                 context.getString(R.string.error_unable_to_fetch_invoice),
                 context.getString(
                     R.string.could_not_assemble_lnurl_from_lightning_address_check_the_user_s_setup,
-                    lnaddress
-                )
+                    lnaddress,
+                ),
             )
             return
         }
 
         try {
-            val request: Request = Request.Builder()
-                .header("User-Agent", "Amethyst/${BuildConfig.VERSION_NAME}")
-                .url(url)
-                .build()
+            val request: Request =
+                Request.Builder()
+                    .header("User-Agent", "Amethyst/${BuildConfig.VERSION_NAME}")
+                    .url(url)
+                    .build()
 
             client.newCall(request).execute().use {
                 if (it.isSuccessful) {
@@ -65,11 +86,12 @@ class LightningAddressResolver() {
                     onError(
                         context.getString(R.string.error_unable_to_fetch_invoice),
                         context.getString(
-                            R.string.the_receiver_s_lightning_service_at_is_not_available_it_was_calculated_from_the_lightning_address_error_check_if_the_server_is_up_and_if_the_lightning_address_is_correct,
+                            R.string
+                                .the_receiver_s_lightning_service_at_is_not_available_it_was_calculated_from_the_lightning_address_error_check_if_the_server_is_up_and_if_the_lightning_address_is_correct,
                             url,
                             lnaddress,
-                            it.code.toString()
-                        )
+                            it.code.toString(),
+                        ),
                     )
                 }
             }
@@ -78,10 +100,11 @@ class LightningAddressResolver() {
             onError(
                 context.getString(R.string.error_unable_to_fetch_invoice),
                 context.getString(
-                    R.string.could_not_resolve_check_if_you_are_connected_if_the_server_is_up_and_if_the_lightning_address_is_correct,
+                    R.string
+                        .could_not_resolve_check_if_you_are_connected_if_the_server_is_up_and_if_the_lightning_address_is_correct,
                     url,
-                    lnaddress
-                )
+                    lnaddress,
+                ),
             )
         }
     }
@@ -93,7 +116,7 @@ class LightningAddressResolver() {
         nostrRequest: String? = null,
         onSuccess: (String) -> Unit,
         onError: (String, String) -> Unit,
-        context: Context
+        context: Context,
     ) {
         checkNotInMainThread()
 
@@ -107,10 +130,11 @@ class LightningAddressResolver() {
             url += "&nostr=$encodedNostrRequest"
         }
 
-        val request: Request = Request.Builder()
-            .header("User-Agent", "Amethyst/${BuildConfig.VERSION_NAME}")
-            .url(url)
-            .build()
+        val request: Request =
+            Request.Builder()
+                .header("User-Agent", "Amethyst/${BuildConfig.VERSION_NAME}")
+                .url(url)
+                .build()
 
         client.newCall(request).execute().use {
             if (it.isSuccessful) {
@@ -118,20 +142,23 @@ class LightningAddressResolver() {
             } else {
                 onError(
                     context.getString(R.string.error_unable_to_fetch_invoice),
-                    context.getString(R.string.could_not_fetch_invoice_from, lnCallback)
+                    context.getString(R.string.could_not_fetch_invoice_from, lnCallback),
                 )
             }
         }
     }
 
-    fun lnAddressToLnUrl(lnaddress: String, onSuccess: (String) -> Unit, onError: (String, String) -> Unit, context: Context) {
+    fun lnAddressToLnUrl(
+        lnaddress: String,
+        onSuccess: (String) -> Unit,
+        onError: (String, String) -> Unit,
+        context: Context,
+    ) {
         fetchLightningAddressJson(
             lnaddress,
-            onSuccess = {
-                onSuccess(it.toByteArray().toLnUrl())
-            },
+            onSuccess = { onSuccess(it.toByteArray().toLnUrl()) },
             onError = onError,
-            context = context
+            context = context,
         )
     }
 
@@ -143,7 +170,7 @@ class LightningAddressResolver() {
         onSuccess: (String) -> Unit,
         onError: (String, String) -> Unit,
         onProgress: (percent: Float) -> Unit,
-        context: Context
+        context: Context,
     ) {
         val mapper = jacksonObjectMapper()
 
@@ -152,22 +179,27 @@ class LightningAddressResolver() {
             onSuccess = { lnAddressJson ->
                 onProgress(0.4f)
 
-                val lnurlp = try {
-                    mapper.readTree(lnAddressJson)
-                } catch (t: Throwable) {
-                    onError(
-                        context.getString(R.string.error_unable_to_fetch_invoice),
-                        context.getString(R.string.error_parsing_json_from_lightning_address_check_the_user_s_lightning_setup)
-                    )
-                    null
-                }
+                val lnurlp =
+                    try {
+                        mapper.readTree(lnAddressJson)
+                    } catch (t: Throwable) {
+                        onError(
+                            context.getString(R.string.error_unable_to_fetch_invoice),
+                            context.getString(
+                                R.string.error_parsing_json_from_lightning_address_check_the_user_s_lightning_setup,
+                            ),
+                        )
+                        null
+                    }
 
                 val callback = lnurlp?.get("callback")?.asText()
 
                 if (callback == null) {
                     onError(
                         context.getString(R.string.error_unable_to_fetch_invoice),
-                        context.getString(R.string.callback_url_not_found_in_the_user_s_lightning_address_server_configuration)
+                        context.getString(
+                            R.string.callback_url_not_found_in_the_user_s_lightning_address_server_configuration,
+                        ),
                     )
                 }
 
@@ -182,59 +214,78 @@ class LightningAddressResolver() {
                         onSuccess = {
                             onProgress(0.6f)
 
-                            val lnInvoice = try {
-                                mapper.readTree(it)
-                            } catch (t: Throwable) {
-                                onError(
-                                    context.getString(R.string.error_unable_to_fetch_invoice),
-                                    context.getString(R.string.error_parsing_json_from_lightning_address_s_invoice_fetch_check_the_user_s_lightning_setup)
-                                )
-                                null
-                            }
+                            val lnInvoice =
+                                try {
+                                    mapper.readTree(it)
+                                } catch (t: Throwable) {
+                                    onError(
+                                        context.getString(R.string.error_unable_to_fetch_invoice),
+                                        context.getString(
+                                            R.string
+                                                .error_parsing_json_from_lightning_address_s_invoice_fetch_check_the_user_s_lightning_setup,
+                                        ),
+                                    )
+                                    null
+                                }
 
-                            lnInvoice?.get("pr")?.asText()?.ifBlank { null }?.let { pr ->
-                                // Forces LN Invoice amount to be the requested amount.
-                                val expectedAmountInSats = BigDecimal(milliSats).divide(BigDecimal(1000), RoundingMode.HALF_UP).toLong()
-                                val invoiceAmount = LnInvoiceUtil.getAmountInSats(pr)
-                                if (invoiceAmount.toLong() == expectedAmountInSats) {
-                                    onProgress(0.7f)
-                                    onSuccess(pr)
-                                } else {
+                            lnInvoice
+                                ?.get("pr")
+                                ?.asText()
+                                ?.ifBlank { null }
+                                ?.let { pr ->
+                                    // Forces LN Invoice amount to be the requested amount.
+                                    val expectedAmountInSats =
+                                        BigDecimal(milliSats).divide(BigDecimal(1000), RoundingMode.HALF_UP).toLong()
+                                    val invoiceAmount = LnInvoiceUtil.getAmountInSats(pr)
+                                    if (invoiceAmount.toLong() == expectedAmountInSats) {
+                                        onProgress(0.7f)
+                                        onSuccess(pr)
+                                    } else {
+                                        onProgress(0.0f)
+                                        onError(
+                                            context.getString(R.string.error_unable_to_fetch_invoice),
+                                            context.getString(
+                                                R.string.incorrect_invoice_amount_sats_from_it_should_have_been,
+                                                invoiceAmount.toLong().toString(),
+                                                lnaddress,
+                                                expectedAmountInSats.toString(),
+                                            ),
+                                        )
+                                    }
+                                }
+                                ?: lnInvoice
+                                    ?.get("reason")
+                                    ?.asText()
+                                    ?.ifBlank { null }
+                                    ?.let { reason ->
+                                        onProgress(0.0f)
+                                        onError(
+                                            context.getString(R.string.error_unable_to_fetch_invoice),
+                                            context.getString(
+                                                R.string
+                                                    .unable_to_create_a_lightning_invoice_before_sending_the_zap_the_receiver_s_lightning_wallet_sent_the_following_error,
+                                                reason,
+                                            ),
+                                        )
+                                    }
+                                ?: run {
                                     onProgress(0.0f)
                                     onError(
                                         context.getString(R.string.error_unable_to_fetch_invoice),
                                         context.getString(
-                                            R.string.incorrect_invoice_amount_sats_from_it_should_have_been,
-                                            invoiceAmount.toLong().toString(),
-                                            lnaddress,
-                                            expectedAmountInSats.toString()
-                                        )
+                                            R.string
+                                                .unable_to_create_a_lightning_invoice_before_sending_the_zap_element_pr_not_found_in_the_resulting_json,
+                                        ),
                                     )
                                 }
-                            } ?: lnInvoice?.get("reason")?.asText()?.ifBlank { null }?.let { reason ->
-                                onProgress(0.0f)
-                                onError(
-                                    context.getString(R.string.error_unable_to_fetch_invoice),
-                                    context.getString(
-                                        R.string.unable_to_create_a_lightning_invoice_before_sending_the_zap_the_receiver_s_lightning_wallet_sent_the_following_error,
-                                        reason
-                                    )
-                                )
-                            } ?: run {
-                                onProgress(0.0f)
-                                onError(
-                                    context.getString(R.string.error_unable_to_fetch_invoice),
-                                    context.getString(R.string.unable_to_create_a_lightning_invoice_before_sending_the_zap_element_pr_not_found_in_the_resulting_json)
-                                )
-                            }
                         },
                         onError = onError,
-                        context
+                        context,
                     )
                 }
             },
             onError = onError,
-            context
+            context,
         )
     }
 }

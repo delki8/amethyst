@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.service
 
 import android.os.Looper
@@ -17,11 +37,12 @@ import org.junit.Before
 import org.junit.Test
 
 class Nip05NostrAddressVerifierTest {
-    private val ALL_UPPER_CASE_USER_NAME = "ONETWO"
-    private val ALL_LOWER_CASE_USER_NAME = "onetwo"
+    companion object {
+        private val ALL_UPPER_CASE_USER_NAME = "ONETWO"
+        private val ALL_LOWER_CASE_USER_NAME = "onetwo"
+    }
 
-    @SpyK
-    var nip05Verifier = Nip05NostrAddressVerifier()
+    @SpyK var nip05Verifier = Nip05NostrAddressVerifier()
 
     @Before
     fun setUp() {
@@ -32,70 +53,64 @@ class Nip05NostrAddressVerifierTest {
     }
 
     @Test
-    fun `test with matching case on user name`() = runBlocking {
-        // Set-up
-        val userNameToTest = ALL_UPPER_CASE_USER_NAME
-        val expectedPubKey = "ca29c211f1c72d5b6622268ff43d2288ea2b2cb5b9aa196ff9f1704fc914b71b"
+    fun `test with matching case on user name`() =
+        runBlocking {
+            // Set-up
+            val userNameToTest = ALL_UPPER_CASE_USER_NAME
+            val expectedPubKey = "ca29c211f1c72d5b6622268ff43d2288ea2b2cb5b9aa196ff9f1704fc914b71b"
 
-        val nostrJson = "{\n" +
-            "  \"names\": {\n" +
-            "    \"$userNameToTest\": \"$expectedPubKey\" \n" +
-            "  }\n" +
-            "}"
+            val nostrJson =
+                "{\n" + "  \"names\": {\n" + "    \"$userNameToTest\": \"$expectedPubKey\" \n" + "  }\n" + "}"
 
-        coEvery { nip05Verifier.fetchNip05Json(any(), any(), any()) } answers {
-            secondArg<(String) -> Unit>().invoke(nostrJson)
+            coEvery { nip05Verifier.fetchNip05Json(any(), any(), any()) } answers
+                {
+                    secondArg<(String) -> Unit>().invoke(nostrJson)
+                }
+
+            val nip05 = "$userNameToTest@domain.com"
+            var actualPubkeyHex = ""
+
+            // Execution
+            nip05Verifier.verifyNip05(
+                nip05,
+                onSuccess = { actualPubkeyHex = it },
+                onError = { fail("Test failure") },
+            )
+
+            // Verification
+            assertEquals(expectedPubKey, actualPubkeyHex)
         }
-
-        val nip05 = "$userNameToTest@domain.com"
-        var actualPubkeyHex = ""
-
-        // Execution
-        nip05Verifier.verifyNip05(
-            nip05,
-            onSuccess = {
-                actualPubkeyHex = it
-            },
-            onError = {
-                fail("Test failure")
-            }
-        )
-
-        // Verification
-        assertEquals(expectedPubKey, actualPubkeyHex)
-    }
 
     @Test
-    fun `test with NOT matching case on user name`() = runBlocking {
-        // Set-up
-        val expectedPubKey = "ca29c211f1c72d5b6622268ff43d2288ea2b2cb5b9aa196ff9f1704fc914b71b"
+    fun `test with NOT matching case on user name`() =
+        runBlocking {
+            // Set-up
+            val expectedPubKey = "ca29c211f1c72d5b6622268ff43d2288ea2b2cb5b9aa196ff9f1704fc914b71b"
 
-        val nostrJson = "{\n" +
-            "  \"names\": {\n" +
-            "    \"$ALL_UPPER_CASE_USER_NAME\": \"$expectedPubKey\" \n" +
-            "  }\n" +
-            "}"
-        coEvery { nip05Verifier.fetchNip05Json(any(), any(), any()) } answers {
-            secondArg<(String) -> Unit>().invoke(nostrJson)
+            val nostrJson =
+                "{\n" +
+                    "  \"names\": {\n" +
+                    "    \"$ALL_UPPER_CASE_USER_NAME\": \"$expectedPubKey\" \n" +
+                    "  }\n" +
+                    "}"
+            coEvery { nip05Verifier.fetchNip05Json(any(), any(), any()) } answers
+                {
+                    secondArg<(String) -> Unit>().invoke(nostrJson)
+                }
+
+            val nip05 = "$ALL_LOWER_CASE_USER_NAME@domain.com"
+            var actualPubkeyHex = ""
+
+            // Execution
+            nip05Verifier.verifyNip05(
+                nip05,
+                onSuccess = { actualPubkeyHex = it },
+                onError = { fail("Test failure") },
+            )
+
+            // Verification
+            assertEquals(expectedPubKey, actualPubkeyHex)
         }
-
-        val nip05 = "$ALL_LOWER_CASE_USER_NAME@domain.com"
-        var actualPubkeyHex = ""
-
-        // Execution
-        nip05Verifier.verifyNip05(
-            nip05,
-            onSuccess = {
-                actualPubkeyHex = it
-            },
-            onError = {
-                fail("Test failure")
-            }
-        )
-
-        // Verification
-        assertEquals(expectedPubKey, actualPubkeyHex)
-    }
 
     @After
     fun tearDown() {

@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.service
 
 import android.util.Log
@@ -30,7 +50,7 @@ data class RichTextViewerState(
     val imagesForPager: ImmutableMap<String, ZoomableUrlContent>,
     val imageList: ImmutableList<ZoomableUrlContent>,
     val customEmoji: ImmutableMap<String, String>,
-    val paragraphs: ImmutableList<ParagraphState>
+    val paragraphs: ImmutableList<ParagraphState>,
 )
 
 data class ParagraphState(val words: ImmutableList<Segment>, val isRTL: Boolean)
@@ -38,7 +58,10 @@ data class ParagraphState(val words: ImmutableList<Segment>, val isRTL: Boolean)
 object CachedRichTextParser {
     val richTextCache = LruCache<String, RichTextViewerState>(200)
 
-    fun parseText(content: String, tags: ImmutableListOfLists<String>): RichTextViewerState {
+    fun parseText(
+        content: String,
+        tags: ImmutableListOfLists<String>,
+    ): RichTextViewerState {
         return if (richTextCache[content] != null) {
             richTextCache[content]
         } else {
@@ -50,16 +73,24 @@ object CachedRichTextParser {
 }
 
 // Group 1 = url, group 4 additional chars
-// val noProtocolUrlValidator = Pattern.compile("(([\\w\\d-]+\\.)*[a-zA-Z][\\w-]+[\\.\\:]\\w+([\\/\\?\\=\\&\\#\\.]?[\\w-]+)*\\/?)(.*)")
+// val noProtocolUrlValidator =
+// Pattern.compile("(([\\w\\d-]+\\.)*[a-zA-Z][\\w-]+[\\.\\:]\\w+([\\/\\?\\=\\&\\#\\.]?[\\w-]+)*\\/?)(.*)")
 
 // Android9 seems to have an issue starting this regex.
-val noProtocolUrlValidator = try {
-    Pattern.compile("(([\\w\\d-]+\\.)*[a-zA-Z][\\w-]+[\\.\\:]\\w+([\\/\\?\\=\\&\\#\\.]?[\\w-]+[^\\p{IsHan}\\p{IsHiragana}\\p{IsKatakana}])*\\/?)(.*)")
-} catch (e: Exception) {
-    Pattern.compile("(([\\w\\d-]+\\.)*[a-zA-Z][\\w-]+[\\.\\:]\\w+([\\/\\?\\=\\&\\#\\.]?[\\w-]+)*\\/?)(.*)")
-}
+val noProtocolUrlValidator =
+    try {
+        Pattern.compile(
+            "(([\\w\\d-]+\\.)*[a-zA-Z][\\w-]+[\\.\\:]\\w+([\\/\\?\\=\\&\\#\\.]?[\\w-]+[^\\p{IsHan}\\p{IsHiragana}\\p{IsKatakana}])*\\/?)(.*)",
+        )
+    } catch (e: Exception) {
+        Pattern.compile(
+            "(([\\w\\d-]+\\.)*[a-zA-Z][\\w-]+[\\.\\:]\\w+([\\/\\?\\=\\&\\#\\.]?[\\w-]+)*\\/?)(.*)",
+        )
+    }
 
-val HTTPRegex = "^((http|https)://)?([A-Za-z0-9-_]+(\\.[A-Za-z0-9-_]+)+)(:[0-9]+)?(/[^?#]*)?(\\?[^#]*)?(#.*)?".toRegex(RegexOption.IGNORE_CASE)
+val HTTPRegex =
+    "^((http|https)://)?([A-Za-z0-9-_]+(\\.[A-Za-z0-9-_]+)+)(:[0-9]+)?(/[^?#]*)?(\\?[^#]*)?(#.*)?"
+        .toRegex(RegexOption.IGNORE_CASE)
 
 class RichTextParser() {
     fun parseMediaUrl(fullUrl: String): ZoomableUrlContent? {
@@ -71,7 +102,7 @@ class RichTextParser() {
                 description = frags["alt"],
                 hash = frags["x"],
                 blurhash = frags["blurhash"],
-                dim = frags["dim"]
+                dim = frags["dim"],
             )
         } else if (videoExtensions.any { removedParamsFromUrl.endsWith(it) }) {
             val frags = Nip44UrlParser().parse(fullUrl)
@@ -80,7 +111,7 @@ class RichTextParser() {
                 description = frags["alt"],
                 hash = frags["x"],
                 blurhash = frags["blurhash"],
-                dim = frags["dim"]
+                dim = frags["dim"],
             )
         } else {
             null
@@ -89,30 +120,30 @@ class RichTextParser() {
 
     fun parseText(
         content: String,
-        tags: ImmutableListOfLists<String>
+        tags: ImmutableListOfLists<String>,
     ): RichTextViewerState {
         val urls = UrlDetector(content, UrlDetectorOptions.Default).detect()
 
-        val urlSet = urls.mapNotNullTo(LinkedHashSet(urls.size)) {
-            // removes e-mails
-            if (Patterns.EMAIL_ADDRESS.matcher(it.originalUrl).matches()) {
-                null
-            } else if (isNumber(it.originalUrl)) {
-                null
-            } else if (it.originalUrl.contains("。")) {
-                null
-            } else {
-                if (HTTPRegex.matches(it.originalUrl)) {
-                    it.originalUrl
-                } else {
+        val urlSet =
+            urls.mapNotNullTo(LinkedHashSet(urls.size)) {
+                // removes e-mails
+                if (Patterns.EMAIL_ADDRESS.matcher(it.originalUrl).matches()) {
                     null
+                } else if (isNumber(it.originalUrl)) {
+                    null
+                } else if (it.originalUrl.contains("。")) {
+                    null
+                } else {
+                    if (HTTPRegex.matches(it.originalUrl)) {
+                        it.originalUrl
+                    } else {
+                        null
+                    }
                 }
             }
-        }
 
-        val imagesForPager = urlSet.mapNotNull { fullUrl ->
-            parseMediaUrl(fullUrl)
-        }.associateBy { it.url }
+        val imagesForPager =
+            urlSet.mapNotNull { fullUrl -> parseMediaUrl(fullUrl) }.associateBy { it.url }
         val imageList = imagesForPager.values.toList()
 
         val emojiMap =
@@ -125,11 +156,17 @@ class RichTextParser() {
             imagesForPager.toImmutableMap(),
             imageList.toImmutableList(),
             emojiMap.toImmutableMap(),
-            segments
+            segments,
         )
     }
 
-    private fun findTextSegments(content: String, images: Set<String>, urls: Set<String>, emojis: Map<String, String>, tags: ImmutableListOfLists<String>): ImmutableList<ParagraphState> {
+    private fun findTextSegments(
+        content: String,
+        images: Set<String>,
+        urls: Set<String>,
+        emojis: Map<String, String>,
+        tags: ImmutableListOfLists<String>,
+    ): ImmutableList<ParagraphState> {
         var paragraphSegments = persistentListOf<ParagraphState>()
 
         content.split('\n').forEach { paragraph ->
@@ -147,11 +184,12 @@ class RichTextParser() {
                 segments = segments.add(wordSegment)
             }
 
-            val newSegments = if (isDirty) {
-                ParagraphState(segments, isRTL)
-            } else {
-                ParagraphState(persistentListOf<Segment>(RegularTextSegment(paragraph)), isRTL)
-            }
+            val newSegments =
+                if (isDirty) {
+                    ParagraphState(segments, isRTL)
+                } else {
+                    ParagraphState(persistentListOf<Segment>(RegularTextSegment(paragraph)), isRTL)
+                }
 
             paragraphSegments = paragraphSegments.add(newSegments)
         }
@@ -171,7 +209,13 @@ class RichTextParser() {
         return text.any { it in '\u0600'..'\u06FF' || it in '\u0750'..'\u077F' }
     }
 
-    private fun wordIdentifier(word: String, images: Set<String>, urls: Set<String>, emojis: Map<String, String>, tags: ImmutableListOfLists<String>): Segment {
+    private fun wordIdentifier(
+        word: String,
+        images: Set<String>,
+        urls: Set<String>,
+        emojis: Map<String, String>,
+        tags: ImmutableListOfLists<String>,
+    ): Segment {
         val emailMatcher = Patterns.EMAIL_ADDRESS.matcher(word)
         val phoneMatcher = Patterns.PHONE.matcher(word)
         val schemelessMatcher = noProtocolUrlValidator.matcher(word)
@@ -201,7 +245,9 @@ class RichTextParser() {
         } else if (word.contains(".") && schemelessMatcher.find()) {
             val url = schemelessMatcher.group(1) // url
             val additionalChars = schemelessMatcher.group(4) // additional chars
-            val pattern = """^([A-Za-z0-9-_]+(\.[A-Za-z0-9-_]+)+)(:[0-9]+)?(/[^?#]*)?(\?[^#]*)?(#.*)?""".toRegex(RegexOption.IGNORE_CASE)
+            val pattern =
+                """^([A-Za-z0-9-_]+(\.[A-Za-z0-9-_]+)+)(:[0-9]+)?(/[^?#]*)?(\?[^#]*)?(#.*)?"""
+                    .toRegex(RegexOption.IGNORE_CASE)
             if (pattern.find(word) != null) {
                 SchemelessUrlSegment(word, url, additionalChars)
             } else {
@@ -212,7 +258,10 @@ class RichTextParser() {
         }
     }
 
-    private fun parseHash(word: String, tags: ImmutableListOfLists<String>): Segment {
+    private fun parseHash(
+        word: String,
+        tags: ImmutableListOfLists<String>,
+    ): Segment {
         // First #[n]
 
         val matcher = tagIndex.matcher(word)
@@ -261,53 +310,46 @@ class RichTextParser() {
     }
 }
 
-@Immutable
-open class Segment(val segmentText: String)
+@Immutable open class Segment(val segmentText: String)
+
+@Immutable class ImageSegment(segment: String) : Segment(segment)
+
+@Immutable class LinkSegment(segment: String) : Segment(segment)
+
+@Immutable class EmojiSegment(segment: String) : Segment(segment)
+
+@Immutable class InvoiceSegment(segment: String) : Segment(segment)
+
+@Immutable class WithdrawSegment(segment: String) : Segment(segment)
+
+@Immutable class CashuSegment(segment: String) : Segment(segment)
+
+@Immutable class EmailSegment(segment: String) : Segment(segment)
+
+@Immutable class PhoneSegment(segment: String) : Segment(segment)
+
+@Immutable class BechSegment(segment: String) : Segment(segment)
 
 @Immutable
-class ImageSegment(segment: String) : Segment(segment)
+open class HashIndexSegment(segment: String, val hex: String, val extras: String?) :
+    Segment(segment)
 
 @Immutable
-class LinkSegment(segment: String) : Segment(segment)
+class HashIndexUserSegment(segment: String, hex: String, extras: String?) :
+    HashIndexSegment(segment, hex, extras)
 
 @Immutable
-class EmojiSegment(segment: String) : Segment(segment)
-
-@Immutable
-class InvoiceSegment(segment: String) : Segment(segment)
-
-@Immutable
-class WithdrawSegment(segment: String) : Segment(segment)
-
-@Immutable
-class CashuSegment(segment: String) : Segment(segment)
-
-@Immutable
-class EmailSegment(segment: String) : Segment(segment)
-
-@Immutable
-class PhoneSegment(segment: String) : Segment(segment)
-
-@Immutable
-class BechSegment(segment: String) : Segment(segment)
-
-@Immutable
-open class HashIndexSegment(segment: String, val hex: String, val extras: String?) : Segment(segment)
-
-@Immutable
-class HashIndexUserSegment(segment: String, hex: String, extras: String?) : HashIndexSegment(segment, hex, extras)
-
-@Immutable
-class HashIndexEventSegment(segment: String, hex: String, extras: String?) : HashIndexSegment(segment, hex, extras)
+class HashIndexEventSegment(segment: String, hex: String, extras: String?) :
+    HashIndexSegment(segment, hex, extras)
 
 @Immutable
 class HashTagSegment(segment: String, val hashtag: String, val extras: String?) : Segment(segment)
 
 @Immutable
-class SchemelessUrlSegment(segment: String, val url: String, val extras: String?) : Segment(segment)
+class SchemelessUrlSegment(segment: String, val url: String, val extras: String?) :
+    Segment(segment)
 
-@Immutable
-class RegularTextSegment(segment: String) : Segment(segment)
+@Immutable class RegularTextSegment(segment: String) : Segment(segment)
 
 fun startsWithNIP19Scheme(word: String): Boolean {
     val cleaned = word.lowercase().removePrefix("@").removePrefix("nostr:").removePrefix("@")

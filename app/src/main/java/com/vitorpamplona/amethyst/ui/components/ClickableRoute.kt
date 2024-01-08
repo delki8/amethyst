@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.components
 
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -61,7 +81,7 @@ import kotlinx.coroutines.launch
 fun ClickableRoute(
     nip19: Nip19.Return,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     when (nip19.type) {
         Nip19.Type.USER -> {
@@ -78,9 +98,7 @@ fun ClickableRoute(
         }
         else -> {
             Text(
-                remember {
-                    "@${nip19.hex}${nip19.additionalChars}"
-                }
+                remember { "@${nip19.hex}${nip19.additionalChars}" },
             )
         }
     }
@@ -90,7 +108,7 @@ fun ClickableRoute(
 private fun DisplayEvent(
     nip19: Nip19.Return,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     LoadNote(nip19.hex, accountViewModel) {
         if (it != null) {
@@ -100,7 +118,7 @@ private fun DisplayEvent(
                 clickablePart = remember(nip19) { "@${nip19.hex.toShortenHex()}" },
                 suffix = nip19.additionalChars,
                 route = remember(nip19) { "Event/${nip19.hex}" },
-                nav = nav
+                nav = nav,
             )
         }
     }
@@ -110,7 +128,7 @@ private fun DisplayEvent(
 private fun DisplayNote(
     nip19: Nip19.Return,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     LoadNote(nip19.hex, accountViewModel = accountViewModel) {
         if (it != null) {
@@ -120,7 +138,7 @@ private fun DisplayNote(
                 clickablePart = remember(nip19) { "@${nip19.hex.toShortenHex()}" },
                 suffix = nip19.additionalChars,
                 route = remember(nip19) { "Event/${nip19.hex}" },
-                nav = nav
+                nav = nav,
             )
         }
     }
@@ -131,7 +149,7 @@ private fun DisplayNoteLink(
     it: Note,
     nip19: Nip19.Return,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteState by it.live().metadata.observeAsState()
 
@@ -141,38 +159,34 @@ private fun DisplayNoteLink(
     val noteIdDisplayNote = remember(noteState) { "@${note.idDisplayNote()}" }
     val addedCharts = remember { "${nip19.additionalChars}" }
 
-    if (note.event is ChannelCreateEvent || nip19.kind == ChannelCreateEvent.kind) {
+    if (note.event is ChannelCreateEvent || nip19.kind == ChannelCreateEvent.KIND) {
         CreateClickableText(
             clickablePart = noteIdDisplayNote,
             suffix = addedCharts,
             route = remember(noteState) { "Channel/${nip19.hex}" },
-            nav = nav
+            nav = nav,
         )
-    } else if (note.event is PrivateDmEvent || nip19.kind == PrivateDmEvent.kind) {
+    } else if (note.event is PrivateDmEvent || nip19.kind == PrivateDmEvent.KIND) {
         CreateClickableText(
             clickablePart = noteIdDisplayNote,
             suffix = addedCharts,
-            route = remember(noteState) {
-                (note.author?.pubkeyHex ?: nip19.hex).let {
-                    "RoomByAuthor/$it"
-                }
-            },
-            nav = nav
+            route =
+                remember(noteState) { (note.author?.pubkeyHex ?: nip19.hex).let { "RoomByAuthor/$it" } },
+            nav = nav,
         )
     } else if (channelHex != null) {
         LoadChannel(baseChannelHex = channelHex, accountViewModel) { baseChannel ->
             val channelState by baseChannel.live.observeAsState()
-            val channelDisplayName by remember(channelState) {
-                derivedStateOf {
-                    channelState?.channel?.toBestDisplayName() ?: noteIdDisplayNote
+            val channelDisplayName by
+                remember(channelState) {
+                    derivedStateOf { channelState?.channel?.toBestDisplayName() ?: noteIdDisplayNote }
                 }
-            }
 
             CreateClickableText(
                 clickablePart = channelDisplayName,
                 suffix = addedCharts,
                 route = remember(noteState) { "Channel/${baseChannel.idHex}" },
-                nav = nav
+                nav = nav,
             )
         }
     } else {
@@ -180,7 +194,7 @@ private fun DisplayNoteLink(
             clickablePart = noteIdDisplayNote,
             suffix = addedCharts,
             route = remember(noteState) { "Event/${nip19.hex}" },
-            nav = nav
+            nav = nav,
         )
     }
 }
@@ -189,15 +203,13 @@ private fun DisplayNoteLink(
 private fun DisplayAddress(
     nip19: Nip19.Return,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     var noteBase by remember(nip19) { mutableStateOf(accountViewModel.getNoteIfExists(nip19.hex)) }
 
     if (noteBase == null) {
         LaunchedEffect(key1 = nip19.hex) {
-            accountViewModel.checkGetOrCreateAddressableNote(nip19.hex) {
-                noteBase = it
-            }
+            accountViewModel.checkGetOrCreateAddressableNote(nip19.hex) { noteBase = it }
         }
     }
 
@@ -212,15 +224,13 @@ private fun DisplayAddress(
             clickablePart = displayName,
             suffix = addedCharts,
             route = route,
-            nav = nav
+            nav = nav,
         )
     }
 
     if (noteBase == null) {
         Text(
-            remember {
-                "@${nip19.hex}${nip19.additionalChars}"
-            }
+            remember { "@${nip19.hex}${nip19.additionalChars}" },
         )
     }
 }
@@ -229,31 +239,26 @@ private fun DisplayAddress(
 private fun DisplayUser(
     nip19: Nip19.Return,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    var userBase by remember(nip19) {
-        mutableStateOf(
-            accountViewModel.getUserIfExists(nip19.hex)
-        )
-    }
+    var userBase by
+        remember(nip19) {
+            mutableStateOf(
+                accountViewModel.getUserIfExists(nip19.hex),
+            )
+        }
 
     if (userBase == null) {
         LaunchedEffect(key1 = nip19.hex) {
-            accountViewModel.checkGetOrCreateUser(nip19.hex) {
-                userBase = it
-            }
+            accountViewModel.checkGetOrCreateUser(nip19.hex) { userBase = it }
         }
     }
 
-    userBase?.let {
-        RenderUserAsClickableText(it, nip19, nav)
-    }
+    userBase?.let { RenderUserAsClickableText(it, nip19, nav) }
 
     if (userBase == null) {
         Text(
-            remember {
-                "@${nip19.hex}${nip19.additionalChars}"
-            }
+            remember { "@${nip19.hex}${nip19.additionalChars}" },
         )
     }
 }
@@ -262,26 +267,20 @@ private fun DisplayUser(
 private fun RenderUserAsClickableText(
     baseUser: User,
     nip19: Nip19.Return,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val userState by baseUser.live().metadata.observeAsState()
     val route = remember { "User/${baseUser.pubkeyHex}" }
 
-    val userDisplayName by remember(userState) {
-        derivedStateOf {
-            userState?.user?.toBestDisplayName()
-        }
-    }
+    val userDisplayName by
+        remember(userState) { derivedStateOf { userState?.user?.toBestDisplayName() } }
 
-    val userTags by remember(userState) {
-        derivedStateOf {
-            userState?.user?.info?.latestMetadata?.tags?.toImmutableListOfLists()
+    val userTags by
+        remember(userState) {
+            derivedStateOf { userState?.user?.info?.latestMetadata?.tags?.toImmutableListOfLists() }
         }
-    }
 
-    val addedCharts = remember(nip19) {
-        "${nip19.additionalChars}"
-    }
+    val addedCharts = remember(nip19) { "${nip19.additionalChars}" }
 
     userDisplayName?.let {
         CreateClickableTextWithEmoji(
@@ -290,7 +289,7 @@ private fun RenderUserAsClickableText(
             maxLines = 1,
             route = route,
             nav = nav,
-            tags = userTags
+            tags = userTags,
         )
     }
 }
@@ -303,37 +302,40 @@ fun CreateClickableText(
     overrideColor: Color? = null,
     fontWeight: FontWeight = FontWeight.Normal,
     route: String,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val currentStyle = LocalTextStyle.current
     val primaryColor = MaterialTheme.colorScheme.primary
     val onBackgroundColor = MaterialTheme.colorScheme.onBackground
 
-    val clickablePartStyle = remember(primaryColor, overrideColor) {
-        currentStyle.copy(color = overrideColor ?: primaryColor, fontWeight = fontWeight).toSpanStyle()
-    }
+    val clickablePartStyle =
+        remember(primaryColor, overrideColor) {
+            currentStyle
+                .copy(color = overrideColor ?: primaryColor, fontWeight = fontWeight)
+                .toSpanStyle()
+        }
 
-    val nonClickablePartStyle = remember(onBackgroundColor, overrideColor) {
-        currentStyle.copy(color = overrideColor ?: onBackgroundColor, fontWeight = fontWeight).toSpanStyle()
-    }
+    val nonClickablePartStyle =
+        remember(onBackgroundColor, overrideColor) {
+            currentStyle
+                .copy(color = overrideColor ?: onBackgroundColor, fontWeight = fontWeight)
+                .toSpanStyle()
+        }
 
-    val text = remember(clickablePartStyle, nonClickablePartStyle, clickablePart, suffix) {
-        buildAnnotatedString {
-            withStyle(clickablePartStyle) {
-                append(clickablePart)
-            }
-            if (!suffix.isNullOrBlank()) {
-                withStyle(nonClickablePartStyle) {
-                    append(suffix)
+    val text =
+        remember(clickablePartStyle, nonClickablePartStyle, clickablePart, suffix) {
+            buildAnnotatedString {
+                withStyle(clickablePartStyle) { append(clickablePart) }
+                if (!suffix.isNullOrBlank()) {
+                    withStyle(nonClickablePartStyle) { append(suffix) }
                 }
             }
         }
-    }
 
     ClickableText(
         text = text,
         maxLines = maxLines,
-        onClick = { nav(route) }
+        onClick = { nav(route) },
     )
 }
 
@@ -347,14 +349,15 @@ fun CreateTextWithEmoji(
     fontSize: TextUnit = TextUnit.Unspecified,
     maxLines: Int = Int.MAX_VALUE,
     overflow: TextOverflow = TextOverflow.Clip,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var emojiList by remember(text) { mutableStateOf<ImmutableList<Renderable>>(persistentListOf()) }
 
     LaunchedEffect(key1 = text) {
         launch(Dispatchers.Default) {
             val emojis =
-                tags?.lists?.filter { it.size > 2 && it[0] == "emoji" }?.associate { ":${it[1]}:" to it[2] } ?: emptyMap()
+                tags?.lists?.filter { it.size > 2 && it[0] == "emoji" }?.associate { ":${it[1]}:" to it[2] }
+                    ?: emptyMap()
 
             if (emojis.isNotEmpty()) {
                 val newEmojiList = assembleAnnotatedList(text, emojis)
@@ -365,11 +368,8 @@ fun CreateTextWithEmoji(
         }
     }
 
-    val textColor = color.takeOrElse {
-        LocalTextStyle.current.color.takeOrElse {
-            LocalContentColor.current
-        }
-    }
+    val textColor =
+        color.takeOrElse { LocalTextStyle.current.color.takeOrElse { LocalContentColor.current } }
 
     if (emojiList.isEmpty()) {
         Text(
@@ -380,17 +380,20 @@ fun CreateTextWithEmoji(
             fontSize = fontSize,
             maxLines = maxLines,
             overflow = overflow,
-            modifier = modifier
+            modifier = modifier,
         )
     } else {
-        val style = LocalTextStyle.current.merge(
-            TextStyle(
-                color = textColor,
-                textAlign = textAlign,
-                fontWeight = fontWeight,
-                fontSize = fontSize
-            )
-        ).toSpanStyle()
+        val style =
+            LocalTextStyle.current
+                .merge(
+                    TextStyle(
+                        color = textColor,
+                        textAlign = textAlign,
+                        fontWeight = fontWeight,
+                        fontSize = fontSize,
+                    ),
+                )
+                .toSpanStyle()
 
         InLineIconRenderer(emojiList, style, fontSize, maxLines, overflow, modifier)
     }
@@ -406,7 +409,7 @@ fun CreateTextWithEmoji(
     fontSize: TextUnit = TextUnit.Unspecified,
     maxLines: Int = Int.MAX_VALUE,
     overflow: TextOverflow = TextOverflow.Clip,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     var emojiList by remember(text) { mutableStateOf<ImmutableList<Renderable>>(persistentListOf()) }
 
@@ -421,11 +424,8 @@ fun CreateTextWithEmoji(
         }
     }
 
-    val textColor = color.takeOrElse {
-        LocalTextStyle.current.color.takeOrElse {
-            LocalContentColor.current
-        }
-    }
+    val textColor =
+        color.takeOrElse { LocalTextStyle.current.color.takeOrElse { LocalContentColor.current } }
 
     if (emojiList.isEmpty()) {
         Text(
@@ -436,20 +436,23 @@ fun CreateTextWithEmoji(
             fontSize = fontSize,
             maxLines = maxLines,
             overflow = overflow,
-            modifier = modifier
+            modifier = modifier,
         )
     } else {
         val currentStyle = LocalTextStyle.current
-        val style = remember(currentStyle) {
-            currentStyle.merge(
-                TextStyle(
-                    color = textColor,
-                    textAlign = textAlign,
-                    fontWeight = fontWeight,
-                    fontSize = fontSize
-                )
-            ).toSpanStyle()
-        }
+        val style =
+            remember(currentStyle) {
+                currentStyle
+                    .merge(
+                        TextStyle(
+                            color = textColor,
+                            textAlign = textAlign,
+                            fontWeight = fontWeight,
+                            fontSize = fontSize,
+                        ),
+                    )
+                    .toSpanStyle()
+            }
 
         InLineIconRenderer(emojiList, style, fontSize, maxLines, overflow, modifier)
     }
@@ -461,14 +464,16 @@ fun CreateClickableTextWithEmoji(
     maxLines: Int = Int.MAX_VALUE,
     tags: ImmutableListOfLists<String>?,
     style: TextStyle,
-    onClick: (Int) -> Unit
+    onClick: (Int) -> Unit,
 ) {
-    var emojiList by remember(clickablePart) { mutableStateOf<ImmutableList<Renderable>>(persistentListOf()) }
+    var emojiList by
+        remember(clickablePart) { mutableStateOf<ImmutableList<Renderable>>(persistentListOf()) }
 
     LaunchedEffect(key1 = clickablePart) {
         launch(Dispatchers.Default) {
             val emojis =
-                tags?.lists?.filter { it.size > 2 && it[0] == "emoji" }?.associate { ":${it[1]}:" to it[2] } ?: emptyMap()
+                tags?.lists?.filter { it.size > 2 && it[0] == "emoji" }?.associate { ":${it[1]}:" to it[2] }
+                    ?: emptyMap()
 
             if (emojis.isNotEmpty()) {
                 val newEmojiList = assembleAnnotatedList(clickablePart, emojis)
@@ -484,19 +489,17 @@ fun CreateClickableTextWithEmoji(
             text = AnnotatedString(clickablePart),
             style = style,
             maxLines = maxLines,
-            onClick = onClick
+            onClick = onClick,
         )
     } else {
-        ClickableInLineIconRenderer(emojiList, maxLines, style.toSpanStyle()) {
-            onClick(it)
-        }
+        ClickableInLineIconRenderer(emojiList, maxLines, style.toSpanStyle()) { onClick(it) }
     }
 }
 
 @Immutable
 data class DoubleEmojiList(
     val part1: ImmutableList<Renderable>,
-    val part2: ImmutableList<Renderable>
+    val part2: ImmutableList<Renderable>,
 )
 
 @Composable
@@ -508,23 +511,24 @@ fun CreateClickableTextWithEmoji(
     fontWeight: FontWeight = FontWeight.Normal,
     route: String,
     nav: (String) -> Unit,
-    tags: ImmutableListOfLists<String>?
+    tags: ImmutableListOfLists<String>?,
 ) {
-    var emojiLists by remember(clickablePart) {
-        mutableStateOf<DoubleEmojiList?>(null)
-    }
+    var emojiLists by remember(clickablePart) { mutableStateOf<DoubleEmojiList?>(null) }
 
     LaunchedEffect(key1 = clickablePart) {
         launch(Dispatchers.Default) {
             val emojis =
-                tags?.lists?.filter { it.size > 2 && it[0] == "emoji" }?.associate { ":${it[1]}:" to it[2] } ?: emptyMap()
+                tags?.lists?.filter { it.size > 2 && it[0] == "emoji" }?.associate { ":${it[1]}:" to it[2] }
+                    ?: emptyMap()
 
             if (emojis.isNotEmpty()) {
                 val newEmojiList1 = assembleAnnotatedList(clickablePart, emojis)
-                val newEmojiList2 = suffix?.let { assembleAnnotatedList(it, emojis) } ?: emptyList<Renderable>()
+                val newEmojiList2 =
+                    suffix?.let { assembleAnnotatedList(it, emojis) } ?: emptyList<Renderable>()
 
                 if (newEmojiList1.isNotEmpty() || newEmojiList2.isNotEmpty()) {
-                    emojiLists = DoubleEmojiList(newEmojiList1.toImmutableList(), newEmojiList2.toImmutableList())
+                    emojiLists =
+                        DoubleEmojiList(newEmojiList1.toImmutableList(), newEmojiList2.toImmutableList())
                 }
             }
         }
@@ -536,110 +540,120 @@ fun CreateClickableTextWithEmoji(
         ClickableInLineIconRenderer(
             emojiLists!!.part1,
             maxLines,
-            LocalTextStyle.current.copy(color = overrideColor ?: MaterialTheme.colorScheme.primary, fontWeight = fontWeight).toSpanStyle()
+            LocalTextStyle.current
+                .copy(color = overrideColor ?: MaterialTheme.colorScheme.primary, fontWeight = fontWeight)
+                .toSpanStyle(),
         ) {
             nav(route)
         }
 
         InLineIconRenderer(
             emojiLists!!.part2,
-            LocalTextStyle.current.copy(color = overrideColor ?: MaterialTheme.colorScheme.onBackground, fontWeight = fontWeight).toSpanStyle(),
-            maxLines = maxLines
+            LocalTextStyle.current
+                .copy(
+                    color = overrideColor ?: MaterialTheme.colorScheme.onBackground,
+                    fontWeight = fontWeight,
+                )
+                .toSpanStyle(),
+            maxLines = maxLines,
         )
     }
 }
 
-suspend fun assembleAnnotatedList(text: String, emojis: Map<String, String>): ImmutableList<Renderable> {
-    return Nip30CustomEmoji().buildArray(text).map {
-        val url = emojis[it]
-        if (url != null) {
-            ImageUrlType(url)
-        } else {
-            TextType(it)
+suspend fun assembleAnnotatedList(
+    text: String,
+    emojis: Map<String, String>,
+): ImmutableList<Renderable> {
+    return Nip30CustomEmoji()
+        .buildArray(text)
+        .map {
+            val url = emojis[it]
+            if (url != null) {
+                ImageUrlType(url)
+            } else {
+                TextType(it)
+            }
         }
-    }.toImmutableList()
+        .toImmutableList()
 }
 
-@Immutable
-open class Renderable()
+@Immutable open class Renderable()
 
-@Immutable
-class TextType(val text: String) : Renderable()
+@Immutable class TextType(val text: String) : Renderable()
 
-@Immutable
-class ImageUrlType(val url: String) : Renderable()
+@Immutable class ImageUrlType(val url: String) : Renderable()
 
 @Composable
 fun ClickableInLineIconRenderer(
     wordsInOrder: ImmutableList<Renderable>,
     maxLines: Int = Int.MAX_VALUE,
     style: SpanStyle,
-    onClick: (Int) -> Unit
+    onClick: (Int) -> Unit,
 ) {
-    val placeholderSize = remember(style) {
-        if (style.fontSize == TextUnit.Unspecified) {
-            22.sp
-        } else {
-            style.fontSize.times(1.1f)
+    val placeholderSize =
+        remember(style) {
+            if (style.fontSize == TextUnit.Unspecified) {
+                22.sp
+            } else {
+                style.fontSize.times(1.1f)
+            }
         }
-    }
 
-    val inlineContent = wordsInOrder.mapIndexedNotNull { idx, value ->
-        if (value is ImageUrlType) {
-            Pair(
-                "inlineContent$idx",
-                InlineTextContent(
-                    Placeholder(
-                        width = placeholderSize,
-                        height = placeholderSize,
-                        placeholderVerticalAlign = PlaceholderVerticalAlign.Center
+    val inlineContent =
+        wordsInOrder
+            .mapIndexedNotNull { idx, value ->
+                if (value is ImageUrlType) {
+                    Pair(
+                        "inlineContent$idx",
+                        InlineTextContent(
+                            Placeholder(
+                                width = placeholderSize,
+                                height = placeholderSize,
+                                placeholderVerticalAlign = PlaceholderVerticalAlign.Center,
+                            ),
+                        ) {
+                            AsyncImage(
+                                model = value.url,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize().padding(1.dp),
+                            )
+                        },
                     )
-                ) {
-                    AsyncImage(
-                        model = value.url,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(1.dp)
-                    )
+                } else {
+                    null
                 }
-            )
-        } else {
-            null
-        }
-    }.associate { it.first to it.second }
+            }
+            .associate { it.first to it.second }
 
-    val annotatedText = buildAnnotatedString {
-        wordsInOrder.forEachIndexed { idx, value ->
-            withStyle(
-                style
-            ) {
-                if (value is TextType) {
-                    append(value.text)
-                } else if (value is ImageUrlType) {
-                    appendInlineContent("inlineContent$idx", "[icon]")
+    val annotatedText =
+        buildAnnotatedString {
+            wordsInOrder.forEachIndexed { idx, value ->
+                withStyle(
+                    style,
+                ) {
+                    if (value is TextType) {
+                        append(value.text)
+                    } else if (value is ImageUrlType) {
+                        appendInlineContent("inlineContent$idx", "[icon]")
+                    }
                 }
             }
         }
-    }
 
     val layoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
-    val pressIndicator = Modifier.pointerInput(onClick) {
-        detectTapGestures { pos ->
-            layoutResult.value?.let { layoutResult ->
-                onClick(layoutResult.getOffsetForPosition(pos))
+    val pressIndicator =
+        Modifier.pointerInput(onClick) {
+            detectTapGestures { pos ->
+                layoutResult.value?.let { layoutResult -> onClick(layoutResult.getOffsetForPosition(pos)) }
             }
         }
-    }
 
     BasicText(
         text = annotatedText,
         modifier = pressIndicator,
         inlineContent = inlineContent,
         maxLines = maxLines,
-        onTextLayout = {
-            layoutResult.value = it
-        }
+        onTextLayout = { layoutResult.value = it },
     )
 }
 
@@ -650,56 +664,59 @@ fun InLineIconRenderer(
     fontSize: TextUnit = TextUnit.Unspecified,
     maxLines: Int = Int.MAX_VALUE,
     overflow: TextOverflow = TextOverflow.Clip,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    val placeholderSize = remember(fontSize) {
-        if (fontSize == TextUnit.Unspecified) {
-            22.sp
-        } else {
-            fontSize.times(1.1f)
+    val placeholderSize =
+        remember(fontSize) {
+            if (fontSize == TextUnit.Unspecified) {
+                22.sp
+            } else {
+                fontSize.times(1.1f)
+            }
         }
-    }
 
-    val inlineContent = wordsInOrder.mapIndexedNotNull { idx, value ->
-        if (value is ImageUrlType) {
-            Pair(
-                "inlineContent$idx",
-                InlineTextContent(
-                    Placeholder(
-                        width = placeholderSize,
-                        height = placeholderSize,
-                        placeholderVerticalAlign = PlaceholderVerticalAlign.Center
+    val inlineContent =
+        wordsInOrder
+            .mapIndexedNotNull { idx, value ->
+                if (value is ImageUrlType) {
+                    Pair(
+                        "inlineContent$idx",
+                        InlineTextContent(
+                            Placeholder(
+                                width = placeholderSize,
+                                height = placeholderSize,
+                                placeholderVerticalAlign = PlaceholderVerticalAlign.Center,
+                            ),
+                        ) {
+                            AsyncImage(
+                                model = value.url,
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize().padding(horizontal = 0.dp),
+                            )
+                        },
                     )
-                ) {
-                    AsyncImage(
-                        model = value.url,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 0.dp)
-                    )
+                } else {
+                    null
                 }
-            )
-        } else {
-            null
-        }
-    }.associate { it.first to it.second }
+            }
+            .associate { it.first to it.second }
 
-    val annotatedText = remember {
-        buildAnnotatedString {
-            wordsInOrder.forEachIndexed { idx, value ->
-                withStyle(
-                    style
-                ) {
-                    if (value is TextType) {
-                        append(value.text)
-                    } else if (value is ImageUrlType) {
-                        appendInlineContent("inlineContent$idx", "[icon]")
+    val annotatedText =
+        remember {
+            buildAnnotatedString {
+                wordsInOrder.forEachIndexed { idx, value ->
+                    withStyle(
+                        style,
+                    ) {
+                        if (value is TextType) {
+                            append(value.text)
+                        } else if (value is ImageUrlType) {
+                            appendInlineContent("inlineContent$idx", "[icon]")
+                        }
                     }
                 }
             }
         }
-    }
 
     Text(
         text = annotatedText,
@@ -707,6 +724,6 @@ fun InLineIconRenderer(
         fontSize = fontSize,
         maxLines = maxLines,
         overflow = overflow,
-        modifier = modifier
+        modifier = modifier,
     )
 }

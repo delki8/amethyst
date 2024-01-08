@@ -1,18 +1,32 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.quartz.events
 
-import android.util.Log
 import androidx.compose.runtime.Immutable
-import com.vitorpamplona.quartz.utils.TimeUtils
-import com.vitorpamplona.quartz.encoders.toHexKey
-import com.vitorpamplona.quartz.crypto.CryptoUtils
-import com.vitorpamplona.quartz.crypto.KeyPair
+import com.vitorpamplona.quartz.encoders.Hex
 import com.vitorpamplona.quartz.encoders.HexKey
 import com.vitorpamplona.quartz.encoders.HexValidator
-import com.vitorpamplona.quartz.encoders.Hex
-import com.vitorpamplona.quartz.encoders.hexToByteArray
 import com.vitorpamplona.quartz.signers.NostrSigner
+import com.vitorpamplona.quartz.utils.TimeUtils
 import kotlinx.collections.immutable.persistentSetOf
-import java.util.UUID
 
 @Immutable
 class PrivateDmEvent(
@@ -21,15 +35,14 @@ class PrivateDmEvent(
     createdAt: Long,
     tags: Array<Array<String>>,
     content: String,
-    sig: HexKey
-) : Event(id, pubKey, createdAt, kind, tags, content, sig), ChatroomKeyable {
-    @Transient
-    private var decryptedContent: Map<HexKey, String> = mapOf()
+    sig: HexKey,
+) : Event(id, pubKey, createdAt, KIND, tags, content, sig), ChatroomKeyable {
+    @Transient private var decryptedContent: Map<HexKey, String> = mapOf()
 
     /**
      * This may or may not be the actual recipient's pub key. The event is intended to look like a
-     * nip-04 EncryptedDmEvent but may omit the recipient, too. This value can be queried and used
-     * for initial messages.
+     * nip-04 EncryptedDmEvent but may omit the recipient, too. This value can be queried and used for
+     * initial messages.
      */
     private fun recipientPubKey() = tags.firstOrNull { it.size > 1 && it[0] == "p" }?.get(1)
 
@@ -61,26 +74,29 @@ class PrivateDmEvent(
     fun replyTo() = tags.firstOrNull { it.size > 1 && it[0] == "e" }?.get(1)
 
     fun with(pubkeyHex: String): Boolean {
-        return pubkeyHex == pubKey ||
-            tags.any { it.size > 1 && it[0] == "p" && it[1] == pubkeyHex }
+        return pubkeyHex == pubKey || tags.any { it.size > 1 && it[0] == "p" && it[1] == pubkeyHex }
     }
 
     fun cachedContentFor(signer: NostrSigner): String? {
         return decryptedContent[signer.pubKey]
     }
 
-    fun plainContent(signer: NostrSigner, onReady: (String) -> Unit) {
+    fun plainContent(
+        signer: NostrSigner,
+        onReady: (String) -> Unit,
+    ) {
         decryptedContent[signer.pubKey]?.let {
             onReady(it)
             return
         }
 
         signer.nip04Decrypt(content, talkingWith(signer.pubKey)) { retVal ->
-            val content = if (retVal.startsWith(nip18Advertisement)) {
-                retVal.substring(16)
-            } else {
-                retVal
-            }
+            val content =
+                if (retVal.startsWith(NIP_18_ADVERTISEMENT)) {
+                    retVal.substring(16)
+                } else {
+                    retVal
+                }
 
             decryptedContent = decryptedContent + Pair(signer.pubKey, content)
 
@@ -89,9 +105,9 @@ class PrivateDmEvent(
     }
 
     companion object {
-        const val kind = 4
-        const val alt = "Private Message"
-        const val nip18Advertisement = "[//]: # (nip18)\n"
+        const val KIND = 4
+        const val ALT = "Private Message"
+        const val NIP_18_ADVERTISEMENT = "[//]: # (nip18)\n"
 
         fun create(
             recipientPubKey: HexKey,
@@ -106,42 +122,40 @@ class PrivateDmEvent(
             markAsSensitive: Boolean,
             zapRaiserAmount: Long?,
             geohash: String? = null,
-            onReady: (PrivateDmEvent) -> Unit
+            onReady: (PrivateDmEvent) -> Unit,
         ) {
-            val message = if (advertiseNip18) { nip18Advertisement } else { "" } + msg
+            val message =
+                if (advertiseNip18) {
+                    NIP_18_ADVERTISEMENT
+                } else {
+                    ""
+                } + msg
             val tags = mutableListOf<Array<String>>()
-            publishedRecipientPubKey?.let {
-                tags.add(arrayOf("p", publishedRecipientPubKey))
-            }
-            replyTos?.forEach {
-                tags.add(arrayOf("e", it))
-            }
-            mentions?.forEach {
-                tags.add(arrayOf("p", it))
-            }
+            publishedRecipientPubKey?.let { tags.add(arrayOf("p", publishedRecipientPubKey)) }
+            replyTos?.forEach { tags.add(arrayOf("e", it)) }
+            mentions?.forEach { tags.add(arrayOf("p", it)) }
             zapReceiver?.forEach {
                 tags.add(arrayOf("zap", it.lnAddressOrPubKeyHex, it.relay ?: "", it.weight.toString()))
             }
             if (markAsSensitive) {
                 tags.add(arrayOf("content-warning", ""))
             }
-            zapRaiserAmount?.let {
-                tags.add(arrayOf("zapraiser", "$it"))
-            }
-            geohash?.let {
-                tags.addAll(geohashMipMap(it))
-            }
-            tags.add(arrayOf("alt", alt))
+            zapRaiserAmount?.let { tags.add(arrayOf("zapraiser", "$it")) }
+            geohash?.let { tags.addAll(geohashMipMap(it)) }
+            tags.add(arrayOf("alt", ALT))
 
             signer.nip04Encrypt(message, recipientPubKey) { content ->
-                signer.sign(createdAt, kind, tags.toTypedArray(), content, onReady)
+                signer.sign(createdAt, KIND, tags.toTypedArray(), content, onReady)
             }
         }
     }
 }
 
 fun geohashMipMap(geohash: String): Array<Array<String>> {
-    return geohash.indices.asSequence().map {
-        arrayOf("g", geohash.substring(0, it+1))
-    }.toList().reversed().toTypedArray()
+    return geohash.indices
+        .asSequence()
+        .map { arrayOf("g", geohash.substring(0, it + 1)) }
+        .toList()
+        .reversed()
+        .toTypedArray()
 }

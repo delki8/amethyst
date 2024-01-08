@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.model
 
 import android.util.LruCache
@@ -42,6 +62,7 @@ import com.vitorpamplona.quartz.events.RepostEvent
 import com.vitorpamplona.quartz.events.WrappedEvent
 import com.vitorpamplona.quartz.signers.NostrSigner
 import com.vitorpamplona.quartz.utils.TimeUtils
+import com.vitorpamplona.quartz.utils.containsAny
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.math.BigDecimal
@@ -52,9 +73,13 @@ import java.time.format.DateTimeFormatter
 @Stable
 class AddressableNote(val address: ATag) : Note(address.toTag()) {
     override fun idNote() = address.toNAddr()
+
     override fun toNEvent() = address.toNAddr()
+
     override fun idDisplayNote() = idNote().toShortenHex()
+
     override fun address() = address
+
     override fun createdAt(): Long? {
         if (event == null) return null
 
@@ -80,14 +105,19 @@ open class Note(val idHex: String) {
     // These fields are updated every time an event related to this note is received.
     var replies = listOf<Note>()
         private set
+
     var reactions = mapOf<String, List<Note>>()
         private set
+
     var boosts = listOf<Note>()
         private set
+
     var reports = mapOf<User, List<Note>>()
         private set
+
     var zaps = mapOf<Note, Note?>()
         private set
+
     var zapsAmount: BigDecimal = BigDecimal.ZERO
 
     var zapPayments = mapOf<Note, Note?>()
@@ -99,6 +129,7 @@ open class Note(val idHex: String) {
     var lastReactionsDownloadTime: Map<String, EOSETime> = emptyMap()
 
     fun id() = Hex.decode(idHex)
+
     open fun idNote() = id().toNote()
 
     open fun toNEvent(): String {
@@ -110,7 +141,7 @@ open class Note(val idHex: String) {
                     host.id,
                     host.pubKey,
                     host.kind(),
-                    relays.firstOrNull()?.url
+                    relays.firstOrNull()?.url,
                 )
             } else {
                 Nip19.createNEvent(idHex, author?.pubkeyHex, event?.kind(), relays.firstOrNull()?.url)
@@ -127,15 +158,15 @@ open class Note(val idHex: String) {
     open fun idDisplayNote() = idNote().toShortenHex()
 
     fun channelHex(): HexKey? {
-        return if (event is ChannelMessageEvent ||
+        return if (
+            event is ChannelMessageEvent ||
             event is ChannelMetadataEvent ||
             event is ChannelCreateEvent ||
             event is LiveActivitiesChatMessageEvent ||
             event is LiveActivitiesEvent
         ) {
             (event as? ChannelMessageEvent)?.channel()
-                ?: (event as? ChannelMetadataEvent)?.channel()
-                ?: (event as? ChannelCreateEvent)?.id
+                ?: (event as? ChannelMetadataEvent)?.channel() ?: (event as? ChannelCreateEvent)?.id
                 ?: (event as? LiveActivitiesChatMessageEvent)?.activity()?.toTag()
                 ?: (event as? LiveActivitiesEvent)?.address()?.toTag()
         } else {
@@ -147,7 +178,11 @@ open class Note(val idHex: String) {
 
     open fun createdAt() = event?.createdAt()
 
-    fun loadEvent(event: Event, author: User, replyTo: List<Note>) {
+    fun loadEvent(
+        event: Event,
+        author: User,
+        replyTo: List<Note>,
+    ) {
         if (this.event?.id() != event.id()) {
             this.event = event
             this.author = author
@@ -159,7 +194,8 @@ open class Note(val idHex: String) {
     }
 
     fun formattedDateTime(timestamp: Long): String {
-        return Instant.ofEpochSecond(timestamp).atZone(ZoneId.systemDefault())
+        return Instant.ofEpochSecond(timestamp)
+            .atZone(ZoneId.systemDefault())
             .format(DateTimeFormatter.ofPattern("uuuu-MM-dd-HH:mm:ss"))
     }
 
@@ -173,50 +209,62 @@ open class Note(val idHex: String) {
         cachedSignatures: MutableMap<Note, LevelSignature>,
         account: User,
         accountFollowingSet: Set<String>,
-        now: Long
+        now: Long,
     ): LevelSignature {
         val replyTo = replyTo
-        if (event is RepostEvent || event is GenericRepostEvent || replyTo == null || replyTo.isEmpty()) {
+        if (
+            event is RepostEvent || event is GenericRepostEvent || replyTo == null || replyTo.isEmpty()
+        ) {
             return LevelSignature(
                 signature = "/" + formattedDateTime(createdAt() ?: 0) + idHex.substring(0, 8) + ";",
                 createdAt = createdAt(),
-                author = author
+                author = author,
             )
         }
 
-        val parent = (
-            replyTo
-                .filter { it.idHex in eventsToConsider } // This forces the signature to be based on a branch, avoiding two roots
-                .map {
-                    cachedSignatures[it] ?: it.replyLevelSignature(
-                        eventsToConsider,
-                        cachedSignatures,
-                        account,
-                        accountFollowingSet,
-                        now
-                    ).apply { cachedSignatures.put(it, this) }
-                }
-                .maxByOrNull { it.signature.length }
+        val parent =
+            (
+                replyTo
+                    .filter {
+                        it.idHex in eventsToConsider
+                    } // This forces the signature to be based on a branch, avoiding two roots
+                    .map {
+                        cachedSignatures[it]
+                            ?: it
+                                .replyLevelSignature(
+                                    eventsToConsider,
+                                    cachedSignatures,
+                                    account,
+                                    accountFollowingSet,
+                                    now,
+                                )
+                                .apply { cachedSignatures.put(it, this) }
+                    }
+                    .maxByOrNull { it.signature.length }
             )
 
         val parentSignature = parent?.signature?.removeSuffix(";") ?: ""
 
-        val threadOrder = if (parent?.author == author && createdAt() != null) {
-            // author of the thread first, in **ascending** order
-            "9" + formattedDateTime((parent?.createdAt ?: 0) + (now - (createdAt() ?: 0))) + idHex.substring(0, 8)
-        } else if (author?.pubkeyHex == account.pubkeyHex) {
-            "8" + formattedDateTime(createdAt() ?: 0) + idHex.substring(0, 8) // my replies
-        } else if (author?.pubkeyHex in accountFollowingSet) {
-            "7" + formattedDateTime(createdAt() ?: 0) + idHex.substring(0, 8) // my follows replies.
-        } else {
-            "0" + formattedDateTime(createdAt() ?: 0) + idHex.substring(0, 8) // everyone else.
-        }
+        val threadOrder =
+            if (parent?.author == author && createdAt() != null) {
+                // author of the thread first, in **ascending** order
+                "9" +
+                    formattedDateTime((parent?.createdAt ?: 0) + (now - (createdAt() ?: 0))) +
+                    idHex.substring(0, 8)
+            } else if (author?.pubkeyHex == account.pubkeyHex) {
+                "8" + formattedDateTime(createdAt() ?: 0) + idHex.substring(0, 8) // my replies
+            } else if (author?.pubkeyHex in accountFollowingSet) {
+                "7" + formattedDateTime(createdAt() ?: 0) + idHex.substring(0, 8) // my follows replies.
+            } else {
+                "0" + formattedDateTime(createdAt() ?: 0) + idHex.substring(0, 8) // everyone else.
+            }
 
-        val mySignature = LevelSignature(
-            signature = parentSignature + "/" + threadOrder + ";",
-            createdAt = createdAt(),
-            author = author
-        )
+        val mySignature =
+            LevelSignature(
+                signature = parentSignature + "/" + threadOrder + ";",
+                createdAt = createdAt(),
+                author = author,
+            )
 
         cachedSignatures[this] = mySignature
         return mySignature
@@ -224,7 +272,9 @@ open class Note(val idHex: String) {
 
     fun replyLevel(cachedLevels: MutableMap<Note, Int> = mutableMapOf()): Int {
         val replyTo = replyTo
-        if (event is RepostEvent || event is GenericRepostEvent || replyTo == null || replyTo.isEmpty()) {
+        if (
+            event is RepostEvent || event is GenericRepostEvent || replyTo == null || replyTo.isEmpty()
+        ) {
             return 0
         }
 
@@ -255,14 +305,15 @@ open class Note(val idHex: String) {
     }
 
     fun removeAllChildNotes(): List<Note> {
-        val toBeRemoved = replies +
-            reactions.values.flatten() +
-            boosts +
-            reports.values.flatten() +
-            zaps.keys +
-            zaps.values.filterNotNull() +
-            zapPayments.keys +
-            zapPayments.values.filterNotNull()
+        val toBeRemoved =
+            replies +
+                reactions.values.flatten() +
+                boosts +
+                reports.values.flatten() +
+                zaps.keys +
+                zaps.values.filterNotNull() +
+                zapPayments.keys +
+                zapPayments.values.filterNotNull()
 
         replies = listOf<Note>()
         reactions = mapOf<String, List<Note>>()
@@ -344,7 +395,10 @@ open class Note(val idHex: String) {
     }
 
     @Synchronized
-    private fun innerAddZap(zapRequest: Note, zap: Note?): Boolean {
+    private fun innerAddZap(
+        zapRequest: Note,
+        zap: Note?,
+    ): Boolean {
         if (zaps[zapRequest] == null) {
             zaps = zaps + Pair(zapRequest, zap)
             return true
@@ -353,7 +407,10 @@ open class Note(val idHex: String) {
         return false
     }
 
-    fun addZap(zapRequest: Note, zap: Note?) {
+    fun addZap(
+        zapRequest: Note,
+        zap: Note?,
+    ) {
         checkNotInMainThread()
 
         if (zaps[zapRequest] == null) {
@@ -366,7 +423,10 @@ open class Note(val idHex: String) {
     }
 
     @Synchronized
-    private fun innerAddZapPayment(zapPaymentRequest: Note, zapPayment: Note?): Boolean {
+    private fun innerAddZapPayment(
+        zapPaymentRequest: Note,
+        zapPayment: Note?,
+    ): Boolean {
         if (zapPayments[zapPaymentRequest] == null) {
             zapPayments = zapPayments + Pair(zapPaymentRequest, zapPayment)
             return true
@@ -375,7 +435,10 @@ open class Note(val idHex: String) {
         return false
     }
 
-    fun addZapPayment(zapPaymentRequest: Note, zapPayment: Note?) {
+    fun addZapPayment(
+        zapPaymentRequest: Note,
+        zapPayment: Note?,
+    ) {
         checkNotInMainThread()
         if (zapPayments[zapPaymentRequest] == null) {
             val inserted = innerAddZapPayment(zapPaymentRequest, zapPayment)
@@ -430,7 +493,7 @@ open class Note(val idHex: String) {
     private fun recursiveIsPaidByCalculation(
         account: Account,
         remainingZapPayments: List<Pair<Note, Note?>>,
-        onWasZappedByAuthor: () -> Unit
+        onWasZappedByAuthor: () -> Unit,
     ) {
         if (remainingZapPayments.isEmpty()) {
             return
@@ -441,13 +504,16 @@ open class Note(val idHex: String) {
         val zapResponseEvent = next.second?.event as? LnZapPaymentResponseEvent
         if (zapResponseEvent != null) {
             account.decryptZapPaymentResponseEvent(zapResponseEvent) { response ->
-                if (response is PayInvoiceSuccessResponse && account.isNIP47Author(zapResponseEvent.requestAuthor())) {
+                if (
+                    response is PayInvoiceSuccessResponse &&
+                    account.isNIP47Author(zapResponseEvent.requestAuthor())
+                ) {
                     onWasZappedByAuthor()
                 } else {
                     recursiveIsPaidByCalculation(
                         account,
                         remainingZapPayments.minus(next),
-                        onWasZappedByAuthor
+                        onWasZappedByAuthor,
                     )
                 }
             }
@@ -459,7 +525,7 @@ open class Note(val idHex: String) {
         user: User,
         account: Account,
         remainingZapEvents: List<Pair<Note, Note?>>,
-        onWasZappedByAuthor: () -> Unit
+        onWasZappedByAuthor: () -> Unit,
     ) {
         if (remainingZapEvents.isEmpty()) {
             return
@@ -471,23 +537,41 @@ open class Note(val idHex: String) {
             onWasZappedByAuthor()
         } else {
             account.decryptZapContentAuthor(next.first) {
-                if (it.pubKey == user.pubkeyHex && (option == null || option == (it as? LnZapEvent)?.zappedPollOption())) {
+                if (
+                    it.pubKey == user.pubkeyHex &&
+                    (option == null || option == (it as? LnZapEvent)?.zappedPollOption())
+                ) {
                     onWasZappedByAuthor()
                 } else {
-                    recursiveIsZappedByCalculation(option, user, account, remainingZapEvents.minus(next), onWasZappedByAuthor)
+                    recursiveIsZappedByCalculation(
+                        option,
+                        user,
+                        account,
+                        remainingZapEvents.minus(next),
+                        onWasZappedByAuthor,
+                    )
                 }
             }
         }
     }
 
-    fun isZappedBy(user: User, account: Account, onWasZappedByAuthor: () -> Unit) {
+    fun isZappedBy(
+        user: User,
+        account: Account,
+        onWasZappedByAuthor: () -> Unit,
+    ) {
         recursiveIsZappedByCalculation(null, user, account, zaps.toList(), onWasZappedByAuthor)
         if (account.userProfile() == user) {
             recursiveIsPaidByCalculation(account, zapPayments.toList(), onWasZappedByAuthor)
         }
     }
 
-    fun isZappedBy(option: Int?, user: User, account: Account, onWasZappedByAuthor: () -> Unit) {
+    fun isZappedBy(
+        option: Int?,
+        user: User,
+        account: Account,
+        onWasZappedByAuthor: () -> Unit,
+    ) {
         recursiveIsZappedByCalculation(option, user, account, zaps.toList(), onWasZappedByAuthor)
     }
 
@@ -514,13 +598,15 @@ open class Note(val idHex: String) {
     }
 
     fun reportsBy(users: Set<HexKey>): List<Note> {
-        return reports.mapNotNull {
-            if (it.key.pubkeyHex in users) {
-                it.value
-            } else {
-                null
+        return reports
+            .mapNotNull {
+                if (it.key.pubkeyHex in users) {
+                    it.value
+                } else {
+                    null
+                }
             }
-        }.flatten()
+            .flatten()
     }
 
     private fun updateZapTotal() {
@@ -542,7 +628,7 @@ open class Note(val idHex: String) {
         remainingZapPayments: List<Pair<Note, Note?>>,
         signer: NostrSigner,
         output: BigDecimal,
-        onReady: (BigDecimal) -> Unit
+        onReady: (BigDecimal) -> Unit,
     ) {
         if (remainingZapPayments.isEmpty()) {
             onReady(output)
@@ -554,11 +640,12 @@ open class Note(val idHex: String) {
         (next.second?.event as? LnZapPaymentResponseEvent)?.response(signer) { noteEvent ->
             if (noteEvent is PayInvoiceSuccessResponse) {
                 (next.first.event as? LnZapPaymentRequestEvent)?.lnInvoice(signer) { invoice ->
-                    val amount = try {
-                        LnInvoiceUtil.getAmountInSats(invoice)
-                    } catch (e: java.lang.Exception) {
-                        null
-                    }
+                    val amount =
+                        try {
+                            LnInvoiceUtil.getAmountInSats(invoice)
+                        } catch (e: java.lang.Exception) {
+                            null
+                        }
 
                     var newAmount = output
 
@@ -572,31 +659,30 @@ open class Note(val idHex: String) {
                         remainingZapPayments.minus(next),
                         signer,
                         newAmount,
-                        onReady
+                        onReady,
                     )
                 }
             }
         }
     }
 
-    fun zappedAmountWithNWCPayments(signer: NostrSigner, onReady: (BigDecimal) -> Unit) {
+    fun zappedAmountWithNWCPayments(
+        signer: NostrSigner,
+        onReady: (BigDecimal) -> Unit,
+    ) {
         if (zapPayments.isEmpty()) {
             onReady(zapsAmount)
         }
 
         val invoiceSet = LinkedHashSet<String>(zaps.size + zapPayments.size)
-        zaps.forEach {
-            (it.value?.event as? LnZapEvent)?.lnInvoice()?.let {
-                invoiceSet.add(it)
-            }
-        }
+        zaps.forEach { (it.value?.event as? LnZapEvent)?.lnInvoice()?.let { invoiceSet.add(it) } }
 
         recursiveZappedAmountCalculation(
             invoiceSet,
             zapPayments.toList(),
             signer,
             zapsAmount,
-            onReady
+            onReady,
         )
     }
 
@@ -604,12 +690,13 @@ open class Note(val idHex: String) {
         return replies
             .filter { it.event?.isTaggedHash("bounty-added-reward") ?: false }
             .any {
-                val pledgeValue = try {
-                    BigDecimal(it.event?.content())
-                } catch (e: Exception) {
-                    null
-                    // do nothing if it can't convert to bigdecimal
-                }
+                val pledgeValue =
+                    try {
+                        BigDecimal(it.event?.content())
+                    } catch (e: Exception) {
+                        null
+                        // do nothing if it can't convert to bigdecimal
+                    }
 
                 pledgeValue != null && it.author == user
             }
@@ -633,10 +720,9 @@ open class Note(val idHex: String) {
         val dayAgo = TimeUtils.oneDayAgo()
         return reports.isNotEmpty() ||
             (
-                author?.reports?.any {
-                    it.value.firstOrNull { (it.createdAt() ?: 0) > dayAgo } != null
-                } ?: false
-                )
+                author?.reports?.any { it.value.firstOrNull { (it.createdAt() ?: 0) > dayAgo } != null }
+                    ?: false
+            )
     }
 
     fun isNewThread(): Boolean {
@@ -645,7 +731,7 @@ open class Note(val idHex: String) {
                 event is GenericRepostEvent ||
                 replyTo == null ||
                 replyTo?.size == 0
-            ) &&
+        ) &&
             event !is ChannelMessageEvent &&
             event !is LiveActivitiesChatMessageEvent
     }
@@ -654,11 +740,17 @@ open class Note(val idHex: String) {
         return zaps.any { it.key.author == loggedIn }
     }
 
-    fun hasReacted(loggedIn: User, content: String): Boolean {
+    fun hasReacted(
+        loggedIn: User,
+        content: String,
+    ): Boolean {
         return reactedBy(loggedIn, content).isNotEmpty()
     }
 
-    fun reactedBy(loggedIn: User, content: String): List<Note> {
+    fun reactedBy(
+        loggedIn: User,
+        content: String,
+    ): List<Note> {
         return reactions[content]?.filter { it.author == loggedIn } ?: emptyList()
     }
 
@@ -667,7 +759,9 @@ open class Note(val idHex: String) {
     }
 
     fun hasBoostedInTheLast5Minutes(loggedIn: User): Boolean {
-        return boosts.firstOrNull { it.author == loggedIn && (it.createdAt() ?: 0) > TimeUtils.fiveMinutesAgo() } != null // 5 minute protection
+        return boosts.firstOrNull {
+            it.author == loggedIn && (it.createdAt() ?: 0) > TimeUtils.fiveMinutesAgo()
+        } != null // 5 minute protection
     }
 
     fun boostedBy(loggedIn: User): List<Note> {
@@ -718,22 +812,29 @@ open class Note(val idHex: String) {
     fun isHiddenFor(accountChoices: Account.LiveHiddenUsers): Boolean {
         val thisEvent = event ?: return false
 
-        val isBoostedNoteHidden = if (thisEvent is GenericRepostEvent || thisEvent is RepostEvent || thisEvent is CommunityPostApprovalEvent) {
-            replyTo?.lastOrNull()?.isHiddenFor(accountChoices) ?: false
-        } else {
-            false
-        }
-
-        val isHiddenByWord = if (thisEvent is BaseTextNoteEvent) {
-            accountChoices.hiddenWords.any {
-                thisEvent.content.contains(it, true)
+        val isBoostedNoteHidden =
+            if (
+                thisEvent is GenericRepostEvent ||
+                thisEvent is RepostEvent ||
+                thisEvent is CommunityPostApprovalEvent
+            ) {
+                replyTo?.lastOrNull()?.isHiddenFor(accountChoices) ?: false
+            } else {
+                false
             }
-        } else {
-            false
-        }
+
+        val isHiddenByWord =
+            if (thisEvent is BaseTextNoteEvent) {
+                accountChoices.hiddenWords.any {
+                    thisEvent.content.containsAny(accountChoices.hiddenWordsCase)
+                }
+            } else {
+                false
+            }
 
         val isSensitive = thisEvent.isSensitive()
-        return isBoostedNoteHidden || isHiddenByWord ||
+        return isBoostedNoteHidden ||
+            isHiddenByWord ||
             accountChoices.hiddenUsers.contains(author?.pubkeyHex) ||
             accountChoices.spammers.contains(author?.pubkeyHex) ||
             (isSensitive && accountChoices.showSensitiveContent == false)
@@ -830,41 +931,36 @@ class NoteLiveSet(u: Note) {
     val relays = innerRelays.map { it }
     val zaps = innerZaps.map { it }
 
-    val authorChanges = innerMetadata.map {
-        it.note.author
-    }.distinctUntilChanged()
+    val authorChanges = innerMetadata.map { it.note.author }.distinctUntilChanged()
 
-    val hasEvent = innerMetadata.map {
-        it.note.event != null
-    }.distinctUntilChanged()
+    val hasEvent = innerMetadata.map { it.note.event != null }.distinctUntilChanged()
 
-    val hasReactions = innerZaps.combineWith(innerBoosts, innerReactions) { zapState, boostState, reactionState ->
-        zapState?.note?.zaps?.isNotEmpty() ?: false ||
-            boostState?.note?.boosts?.isNotEmpty() ?: false ||
-            reactionState?.note?.reactions?.isNotEmpty() ?: false
-    }.distinctUntilChanged()
+    val hasReactions =
+        innerZaps
+            .combineWith(innerBoosts, innerReactions) { zapState, boostState, reactionState ->
+                zapState?.note?.zaps?.isNotEmpty()
+                    ?: false ||
+                    boostState?.note?.boosts?.isNotEmpty() ?: false ||
+                    reactionState?.note?.reactions?.isNotEmpty() ?: false
+            }
+            .distinctUntilChanged()
 
-    val replyCount = innerReplies.map {
-        it.note.replies.size
-    }.distinctUntilChanged()
+    val replyCount = innerReplies.map { it.note.replies.size }.distinctUntilChanged()
 
-    val reactionCount = innerReactions.map {
-        var total = 0
-        it.note.reactions.forEach { total += it.value.size }
-        total
-    }.distinctUntilChanged()
+    val reactionCount =
+        innerReactions
+            .map {
+                var total = 0
+                it.note.reactions.forEach { total += it.value.size }
+                total
+            }
+            .distinctUntilChanged()
 
-    val boostCount = innerBoosts.map {
-        it.note.boosts.size
-    }.distinctUntilChanged()
+    val boostCount = innerBoosts.map { it.note.boosts.size }.distinctUntilChanged()
 
-    val relayInfo = innerRelays.map {
-        it.note.relays
-    }
+    val relayInfo = innerRelays.map { it.note.relays }
 
-    val content = innerMetadata.map {
-        it.note.event?.content() ?: ""
-    }
+    val content = innerMetadata.map { it.note.event?.content() ?: "" }
 
     fun isInUse(): Boolean {
         return metadata.hasObservers() ||
@@ -906,7 +1002,7 @@ class NoteBundledRefresherFlow(val note: Note) {
     fun invalidateData() {
         checkNotInMainThread()
 
-        bundler.invalidate() {
+        bundler.invalidate {
             checkNotInMainThread()
 
             stateFlow.emit(NoteState(note))
@@ -926,16 +1022,14 @@ class NoteBundledRefresherLiveData(val note: Note) : LiveData<NoteState>(NoteSta
     fun invalidateData() {
         checkNotInMainThread()
 
-        bundler.invalidate() {
+        bundler.invalidate {
             checkNotInMainThread()
 
             postValue(NoteState(note))
         }
     }
 
-    fun <Y> map(
-        transform: (NoteState) -> Y
-    ): NoteLoadingLiveData<Y> {
+    fun <Y> map(transform: (NoteState) -> Y): NoteLoadingLiveData<Y> {
         val initialValue = this.value?.let { transform(it) }
         val result = NoteLoadingLiveData(note, initialValue)
         result.addSource(this) { x -> result.value = transform(x) }
@@ -964,8 +1058,7 @@ class NoteLoadingLiveData<Y>(val note: Note, initialValue: Y?) : MediatorLiveDat
     }
 }
 
-@Immutable
-class NoteState(val note: Note)
+@Immutable class NoteState(val note: Note)
 
 object RelayBriefInfoCache {
     val cache = LruCache<String, RelayBriefInfo?>(50)
@@ -973,8 +1066,9 @@ object RelayBriefInfoCache {
     @Immutable
     data class RelayBriefInfo(
         val url: String,
-        val displayUrl: String = url.trim().removePrefix("wss://").removePrefix("ws://").removeSuffix("/").intern(),
-        val favIcon: String = "https://$displayUrl/favicon.ico".intern()
+        val displayUrl: String =
+            url.trim().removePrefix("wss://").removePrefix("ws://").removeSuffix("/").intern(),
+        val favIcon: String = "https://$displayUrl/favicon.ico".intern(),
     )
 
     fun get(url: String): RelayBriefInfo {

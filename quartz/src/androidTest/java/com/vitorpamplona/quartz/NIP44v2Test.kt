@@ -1,4 +1,24 @@
-package com.vitorpamplona.quartz;
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+package com.vitorpamplona.quartz
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry.getInstrumentation
@@ -17,13 +37,14 @@ import org.junit.runner.RunWith
 import java.security.MessageDigest
 import java.security.SecureRandom
 
-
 @RunWith(AndroidJUnit4::class)
 public class NIP44v2Test {
-    val vectors: VectorFile = jacksonObjectMapper().readValue(
-        getInstrumentation().context.assets.open("nip44.vectors.json"),
-        VectorFile::class.java
-    )
+    val vectors: VectorFile =
+        jacksonObjectMapper()
+            .readValue(
+                getInstrumentation().context.assets.open("nip44.vectors.json"),
+                VectorFile::class.java,
+            )
 
     val random = SecureRandom()
     val nip44v2 = Nip44v2(Secp256k1.get(), random)
@@ -31,7 +52,8 @@ public class NIP44v2Test {
     @Test
     fun conversationKeyTest() {
         for (v in vectors.v2?.valid?.getConversationKey!!) {
-            val conversationKey = nip44v2.getConversationKey(v.sec1!!.hexToByteArray(), v.pub2!!.hexToByteArray())
+            val conversationKey =
+                nip44v2.getConversationKey(v.sec1!!.hexToByteArray(), v.pub2!!.hexToByteArray())
 
             assertEquals(v.conversationKey, conversationKey.toHexKey())
         }
@@ -52,11 +74,14 @@ public class NIP44v2Test {
             val conversationKey = nip44v2.getConversationKey(v.sec1!!.hexToByteArray(), pub2.pubKey)
             assertEquals(v.conversationKey, conversationKey.toHexKey())
 
-            val ciphertext = nip44v2.encryptWithNonce(
-                v.plaintext!!,
-                conversationKey,
-                v.nonce!!.hexToByteArray()
-            ).encodePayload()
+            val ciphertext =
+                nip44v2
+                    .encryptWithNonce(
+                        v.plaintext!!,
+                        conversationKey,
+                        v.nonce!!.hexToByteArray(),
+                    )
+                    .encodePayload()
 
             assertEquals(v.payload, ciphertext)
 
@@ -73,11 +98,14 @@ public class NIP44v2Test {
 
             assertEquals(v.plaintextSha256, sha256Hex(plaintext.toByteArray(Charsets.UTF_8)))
 
-            val ciphertext = nip44v2.encryptWithNonce(
-                plaintext,
-                conversationKey,
-                v.nonce!!.hexToByteArray()
-            ).encodePayload()
+            val ciphertext =
+                nip44v2
+                    .encryptWithNonce(
+                        plaintext,
+                        conversationKey,
+                        v.nonce!!.hexToByteArray(),
+                    )
+                    .encodePayload()
 
             assertEquals(v.payloadSha256, sha256Hex(ciphertext.toByteArray(Charsets.UTF_8)))
 
@@ -94,7 +122,7 @@ public class NIP44v2Test {
             random.nextBytes(key)
             try {
                 nip44v2.encrypt("a".repeat(v), key)
-                fail("Should Throw for ${v}")
+                fail("Should Throw for $v")
             } catch (e: Exception) {
                 assertNotNull(e)
             }
@@ -107,7 +135,7 @@ public class NIP44v2Test {
             try {
                 val result = nip44v2.decrypt(v.payload!!, v.conversationKey!!.hexToByteArray())
                 assertNull(result)
-                //fail("Should Throw for ${v.note}")
+                // fail("Should Throw for ${v.note}")
             } catch (e: Exception) {
                 assertNotNull(e)
             }
@@ -132,71 +160,73 @@ public class NIP44v2Test {
     }
 }
 
-data class VectorFile (
-    val v2 : V2? = V2()
+data class VectorFile(
+    val v2: V2? = V2(),
 )
 
-data class V2 (
-    val valid   : Valid?   = Valid(),
-    val invalid : Invalid? = Invalid()
+data class V2(
+    val valid: Valid? = Valid(),
+    val invalid: Invalid? = Invalid(),
 )
 
-data class Valid (
-    @JsonProperty("get_conversation_key"     ) val getConversationKey    : ArrayList<GetConversationKey>    = arrayListOf(),
-    @JsonProperty("get_message_keys"         ) val getMessageKeys        : GetMessageKeys?                  = GetMessageKeys(),
-    @JsonProperty("calc_padded_len"          ) val calcPaddedLen         : ArrayList<ArrayList<Int>>        = arrayListOf(),
-    @JsonProperty("encrypt_decrypt"          ) val encryptDecrypt        : ArrayList<EncryptDecrypt>        = arrayListOf(),
-    @JsonProperty("encrypt_decrypt_long_msg" ) val encryptDecryptLongMsg : ArrayList<EncryptDecryptLongMsg> = arrayListOf()
+data class Valid(
+    @JsonProperty("get_conversation_key")
+    val getConversationKey: ArrayList<GetConversationKey> = arrayListOf(),
+    @JsonProperty("get_message_keys") val getMessageKeys: GetMessageKeys? = GetMessageKeys(),
+    @JsonProperty("calc_padded_len") val calcPaddedLen: ArrayList<ArrayList<Int>> = arrayListOf(),
+    @JsonProperty("encrypt_decrypt") val encryptDecrypt: ArrayList<EncryptDecrypt> = arrayListOf(),
+    @JsonProperty("encrypt_decrypt_long_msg")
+    val encryptDecryptLongMsg: ArrayList<EncryptDecryptLongMsg> = arrayListOf(),
 )
 
-data class Invalid (
-    @JsonProperty("encrypt_msg_lengths"  ) val encryptMsgLengths  : ArrayList<Int>                = arrayListOf(),
-    @JsonProperty("get_conversation_key" ) val getConversationKey : ArrayList<GetConversationKey> = arrayListOf(),
-    @JsonProperty("decrypt"              ) val decrypt            : ArrayList<Decrypt>            = arrayListOf()
+data class Invalid(
+    @JsonProperty("encrypt_msg_lengths") val encryptMsgLengths: ArrayList<Int> = arrayListOf(),
+    @JsonProperty("get_conversation_key")
+    val getConversationKey: ArrayList<GetConversationKey> = arrayListOf(),
+    @JsonProperty("decrypt") val decrypt: ArrayList<Decrypt> = arrayListOf(),
 )
 
-data class GetConversationKey (
-    val sec1 : String? = null,
-    val pub2 : String? = null,
-    val note : String? = null,
-    @JsonProperty("conversation_key" ) val conversationKey : String? = null
+data class GetConversationKey(
+    val sec1: String? = null,
+    val pub2: String? = null,
+    val note: String? = null,
+    @JsonProperty("conversation_key") val conversationKey: String? = null,
 )
 
-data class GetMessageKeys (
-    @JsonProperty("conversation_key" ) val conversationKey : String?         = null,
-    val keys : ArrayList<Keys> = arrayListOf()
+data class GetMessageKeys(
+    @JsonProperty("conversation_key") val conversationKey: String? = null,
+    val keys: ArrayList<Keys> = arrayListOf(),
 )
 
-data class Keys (
-    @JsonProperty("nonce"        ) val nonce       : String? = null,
-    @JsonProperty("chacha_key"   ) val chachaKey   : String? = null,
-    @JsonProperty("chacha_nonce" ) val chachaNonce : String? = null,
-    @JsonProperty("hmac_key"     ) val hmacKey     : String? = null
+data class Keys(
+    @JsonProperty("nonce") val nonce: String? = null,
+    @JsonProperty("chacha_key") val chachaKey: String? = null,
+    @JsonProperty("chacha_nonce") val chachaNonce: String? = null,
+    @JsonProperty("hmac_key") val hmacKey: String? = null,
 )
 
-data class EncryptDecrypt (
-    val sec1            : String? = null,
-    val sec2            : String? = null,
-    @JsonProperty("conversation_key" ) val conversationKey : String? = null,
-    val nonce           : String? = null,
-    val plaintext       : String? = null,
-    val payload         : String? = null
+data class EncryptDecrypt(
+    val sec1: String? = null,
+    val sec2: String? = null,
+    @JsonProperty("conversation_key") val conversationKey: String? = null,
+    val nonce: String? = null,
+    val plaintext: String? = null,
+    val payload: String? = null,
 )
 
-data class EncryptDecryptLongMsg (
-    @JsonProperty("conversation_key" ) val conversationKey : String? = null,
-    val nonce           : String? = null,
-    val pattern         : String? = null,
-    val repeat          : Int?    = null,
-    @JsonProperty("plaintext_sha256" ) val plaintextSha256 : String? = null,
-    @JsonProperty("payload_sha256"   ) val payloadSha256   : String? = null
+data class EncryptDecryptLongMsg(
+    @JsonProperty("conversation_key") val conversationKey: String? = null,
+    val nonce: String? = null,
+    val pattern: String? = null,
+    val repeat: Int? = null,
+    @JsonProperty("plaintext_sha256") val plaintextSha256: String? = null,
+    @JsonProperty("payload_sha256") val payloadSha256: String? = null,
 )
 
-data class Decrypt (
-    @JsonProperty("conversation_key" ) val conversationKey : String? = null,
-    val nonce           : String? = null,
-    val plaintext       : String? = null,
-    val payload         : String? = null,
-    val note            : String? = null
+data class Decrypt(
+    @JsonProperty("conversation_key") val conversationKey: String? = null,
+    val nonce: String? = null,
+    val plaintext: String? = null,
+    val payload: String? = null,
+    val note: String? = null,
 )
-

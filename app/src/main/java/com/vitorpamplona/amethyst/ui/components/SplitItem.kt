@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.components
 
 import androidx.compose.runtime.getValue
@@ -35,12 +55,13 @@ class Split<T>() {
 
     fun forceEqualSplit() {
         val correctPercentage = equalSplit()
-        items.forEach {
-            it.percentage = correctPercentage
-        }
+        items.forEach { it.percentage = correctPercentage }
     }
 
-    fun updatePercentage(index: Int, percentage: Float) {
+    fun updatePercentage(
+        index: Int,
+        percentage: Float,
+    ) {
         if (items.isEmpty()) return
 
         val splitItem = items.getOrNull(index) ?: return
@@ -54,9 +75,8 @@ class Split<T>() {
 
             val othersMustShare = 1.0f - splitItem.percentage
 
-            val othersHave = items.sumOf {
-                if (it == splitItem) 0.0 else it.percentage.toDouble()
-            }.toFloat()
+            val othersHave =
+                items.sumOf { if (it == splitItem) 0.0 else it.percentage.toDouble() }.toFloat()
 
             if (abs(othersHave - othersMustShare) < 0.01) return // nothing to do
 
@@ -66,7 +86,11 @@ class Split<T>() {
         }
     }
 
-    private fun bottomUpAdjustment(othersMustShare: Float, othersHave: Float, exceptForIndex: Int) {
+    private fun bottomUpAdjustment(
+        othersMustShare: Float,
+        othersHave: Float,
+        exceptForIndex: Int,
+    ) {
         var needToRemove = othersHave - othersMustShare
         if (needToRemove > 0) {
             for (i in items.indices.reversed()) {
@@ -76,7 +100,9 @@ class Split<T>() {
                     val oldValue = items[i].percentage
                     items[i].percentage -= needToRemove
                     needToRemove = 0f
-                    println("- Updating ${items[i].key} from $oldValue to ${items[i].percentage - needToRemove}. $needToRemove left")
+                    println(
+                        "- Updating ${items[i].key} from $oldValue to ${items[i].percentage - needToRemove}. $needToRemove left",
+                    )
                 } else {
                     val oldValue = items[i].percentage
                     needToRemove -= items[i].percentage

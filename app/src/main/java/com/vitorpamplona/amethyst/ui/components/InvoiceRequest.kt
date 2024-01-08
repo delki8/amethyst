@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.components
 
 import androidx.compose.foundation.border
@@ -52,21 +72,28 @@ fun InvoiceRequestCard(
     buttonText: String? = null,
     onSuccess: (String) -> Unit,
     onClose: () -> Unit,
-    onError: (String, String) -> Unit
+    onError: (String, String) -> Unit,
 ) {
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 30.dp, end = 30.dp)
-            .clip(shape = QuoteBorder)
-            .border(1.dp, MaterialTheme.colorScheme.subtleBorder, QuoteBorder)
+        modifier =
+            Modifier.fillMaxWidth()
+                .padding(start = 30.dp, end = 30.dp)
+                .clip(shape = QuoteBorder)
+                .border(1.dp, MaterialTheme.colorScheme.subtleBorder, QuoteBorder),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(30.dp)
+            modifier = Modifier.fillMaxWidth().padding(30.dp),
         ) {
-            InvoiceRequest(lud16, toUserPubKeyHex, account, titleText, buttonText, onSuccess, onClose, onError)
+            InvoiceRequest(
+                lud16,
+                toUserPubKeyHex,
+                account,
+                titleText,
+                buttonText,
+                onSuccess,
+                onClose,
+                onError,
+            )
         }
     }
 }
@@ -80,29 +107,27 @@ fun InvoiceRequest(
     buttonText: String? = null,
     onSuccess: (String) -> Unit,
     onClose: () -> Unit,
-    onError: (String, String) -> Unit
+    onError: (String, String) -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 10.dp)
+        modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
     ) {
         Icon(
             painter = painterResource(R.drawable.lightning),
             null,
             modifier = Size20Modifier,
-            tint = Color.Unspecified
+            tint = Color.Unspecified,
         )
 
         Text(
             text = titleText ?: stringResource(R.string.lightning_tips),
             fontSize = 20.sp,
             fontWeight = FontWeight.W500,
-            modifier = Modifier.padding(start = 10.dp)
+            modifier = Modifier.padding(start = 10.dp),
         )
     }
 
@@ -119,13 +144,14 @@ fun InvoiceRequest(
         placeholder = {
             Text(
                 text = stringResource(R.string.thank_you_so_much),
-                color = MaterialTheme.colorScheme.placeholderText
+                color = MaterialTheme.colorScheme.placeholderText,
             )
         },
-        keyboardOptions = KeyboardOptions.Default.copy(
-            capitalization = KeyboardCapitalization.Sentences
-        ),
-        singleLine = true
+        keyboardOptions =
+            KeyboardOptions.Default.copy(
+                capitalization = KeyboardCapitalization.Sentences,
+            ),
+        singleLine = true,
     )
 
     OutlinedTextField(
@@ -144,13 +170,14 @@ fun InvoiceRequest(
         placeholder = {
             Text(
                 text = "1000",
-                color = MaterialTheme.colorScheme.placeholderText
+                color = MaterialTheme.colorScheme.placeholderText,
             )
         },
-        keyboardOptions = KeyboardOptions.Default.copy(
-            keyboardType = KeyboardType.Number
-        ),
-        singleLine = true
+        keyboardOptions =
+            KeyboardOptions.Default.copy(
+                keyboardType = KeyboardType.Number,
+            ),
+        singleLine = true,
     )
 
     Button(
@@ -158,40 +185,47 @@ fun InvoiceRequest(
         onClick = {
             scope.launch(Dispatchers.IO) {
                 if (account.defaultZapType == LnZapEvent.ZapType.NONZAP) {
-                    LightningAddressResolver().lnAddressInvoice(
-                        lud16,
-                        amount * 1000,
-                        message,
-                        null,
-                        onSuccess = onSuccess,
-                        onError = onError,
-                        onProgress = {
-                        },
-                        context = context
-                    )
-                } else {
-                    account.createZapRequestFor(toUserPubKeyHex, message, account.defaultZapType) { zapRequest ->
-                        LocalCache.justConsume(zapRequest, null)
-                        LightningAddressResolver().lnAddressInvoice(
+                    LightningAddressResolver()
+                        .lnAddressInvoice(
                             lud16,
                             amount * 1000,
                             message,
-                            zapRequest.toJson(),
+                            null,
                             onSuccess = onSuccess,
                             onError = onError,
-                            onProgress = {
-                            },
-                            context = context
+                            onProgress = {},
+                            context = context,
                         )
+                } else {
+                    account.createZapRequestFor(toUserPubKeyHex, message, account.defaultZapType) {
+                            zapRequest,
+                        ->
+                        LocalCache.justConsume(zapRequest, null)
+                        LightningAddressResolver()
+                            .lnAddressInvoice(
+                                lud16,
+                                amount * 1000,
+                                message,
+                                zapRequest.toJson(),
+                                onSuccess = onSuccess,
+                                onError = onError,
+                                onProgress = {},
+                                context = context,
+                            )
                     }
                 }
             }
         },
         shape = QuoteBorder,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary
-        )
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+            ),
     ) {
-        Text(text = buttonText ?: stringResource(R.string.send_sats), color = Color.White, fontSize = 20.sp)
+        Text(
+            text = buttonText ?: stringResource(R.string.send_sats),
+            color = Color.White,
+            fontSize = 20.sp,
+        )
     }
 }

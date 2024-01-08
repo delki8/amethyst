@@ -1,7 +1,6 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
-    id 'org.jlleitschuh.gradle.ktlint' version "11.6.1"
     id 'com.google.gms.google-services'
 }
 
@@ -13,8 +12,8 @@ android {
         applicationId "com.vitorpamplona.amethyst"
         minSdk 26
         targetSdk 34
-        versionCode 345
-        versionName "0.83.4"
+        versionCode 346
+        versionName "0.83.5"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -89,7 +88,6 @@ android {
 
     buildTypes {
         release {
-            //signingConfig signingConfigs.debug
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), 'proguard-rules.pro'
             minifyEnabled true
             resValue "string", "app_name", "@string/app_name_release"
@@ -98,6 +96,10 @@ android {
             applicationIdSuffix '.debug'
             versionNameSuffix '-DEBUG'
             resValue "string", "app_name", "@string/app_name_debug"
+        }
+        create("benchmark") {
+            initWith(getByName("release"))
+            signingConfig signingConfigs.debug
         }
     }
 
@@ -197,7 +199,7 @@ dependencies {
     implementation 'com.squareup.okhttp3:okhttp:5.0.0-alpha.12'
 
     // HTML Parsing for Link Preview
-    implementation 'org.jsoup:jsoup:1.17.1'
+    implementation 'org.jsoup:jsoup:1.17.2'
 
     // Encrypted Key Storage
     implementation 'androidx.security:security-crypto-ktx:1.1.0-alpha06'

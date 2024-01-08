@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.note
 
 import android.util.Log
@@ -69,25 +89,23 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun UserReactionsRow(
     model: UserReactionsViewModel,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Row(
         verticalAlignment = CenterVertically,
-        modifier = Modifier
-            .clickable(onClick = onClick)
-            .padding(10.dp)
+        modifier = Modifier.clickable(onClick = onClick).padding(10.dp),
     ) {
         Row(verticalAlignment = CenterVertically, modifier = Modifier.width(68.dp)) {
             Text(
                 text = stringResource(id = R.string.today),
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
 
             Icon(
                 imageVector = Icons.Default.ExpandMore,
                 null,
                 modifier = Size20Modifier,
-                tint = MaterialTheme.colorScheme.placeholderText
+                tint = MaterialTheme.colorScheme.placeholderText,
             )
         }
 
@@ -115,7 +133,7 @@ private fun UserZapModel(model: UserReactionsViewModel) {
         imageVector = Icons.Default.Bolt,
         contentDescription = stringResource(R.string.zaps),
         modifier = Size24Modifier,
-        tint = BitcoinOrange
+        tint = BitcoinOrange,
     )
 
     Spacer(modifier = Modifier.width(8.dp))
@@ -129,7 +147,7 @@ private fun UserReactionModel(model: UserReactionsViewModel) {
         painter = painterResource(R.drawable.ic_liked),
         null,
         modifier = Size20Modifier,
-        tint = Color.Unspecified
+        tint = Color.Unspecified,
     )
 
     Spacer(modifier = StdHorzSpacer)
@@ -143,7 +161,7 @@ private fun UserBoostModel(model: UserReactionsViewModel) {
         painter = painterResource(R.drawable.ic_retweeted),
         null,
         modifier = Size24Modifier,
-        tint = Color.Unspecified
+        tint = Color.Unspecified,
     )
 
     Spacer(modifier = StdHorzSpacer)
@@ -157,7 +175,7 @@ private fun UserReplyModel(model: UserReactionsViewModel) {
         painter = painterResource(R.drawable.ic_comment),
         null,
         modifier = Size20Modifier,
-        tint = RoyalBlue
+        tint = RoyalBlue,
     )
 
     Spacer(modifier = StdHorzSpacer)
@@ -197,9 +215,7 @@ class UserReactionsViewModel(val account: Account) : ViewModel() {
 
     fun formatDate(createAt: Long): String {
         return sdf.format(
-            Instant.ofEpochSecond(createAt)
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime()
+            Instant.ofEpochSecond(createAt).atZone(ZoneId.systemDefault()).toLocalDateTime(),
         )
     }
 
@@ -232,9 +248,12 @@ class UserReactionsViewModel(val account: Account) : ViewModel() {
                         takenIntoAccount.add(noteEvent.id())
                     }
                 } else if (noteEvent is LnZapEvent) {
-                    if (noteEvent.isTaggedUser(currentUser)) { // the user might be sending his own receipts noteEvent.pubKey != currentUser
+                    if (
+                        noteEvent.isTaggedUser(currentUser)
+                    ) { // the user might be sending his own receipts noteEvent.pubKey != currentUser
                         val netDate = formatDate(noteEvent.createdAt)
-                        zaps[netDate] = (zaps[netDate] ?: BigDecimal.ZERO) + (noteEvent.amount ?: BigDecimal.ZERO)
+                        zaps[netDate] =
+                            (zaps[netDate] ?: BigDecimal.ZERO) + (noteEvent.amount ?: BigDecimal.ZERO)
                         takenIntoAccount.add(noteEvent.id())
                     }
                 } else if (noteEvent is TextNoteEvent) {
@@ -286,9 +305,12 @@ class UserReactionsViewModel(val account: Account) : ViewModel() {
                         hasNewElements = true
                     }
                 } else if (noteEvent is LnZapEvent) {
-                    if (noteEvent.isTaggedUser(currentUser)) { //  && noteEvent.pubKey != currentUser User might be sending his own receipts
+                    if (
+                        noteEvent.isTaggedUser(currentUser)
+                    ) { //  && noteEvent.pubKey != currentUser User might be sending his own receipts
                         val netDate = formatDate(noteEvent.createdAt)
-                        zaps[netDate] = (zaps[netDate] ?: BigDecimal.ZERO) + (noteEvent.amount ?: BigDecimal.ZERO)
+                        zaps[netDate] =
+                            (zaps[netDate] ?: BigDecimal.ZERO) + (noteEvent.amount ?: BigDecimal.ZERO)
                         takenIntoAccount.add(noteEvent.id())
                         hasNewElements = true
                     }
@@ -323,15 +345,25 @@ class UserReactionsViewModel(val account: Account) : ViewModel() {
 
         val dataAxisLabels = listOf(6, 5, 4, 3, 2, 1, 0).map { sdf.format(now.minusSeconds(day * it)) }
 
-        val listOfCountCurves = listOf(
-            dataAxisLabels.mapIndexed { index, dateStr -> entryOf(index, _replies.value[dateStr]?.toFloat() ?: 0f) },
-            dataAxisLabels.mapIndexed { index, dateStr -> entryOf(index, _boosts.value[dateStr]?.toFloat() ?: 0f) },
-            dataAxisLabels.mapIndexed { index, dateStr -> entryOf(index, _reactions.value[dateStr]?.toFloat() ?: 0f) }
-        )
+        val listOfCountCurves =
+            listOf(
+                dataAxisLabels.mapIndexed { index, dateStr ->
+                    entryOf(index, _replies.value[dateStr]?.toFloat() ?: 0f)
+                },
+                dataAxisLabels.mapIndexed { index, dateStr ->
+                    entryOf(index, _boosts.value[dateStr]?.toFloat() ?: 0f)
+                },
+                dataAxisLabels.mapIndexed { index, dateStr ->
+                    entryOf(index, _reactions.value[dateStr]?.toFloat() ?: 0f)
+                },
+            )
 
-        val listOfValueCurves = listOf(
-            dataAxisLabels.mapIndexed { index, dateStr -> entryOf(index, _zaps.value[dateStr]?.toFloat() ?: 0f) }
-        )
+        val listOfValueCurves =
+            listOf(
+                dataAxisLabels.mapIndexed { index, dateStr ->
+                    entryOf(index, _zaps.value[dateStr]?.toFloat() ?: 0f)
+                },
+            )
 
         val chartEntryModelProducer1 = ChartEntryModelProducer(listOfCountCurves).getModel()
         val chartEntryModelProducer2 = ChartEntryModelProducer(listOfValueCurves).getModel()
@@ -340,14 +372,21 @@ class UserReactionsViewModel(val account: Account) : ViewModel() {
             chartEntryModelProducer2?.let { chart2 ->
                 this.shouldShowDecimalsInAxis = shouldShowDecimals(chart2.minY, chart2.maxY)
 
-                this._axisLabels.emit(listOf(6, 5, 4, 3, 2, 1, 0).map { displayAxisFormatter.format(now.minusSeconds(day * it)) })
+                this._axisLabels.emit(
+                    listOf(6, 5, 4, 3, 2, 1, 0).map {
+                        displayAxisFormatter.format(now.minusSeconds(day * it))
+                    },
+                )
                 this._chartModel.emit(chart1.plus(chart2))
             }
         }
     }
 
     // determine if the min max are so close that they render to the same number.
-    fun shouldShowDecimals(min: Float, max: Float): Boolean {
+    fun shouldShowDecimals(
+        min: Float,
+        max: Float,
+    ): Boolean {
         val step = (max - min) / 8
 
         var previous = showAmountAxis(min.toBigDecimal())
@@ -369,22 +408,21 @@ class UserReactionsViewModel(val account: Account) : ViewModel() {
         viewModelScope.launch(Dispatchers.IO) {
             initializeSuspend()
 
-            collectorJob = viewModelScope.launch(Dispatchers.IO) {
-                LocalCache.live.newEventBundles.collect { newNotes ->
-                    checkNotInMainThread()
+            collectorJob =
+                viewModelScope.launch(Dispatchers.IO) {
+                    LocalCache.live.newEventBundles.collect { newNotes ->
+                        checkNotInMainThread()
 
-                    invalidateInsertData(newNotes)
+                        invalidateInsertData(newNotes)
+                    }
                 }
-            }
         }
     }
 
     private val bundlerInsert = BundledInsert<Set<Note>>(250, Dispatchers.IO)
 
     fun invalidateInsertData(newItems: Set<Note>) {
-        bundlerInsert.invalidateList(newItems) {
-            addToStatsSuspend(it.flatten().toSet())
-        }
+        bundlerInsert.invalidateList(newItems) { addToStatsSuspend(it.flatten().toSet()) }
     }
 
     override fun onCleared() {
@@ -402,52 +440,44 @@ class UserReactionsViewModel(val account: Account) : ViewModel() {
 }
 
 @Composable
-fun UserReplyReaction(
-    model: UserReactionsViewModel
-) {
+fun UserReplyReaction(model: UserReactionsViewModel) {
     val showCounts by model.todaysReplyCount.collectAsStateWithLifecycle("")
 
     Text(
         showCounts,
         fontWeight = FontWeight.Bold,
-        fontSize = 18.sp
+        fontSize = 18.sp,
     )
 }
 
 @Composable
-fun UserBoostReaction(
-    model: UserReactionsViewModel
-) {
+fun UserBoostReaction(model: UserReactionsViewModel) {
     val boosts by model.todaysBoostCount.collectAsStateWithLifecycle("")
 
     Text(
         boosts,
         fontWeight = FontWeight.Bold,
-        fontSize = 18.sp
+        fontSize = 18.sp,
     )
 }
 
 @Composable
-fun UserLikeReaction(
-    model: UserReactionsViewModel
-) {
+fun UserLikeReaction(model: UserReactionsViewModel) {
     val reactions by model.todaysReactionCount.collectAsStateWithLifecycle("")
 
     Text(
         text = reactions,
         fontWeight = FontWeight.Bold,
-        fontSize = 18.sp
+        fontSize = 18.sp,
     )
 }
 
 @Composable
-fun UserZapReaction(
-    model: UserReactionsViewModel
-) {
+fun UserZapReaction(model: UserReactionsViewModel) {
     val amount by model.todaysZapAmount.collectAsStateWithLifecycle("")
     Text(
         amount,
         fontWeight = FontWeight.Bold,
-        fontSize = 18.sp
+        fontSize = 18.sp,
     )
 }

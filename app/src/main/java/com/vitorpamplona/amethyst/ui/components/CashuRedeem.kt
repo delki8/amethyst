@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.components
 
 import android.content.Context
@@ -67,7 +87,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun CashuPreview(cashutoken: String, accountViewModel: AccountViewModel) {
+fun CashuPreview(
+    cashutoken: String,
+    accountViewModel: AccountViewModel,
+) {
     var cachuData by remember {
         mutableStateOf<GenericLoadable<CashuToken>>(GenericLoadable.Loading())
     }
@@ -75,26 +98,28 @@ fun CashuPreview(cashutoken: String, accountViewModel: AccountViewModel) {
     LaunchedEffect(key1 = cashutoken) {
         launch(Dispatchers.IO) {
             val newCachuData = CashuProcessor().parse(cashutoken)
-            launch(Dispatchers.Main) {
-                cachuData = newCachuData
-            }
+            launch(Dispatchers.Main) { cachuData = newCachuData }
         }
     }
 
     Crossfade(targetState = cachuData, label = "CashuPreview(") {
         when (it) {
             is GenericLoadable.Loaded<CashuToken> -> CashuPreview(it.loaded, accountViewModel)
-            is GenericLoadable.Error<CashuToken> -> Text(
-                text = "$cashutoken ",
-                style = LocalTextStyle.current.copy(textDirection = TextDirection.Content)
-            )
+            is GenericLoadable.Error<CashuToken> ->
+                Text(
+                    text = "$cashutoken ",
+                    style = LocalTextStyle.current.copy(textDirection = TextDirection.Content),
+                )
             else -> {}
         }
     }
 }
 
 @Composable
-fun CashuPreview(token: CashuToken, accountViewModel: AccountViewModel) {
+fun CashuPreview(
+    token: CashuToken,
+    accountViewModel: AccountViewModel,
+) {
     CashuPreviewNew(token, accountViewModel::meltCashu, accountViewModel::toast)
 }
 
@@ -107,21 +132,17 @@ fun CashuPreviewPreview() {
     sharedPreferencesViewModel.updateTheme(ThemeType.DARK)
 
     AmethystTheme(sharedPrefsViewModel = sharedPreferencesViewModel) {
-        Column() {
+        Column {
             CashuPreview(
                 token = CashuToken("token", "mint", 32400, TextNode("")),
-                melt = { token, context, onDone ->
-                },
-                toast = { title, message ->
-                }
+                melt = { token, context, onDone -> },
+                toast = { title, message -> },
             )
 
             CashuPreviewNew(
                 token = CashuToken("token", "mint", 32400, TextNode("")),
-                melt = { token, context, onDone ->
-                },
-                toast = { title, message ->
-                }
+                melt = { token, context, onDone -> },
+                toast = { title, message -> },
             )
         }
     }
@@ -131,41 +152,37 @@ fun CashuPreviewPreview() {
 fun CashuPreview(
     token: CashuToken,
     melt: (CashuToken, Context, (String, String) -> Unit) -> Unit,
-    toast: (String, String) -> Unit
+    toast: (String, String) -> Unit,
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp)
-            .clip(shape = QuoteBorder)
-            .border(1.dp, MaterialTheme.colorScheme.subtleBorder, QuoteBorder)
+        modifier =
+            Modifier.fillMaxWidth()
+                .padding(start = 20.dp, end = 20.dp, top = 10.dp, bottom = 10.dp)
+                .clip(shape = QuoteBorder)
+                .border(1.dp, MaterialTheme.colorScheme.subtleBorder, QuoteBorder),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp)
+            modifier = Modifier.fillMaxWidth().padding(20.dp),
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 10.dp)
+                modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
             ) {
                 Icon(
                     painter = painterResource(R.drawable.cashu),
                     null,
                     modifier = Size20Modifier,
-                    tint = Color.Unspecified
+                    tint = Color.Unspecified,
                 )
 
                 Text(
                     text = stringResource(R.string.cashu),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.W500,
-                    modifier = Modifier.padding(start = 10.dp)
+                    modifier = Modifier.padding(start = 10.dp),
                 )
             }
 
@@ -175,19 +192,13 @@ fun CashuPreview(
                 text = "${token.totalAmount} ${stringResource(id = R.string.sats)}",
                 fontSize = 25.sp,
                 fontWeight = FontWeight.W500,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp)
+                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
             )
 
             Row(
-                modifier = Modifier
-                    .padding(top = 5.dp)
-                    .fillMaxWidth()
+                modifier = Modifier.padding(top = 5.dp).fillMaxWidth(),
             ) {
-                var isRedeeming by remember {
-                    mutableStateOf(false)
-                }
+                var isRedeeming by remember { mutableStateOf(false) }
 
                 Button(
                     onClick = {
@@ -198,9 +209,10 @@ fun CashuPreview(
                         }
                     },
                     shape = QuoteBorder,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                        ),
                 ) {
                     if (isRedeeming) {
                         LoadingAnimation()
@@ -212,7 +224,7 @@ fun CashuPreview(
                     Text(
                         stringResource(id = R.string.cashu_redeem_to_zap),
                         color = Color.White,
-                        fontSize = 16.sp
+                        fontSize = 16.sp,
                     )
                 }
             }
@@ -230,13 +242,18 @@ fun CashuPreview(
                     }
                 },
                 shape = QuoteBorder,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                    ),
             ) {
                 CashuIcon(Size20Modifier)
                 Spacer(DoubleHorzSpacer)
-                Text(stringResource(id = R.string.cashu_redeem_to_cashu), color = Color.White, fontSize = 16.sp)
+                Text(
+                    stringResource(id = R.string.cashu_redeem_to_cashu),
+                    color = Color.White,
+                    fontSize = 16.sp,
+                )
             }
             Spacer(modifier = StdHorzSpacer)
             Button(
@@ -245,9 +262,10 @@ fun CashuPreview(
                     clipboardManager.setText(AnnotatedString(token.token))
                 },
                 shape = QuoteBorder,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                    ),
             ) {
                 CopyIcon(Size20Modifier, Color.White)
                 Spacer(DoubleHorzSpacer)
@@ -262,49 +280,45 @@ fun CashuPreview(
 fun CashuPreviewNew(
     token: CashuToken,
     melt: (CashuToken, Context, (String, String) -> Unit) -> Unit,
-    toast: (String, String) -> Unit
+    toast: (String, String) -> Unit,
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 10.dp, end = 10.dp, top = 10.dp, bottom = 10.dp)
-            .clip(shape = QuoteBorder)
+        modifier =
+            Modifier.fillMaxWidth()
+                .padding(start = 10.dp, end = 10.dp, top = 10.dp, bottom = 10.dp)
+                .clip(shape = QuoteBorder),
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp)
+            modifier = Modifier.fillMaxWidth().padding(10.dp),
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     painter = painterResource(R.drawable.cashu),
                     null,
                     modifier = Modifier.size(13.dp),
-                    tint = Color.Unspecified
+                    tint = Color.Unspecified,
                 )
 
                 Text(
                     text = stringResource(R.string.cashu),
                     fontSize = 12.sp,
-                    modifier = Modifier.padding(start = 5.dp, bottom = 1.dp)
+                    modifier = Modifier.padding(start = 5.dp, bottom = 1.dp),
                 )
             }
 
             Text(
                 text = "${token.totalAmount} ${stringResource(id = R.string.sats)}",
-                fontSize = 20.sp
+                fontSize = 20.sp,
             )
 
             Row(modifier = Modifier.padding(top = 5.dp)) {
-                var isRedeeming by remember {
-                    mutableStateOf(false)
-                }
+                var isRedeeming by remember { mutableStateOf(false) }
 
                 FilledTonalButton(
                     onClick = {
@@ -314,7 +328,7 @@ fun CashuPreviewNew(
                             isRedeeming = false
                         }
                     },
-                    shape = SmallishBorder
+                    shape = SmallishBorder,
                 ) {
                     if (isRedeeming) {
                         LoadingAnimation()
@@ -326,7 +340,7 @@ fun CashuPreviewNew(
                     Text(
                         "Redeem",
                         color = MaterialTheme.colorScheme.onBackground,
-                        fontSize = 16.sp
+                        fontSize = 16.sp,
                     )
                 }
 
@@ -344,7 +358,7 @@ fun CashuPreviewNew(
                         }
                     },
                     shape = SmallishBorder,
-                    contentPadding = PaddingValues(0.dp)
+                    contentPadding = PaddingValues(0.dp),
                 ) {
                     OpenInNewIcon(Size18Modifier, tint = MaterialTheme.colorScheme.onBackground)
                 }
@@ -357,7 +371,7 @@ fun CashuPreviewNew(
                         clipboardManager.setText(AnnotatedString(token.token))
                     },
                     shape = SmallishBorder,
-                    contentPadding = PaddingValues(0.dp)
+                    contentPadding = PaddingValues(0.dp),
                 ) {
                     CopyIcon(Size18Modifier, tint = MaterialTheme.colorScheme.onBackground)
                 }

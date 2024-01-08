@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.screen
 
 import android.util.Log
@@ -40,25 +60,19 @@ class AccountStateViewModel() : ViewModel() {
 
     fun tryLoginExistingAccountAsync() {
         // pulls account from storage.
-        viewModelScope.launch(Dispatchers.IO) {
-            tryLoginExistingAccount()
-        }
+        viewModelScope.launch(Dispatchers.IO) { tryLoginExistingAccount() }
     }
 
-    private suspend fun tryLoginExistingAccount() = withContext(Dispatchers.IO) {
-        LocalPreferences.loadCurrentAccountFromEncryptedStorage()?.let {
-            startUI(it)
-        } ?: run {
-            requestLoginUI()
+    private suspend fun tryLoginExistingAccount() =
+        withContext(Dispatchers.IO) {
+            LocalPreferences.loadCurrentAccountFromEncryptedStorage()?.let { startUI(it) }
+                ?: run { requestLoginUI() }
         }
-    }
 
     private suspend fun requestLoginUI() {
         _accountContent.update { AccountState.LoggedOff }
 
-        viewModelScope.launch(Dispatchers.IO) {
-            serviceManager?.pauseForGoodAndClearAccount()
-        }
+        viewModelScope.launch(Dispatchers.IO) { serviceManager?.pauseForGoodAndClearAccount() }
     }
 
     suspend fun loginAndStartUI(
@@ -66,7 +80,7 @@ class AccountStateViewModel() : ViewModel() {
         useProxy: Boolean,
         proxyPort: Int,
         loginWithExternalSigner: Boolean = false,
-        packageName: String = ""
+        packageName: String = "",
     ) = withContext(Dispatchers.IO) {
         val parsed = Nip19.uriToRoute(key)
         val pubKeyParsed = parsed?.hex?.hexToByteArray()
@@ -80,20 +94,49 @@ class AccountStateViewModel() : ViewModel() {
             if (loginWithExternalSigner) {
                 val keyPair = KeyPair(pubKey = pubKeyParsed)
                 val localPackageName = packageName.ifBlank { "com.greenart7c3.nostrsigner" }
-                Account(keyPair, proxy = proxy, proxyPort = proxyPort, signer = NostrSignerExternal(keyPair.pubKey.toHexKey(), ExternalSignerLauncher(keyPair.pubKey.toNpub(), localPackageName)))
+                Account(
+                    keyPair,
+                    proxy = proxy,
+                    proxyPort = proxyPort,
+                    signer =
+                        NostrSignerExternal(
+                            keyPair.pubKey.toHexKey(),
+                            ExternalSignerLauncher(keyPair.pubKey.toNpub(), localPackageName),
+                        ),
+                )
             } else if (key.startsWith("nsec")) {
                 val keyPair = KeyPair(privKey = key.bechToBytes())
-                Account(keyPair, proxy = proxy, proxyPort = proxyPort, signer = NostrSignerInternal(keyPair))
+                Account(
+                    keyPair,
+                    proxy = proxy,
+                    proxyPort = proxyPort,
+                    signer = NostrSignerInternal(keyPair),
+                )
             } else if (pubKeyParsed != null) {
                 val keyPair = KeyPair(pubKey = pubKeyParsed)
-                Account(keyPair, proxy = proxy, proxyPort = proxyPort, signer = NostrSignerInternal(keyPair))
+                Account(
+                    keyPair,
+                    proxy = proxy,
+                    proxyPort = proxyPort,
+                    signer = NostrSignerInternal(keyPair),
+                )
             } else if (EMAIL_PATTERN.matcher(key).matches()) {
                 val keyPair = KeyPair()
                 // Evaluate NIP-5
-                Account(keyPair, proxy = proxy, proxyPort = proxyPort, signer = NostrSignerInternal(keyPair))
+                Account(
+                    keyPair,
+                    proxy = proxy,
+                    proxyPort = proxyPort,
+                    signer = NostrSignerInternal(keyPair),
+                )
             } else {
                 val keyPair = KeyPair(Hex.decode(key))
-                Account(keyPair, proxy = proxy, proxyPort = proxyPort, signer = NostrSignerInternal(keyPair))
+                Account(
+                    keyPair,
+                    proxy = proxy,
+                    proxyPort = proxyPort,
+                    signer = NostrSignerInternal(keyPair),
+                )
             }
 
         LocalPreferences.updatePrefsForLogin(account)
@@ -101,48 +144,44 @@ class AccountStateViewModel() : ViewModel() {
         startUI(account)
     }
 
-    suspend fun startUI(account: Account) = withContext(Dispatchers.Main) {
-        if (account.isWriteable()) {
-            _accountContent.update { AccountState.LoggedIn(account) }
-        } else {
-            _accountContent.update { AccountState.LoggedInViewOnly(account) }
-        }
-
-        viewModelScope.launch(Dispatchers.IO) {
-            withContext(Dispatchers.Main) {
-                // Prepares livedata objects on the main user.
-                account.userProfile().live()
+    suspend fun startUI(account: Account) =
+        withContext(Dispatchers.Main) {
+            if (account.isWriteable()) {
+                _accountContent.update { AccountState.LoggedIn(account) }
+            } else {
+                _accountContent.update { AccountState.LoggedInViewOnly(account) }
             }
-            serviceManager?.restartIfDifferentAccount(account)
-        }
 
-        account.saveable.observeForever(saveListener)
-    }
+            viewModelScope.launch(Dispatchers.IO) {
+                withContext(Dispatchers.Main) {
+                    // Prepares livedata objects on the main user.
+                    account.userProfile().live()
+                }
+                serviceManager?.restartIfDifferentAccount(account)
+            }
+
+            account.saveable.observeForever(saveListener)
+        }
 
     @OptIn(DelicateCoroutinesApi::class)
     private val saveListener: (com.vitorpamplona.amethyst.model.AccountState) -> Unit = {
-        GlobalScope.launch(Dispatchers.IO) {
-            LocalPreferences.saveToEncryptedStorage(it.account)
-        }
+        GlobalScope.launch(Dispatchers.IO) { LocalPreferences.saveToEncryptedStorage(it.account) }
     }
 
-    private suspend fun prepareLogoutOrSwitch() = withContext(Dispatchers.Main) {
-        when (val state = _accountContent.value) {
-            is AccountState.LoggedIn -> {
-                state.account.saveable.removeObserver(saveListener)
-                withContext(Dispatchers.IO) {
-                    state.currentViewModelStore.viewModelStore.clear()
+    private suspend fun prepareLogoutOrSwitch() =
+        withContext(Dispatchers.Main) {
+            when (val state = _accountContent.value) {
+                is AccountState.LoggedIn -> {
+                    state.account.saveable.removeObserver(saveListener)
+                    withContext(Dispatchers.IO) { state.currentViewModelStore.viewModelStore.clear() }
                 }
-            }
-            is AccountState.LoggedInViewOnly -> {
-                state.account.saveable.removeObserver(saveListener)
-                withContext(Dispatchers.IO) {
-                    state.currentViewModelStore.viewModelStore.clear()
+                is AccountState.LoggedInViewOnly -> {
+                    state.account.saveable.removeObserver(saveListener)
+                    withContext(Dispatchers.IO) { state.currentViewModelStore.viewModelStore.clear() }
                 }
+                else -> {}
             }
-            else -> {}
         }
-    }
 
     fun login(
         key: String,
@@ -150,7 +189,7 @@ class AccountStateViewModel() : ViewModel() {
         proxyPort: Int,
         loginWithExternalSigner: Boolean = false,
         packageName: String = "",
-        onError: () -> Unit
+        onError: () -> Unit,
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -162,11 +201,20 @@ class AccountStateViewModel() : ViewModel() {
         }
     }
 
-    fun newKey(useProxy: Boolean, proxyPort: Int) {
+    fun newKey(
+        useProxy: Boolean,
+        proxyPort: Int,
+    ) {
         viewModelScope.launch(Dispatchers.IO) {
             val proxy = HttpClient.initProxy(useProxy, "127.0.0.1", proxyPort)
             val keyPair = KeyPair()
-            val account = Account(keyPair, proxy = proxy, proxyPort = proxyPort, signer = NostrSignerInternal(keyPair))
+            val account =
+                Account(
+                    keyPair,
+                    proxy = proxy,
+                    proxyPort = proxyPort,
+                    signer = NostrSignerInternal(keyPair),
+                )
 
             account.follow(account.userProfile())
 

@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.service.relays
 
 import androidx.compose.runtime.Immutable
@@ -17,8 +37,9 @@ object RelayPool : Relay.Listener {
     private var listeners = setOf<Listener>()
 
     // Backing property to avoid flow emissions from other classes
-    private var _lastStatus = RelayPoolStatus(0, 0)
-    private val _statusFlow = MutableSharedFlow<RelayPoolStatus>(1, 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
+    private var lastStatus = RelayPoolStatus(0, 0)
+    private val _statusFlow =
+        MutableSharedFlow<RelayPoolStatus>(1, 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     val statusFlow: SharedFlow<RelayPoolStatus> = _statusFlow.asSharedFlow()
 
     fun availableRelays(): Int {
@@ -30,7 +51,7 @@ object RelayPool : Relay.Listener {
     }
 
     fun getRelay(url: String): Relay? {
-        return relays.firstOrNull() { it.url == url }
+        return relays.firstOrNull { it.url == url }
     }
 
     fun getRelays(url: String): List<Relay> {
@@ -64,10 +85,11 @@ object RelayPool : Relay.Listener {
         relays.forEach { it.sendFilterOnlyIfDisconnected(subscriptionId) }
     }
 
-    fun sendToSelectedRelays(list: List<Relay>, signedEvent: EventInterface) {
-        list.forEach { relay ->
-            relays.filter { it.url == relay.url }.forEach { it.send(signedEvent) }
-        }
+    fun sendToSelectedRelays(
+        list: List<Relay>,
+        signedEvent: EventInterface,
+    ) {
+        list.forEach { relay -> relays.filter { it.url == relay.url }.forEach { it.send(signedEvent) } }
     }
 
     fun send(signedEvent: EventInterface) {
@@ -103,56 +125,108 @@ object RelayPool : Relay.Listener {
     }
 
     interface Listener {
-        fun onEvent(event: Event, subscriptionId: String, relay: Relay, afterEOSE: Boolean)
+        fun onEvent(
+            event: Event,
+            subscriptionId: String,
+            relay: Relay,
+            afterEOSE: Boolean,
+        )
 
-        fun onError(error: Error, subscriptionId: String, relay: Relay)
+        fun onError(
+            error: Error,
+            subscriptionId: String,
+            relay: Relay,
+        )
 
-        fun onRelayStateChange(type: Relay.StateType, relay: Relay, channel: String?)
+        fun onRelayStateChange(
+            type: Relay.StateType,
+            relay: Relay,
+            channel: String?,
+        )
 
-        fun onSendResponse(eventId: String, success: Boolean, message: String, relay: Relay)
+        fun onSendResponse(
+            eventId: String,
+            success: Boolean,
+            message: String,
+            relay: Relay,
+        )
 
-        fun onAuth(relay: Relay, challenge: String)
+        fun onAuth(
+            relay: Relay,
+            challenge: String,
+        )
 
-        fun onNotify(relay: Relay, description: String)
+        fun onNotify(
+            relay: Relay,
+            description: String,
+        )
     }
 
-    override fun onEvent(relay: Relay, subscriptionId: String, event: Event, afterEOSE: Boolean) {
+    override fun onEvent(
+        relay: Relay,
+        subscriptionId: String,
+        event: Event,
+        afterEOSE: Boolean,
+    ) {
         listeners.forEach { it.onEvent(event, subscriptionId, relay, afterEOSE) }
     }
 
-    override fun onError(relay: Relay, subscriptionId: String, error: Error) {
+    override fun onError(
+        relay: Relay,
+        subscriptionId: String,
+        error: Error,
+    ) {
         listeners.forEach { it.onError(error, subscriptionId, relay) }
         updateStatus()
     }
 
-    override fun onRelayStateChange(relay: Relay, type: Relay.StateType, channel: String?) {
+    override fun onRelayStateChange(
+        relay: Relay,
+        type: Relay.StateType,
+        channel: String?,
+    ) {
         listeners.forEach { it.onRelayStateChange(type, relay, channel) }
         if (type != Relay.StateType.EOSE) {
             updateStatus()
         }
     }
 
-    override fun onSendResponse(relay: Relay, eventId: String, success: Boolean, message: String) {
+    override fun onSendResponse(
+        relay: Relay,
+        eventId: String,
+        success: Boolean,
+        message: String,
+    ) {
         listeners.forEach { it.onSendResponse(eventId, success, message, relay) }
     }
 
-    override fun onAuth(relay: Relay, challenge: String) {
+    override fun onAuth(
+        relay: Relay,
+        challenge: String,
+    ) {
         listeners.forEach { it.onAuth(relay, challenge) }
     }
 
-    override fun onNotify(relay: Relay, description: String) {
+    override fun onNotify(
+        relay: Relay,
+        description: String,
+    ) {
         listeners.forEach { it.onNotify(relay, description) }
     }
 
     private fun updateStatus() {
         val connected = connectedRelays()
         val available = availableRelays()
-        if (_lastStatus.connected != connected || _lastStatus.available != available) {
-            _lastStatus = RelayPoolStatus(connected, available)
-            _statusFlow.tryEmit(_lastStatus)
+        if (lastStatus.connected != connected || lastStatus.available != available) {
+            lastStatus = RelayPoolStatus(connected, available)
+            _statusFlow.tryEmit(lastStatus)
         }
     }
 }
 
 @Immutable
-data class RelayPoolStatus(val connected: Int, val available: Int, val isConnected: Boolean = connected > 0)
+data class RelayPoolStatus(
+    val connected: Int,
+    val available: Int,
+    val isConnected: Boolean = connected > 0,
+)

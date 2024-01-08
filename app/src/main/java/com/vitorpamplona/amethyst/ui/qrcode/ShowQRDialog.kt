@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.qrcode
 
 import androidx.compose.foundation.background
@@ -46,79 +66,85 @@ import com.vitorpamplona.quartz.events.toImmutableListOfLists
 fun ShowQRDialogPreview() {
     val user = User("460c25e682fda7832b52d1f22d3d22b3176d972f60dcdc3212ed8c92ef85065c")
 
-    user.info = UserMetadata().apply {
-        name = "My Name"
-        picture = "Picture"
-        banner = "http://banner.com/test"
-        website = "http://mywebsite.com/test"
-        about = "This is the about me"
-    }
+    user.info =
+        UserMetadata().apply {
+            name = "My Name"
+            picture = "Picture"
+            banner = "http://banner.com/test"
+            website = "http://mywebsite.com/test"
+            about = "This is the about me"
+        }
 
     ShowQRDialog(
         user = user,
         loadProfilePicture = false,
         onScan = {},
-        onClose = {}
+        onClose = {},
     )
 }
 
 @Composable
-fun ShowQRDialog(user: User, loadProfilePicture: Boolean, onScan: (String) -> Unit, onClose: () -> Unit) {
+fun ShowQRDialog(
+    user: User,
+    loadProfilePicture: Boolean,
+    onScan: (String) -> Unit,
+    onClose: () -> Unit,
+) {
     var presenting by remember { mutableStateOf(true) }
 
     Dialog(
         onDismissRequest = onClose,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Surface {
             Column {
                 Row(
                     modifier = Modifier.padding(10.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     CloseButton(onPress = onClose)
                 }
 
                 Column(
                     modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp),
-                    verticalArrangement = Arrangement.SpaceAround
+                    verticalArrangement = Arrangement.SpaceAround,
                 ) {
                     if (presenting) {
-                        Column() {
+                        Column {
                             Row(
                                 horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
                             ) {
                                 RobohashFallbackAsyncImage(
                                     robot = user.pubkeyHex,
                                     model = user.profilePicture(),
                                     contentDescription = stringResource(R.string.profile_image),
-                                    modifier = Modifier
-                                        .width(100.dp)
-                                        .height(100.dp)
-                                        .clip(shape = CircleShape)
-                                        .border(3.dp, MaterialTheme.colorScheme.background, CircleShape)
-                                        .background(MaterialTheme.colorScheme.background),
-                                    loadProfilePicture = loadProfilePicture
+                                    modifier =
+                                        Modifier.width(100.dp)
+                                            .height(100.dp)
+                                            .clip(shape = CircleShape)
+                                            .border(3.dp, MaterialTheme.colorScheme.background, CircleShape)
+                                            .background(MaterialTheme.colorScheme.background),
+                                    loadProfilePicture = loadProfilePicture,
                                 )
                             }
                             Row(
                                 horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxWidth().padding(top = 5.dp)
+                                modifier = Modifier.fillMaxWidth().padding(top = 5.dp),
                             ) {
                                 CreateTextWithEmoji(
                                     text = user.bestDisplayName() ?: user.bestUsername() ?: "",
                                     tags = user.info?.latestMetadata?.tags?.toImmutableListOfLists(),
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp
+                                    fontSize = 18.sp,
                                 )
                             }
                         }
 
                         Row(
                             horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = Size35dp)
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = Size35dp),
                         ) {
                             QrCodeDrawer("nostr:${user.pubkeyNpub()}")
                         }
@@ -128,10 +154,10 @@ fun ShowQRDialog(user: User, loadProfilePicture: Boolean, onScan: (String) -> Un
                                 onClick = { presenting = false },
                                 shape = RoundedCornerShape(Size35dp),
                                 modifier = Modifier.fillMaxWidth().height(50.dp),
-                                colors = ButtonDefaults
-                                    .buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primary
-                                    )
+                                colors =
+                                    ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                    ),
                             ) {
                                 Text(text = stringResource(R.string.scan_qr))
                             }

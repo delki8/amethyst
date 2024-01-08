@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.components
 
 import android.content.Context
@@ -23,14 +43,16 @@ class MediaCompressor {
         contentType: String?,
         applicationContext: Context,
         onReady: (Uri, String?, Long?) -> Unit,
-        onError: (String) -> Unit
+        onError: (String) -> Unit,
     ) {
         checkNotInMainThread()
 
         if (contentType?.startsWith("video", true) == true) {
             VideoCompressor.start(
-                context = applicationContext, // => This is required
-                uris = listOf(uri), // => Source can be provided as content uris
+                // => This is required
+                context = applicationContext,
+                // => Source can be provided as content uris
+                uris = listOf(uri),
                 isStreamable = false,
                 // THIS STORAGE
                 // sharedStorageConfiguration = SharedStorageConfiguration(
@@ -39,41 +61,58 @@ class MediaCompressor {
                 // ),
                 // OR AND NOT BOTH
                 appSpecificStorageConfiguration = AppSpecificStorageConfiguration(),
-                configureWith = Configuration(
-                    quality = VideoQuality.LOW,
-                    videoNames = listOf(UUID.randomUUID().toString()) // => required name
-                ),
-                listener = object : CompressionListener {
-                    override fun onProgress(index: Int, percent: Float) {
-                    }
+                configureWith =
+                    Configuration(
+                        quality = VideoQuality.LOW,
+                        // => required name
+                        videoNames = listOf(UUID.randomUUID().toString()),
+                    ),
+                listener =
+                    object : CompressionListener {
+                        override fun onProgress(
+                            index: Int,
+                            percent: Float,
+                        ) {}
 
-                    override fun onStart(index: Int) {
-                        // Compression start
-                    }
-
-                    override fun onSuccess(index: Int, size: Long, path: String?) {
-                        if (path != null) {
-                            onReady(Uri.fromFile(File(path)), contentType, size)
-                        } else {
-                            onError("Compression Returned null")
+                        override fun onStart(index: Int) {
+                            // Compression start
                         }
-                    }
 
-                    override fun onFailure(index: Int, failureMessage: String) {
-                        // keeps going with original video
-                        onReady(uri, contentType, null)
-                    }
+                        override fun onSuccess(
+                            index: Int,
+                            size: Long,
+                            path: String?,
+                        ) {
+                            if (path != null) {
+                                onReady(Uri.fromFile(File(path)), contentType, size)
+                            } else {
+                                onError("Compression Returned null")
+                            }
+                        }
 
-                    override fun onCancelled(index: Int) {
-                        onError("Compression Cancelled")
-                    }
-                }
+                        override fun onFailure(
+                            index: Int,
+                            failureMessage: String,
+                        ) {
+                            // keeps going with original video
+                            onReady(uri, contentType, null)
+                        }
+
+                        override fun onCancelled(index: Int) {
+                            onError("Compression Cancelled")
+                        }
+                    },
             )
-        } else if (contentType?.startsWith("image", true) == true && !contentType.contains("gif") && !contentType.contains("svg")) {
+        } else if (
+            contentType?.startsWith("image", true) == true &&
+            !contentType.contains("gif") &&
+            !contentType.contains("svg")
+        ) {
             try {
-                val compressedImageFile = Compressor.compress(applicationContext, from(uri, contentType, applicationContext)) {
-                    default(width = 640, format = Bitmap.CompressFormat.JPEG)
-                }
+                val compressedImageFile =
+                    Compressor.compress(applicationContext, from(uri, contentType, applicationContext)) {
+                        default(width = 640, format = Bitmap.CompressFormat.JPEG)
+                    }
                 onReady(compressedImageFile.toUri(), contentType, compressedImageFile.length())
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -84,8 +123,13 @@ class MediaCompressor {
         }
     }
 
-    fun from(uri: Uri?, contentType: String?, context: Context): File {
-        val extension = contentType?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) } ?: ""
+    fun from(
+        uri: Uri?,
+        contentType: String?,
+        context: Context,
+    ): File {
+        val extension =
+            contentType?.let { MimeTypeMap.getSingleton().getExtensionFromMimeType(it) } ?: ""
 
         val inputStream = context.contentResolver.openInputStream(uri!!)
         val fileName: String = UUID.randomUUID().toString() + ".$extension"

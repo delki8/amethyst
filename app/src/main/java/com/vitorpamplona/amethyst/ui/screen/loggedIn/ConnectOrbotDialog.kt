@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn
 
 import androidx.compose.foundation.layout.Arrangement
@@ -36,23 +56,26 @@ import com.vitorpamplona.amethyst.ui.theme.RichTextDefaults
 import com.vitorpamplona.amethyst.ui.theme.placeholderText
 
 @Composable
-fun ConnectOrbotDialog(onClose: () -> Unit, onPost: () -> Unit, onError: (String) -> Unit, portNumber: MutableState<String>) {
+fun ConnectOrbotDialog(
+    onClose: () -> Unit,
+    onPost: () -> Unit,
+    onError: (String) -> Unit,
+    portNumber: MutableState<String>,
+) {
     Dialog(
         onDismissRequest = onClose,
-        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
+        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false),
     ) {
-        Surface() {
+        Surface {
             Column(
-                modifier = Modifier.padding(10.dp)
+                modifier = Modifier.padding(10.dp),
             ) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
-                    CloseButton(onPress = {
-                        onClose()
-                    })
+                    CloseButton(onPress = { onClose() })
 
                     val toastMessage = stringResource(R.string.invalid_port_number)
 
@@ -67,28 +90,31 @@ fun ConnectOrbotDialog(onClose: () -> Unit, onPost: () -> Unit, onError: (String
 
                             onPost()
                         },
-                        isActive = true
+                        isActive = true,
                     )
                 }
 
                 Column(
-                    modifier = Modifier.padding(30.dp)
+                    modifier = Modifier.padding(30.dp),
                 ) {
-                    val myMarkDownStyle = RichTextDefaults.copy(
-                        stringStyle = RichTextDefaults.stringStyle?.copy(
-                            linkStyle = SpanStyle(
-                                textDecoration = TextDecoration.Underline,
-                                color = MaterialTheme.colorScheme.primary
-                            )
+                    val myMarkDownStyle =
+                        RichTextDefaults.copy(
+                            stringStyle =
+                                RichTextDefaults.stringStyle?.copy(
+                                    linkStyle =
+                                        SpanStyle(
+                                            textDecoration = TextDecoration.Underline,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        ),
+                                ),
                         )
-                    )
 
-                    Row() {
+                    Row {
                         Material3RichText(
-                            style = myMarkDownStyle
+                            style = myMarkDownStyle,
                         ) {
                             Markdown(
-                                content = stringResource(R.string.connect_through_your_orbot_setup_markdown)
+                                content = stringResource(R.string.connect_through_your_orbot_setup_markdown),
                             )
                         }
                     }
@@ -97,22 +123,23 @@ fun ConnectOrbotDialog(onClose: () -> Unit, onPost: () -> Unit, onError: (String
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
+                        horizontalArrangement = Arrangement.Center,
                     ) {
                         OutlinedTextField(
                             value = portNumber.value,
                             onValueChange = { portNumber.value = it },
-                            keyboardOptions = KeyboardOptions.Default.copy(
-                                capitalization = KeyboardCapitalization.None,
-                                keyboardType = KeyboardType.Number
-                            ),
+                            keyboardOptions =
+                                KeyboardOptions.Default.copy(
+                                    capitalization = KeyboardCapitalization.None,
+                                    keyboardType = KeyboardType.Number,
+                                ),
                             label = { Text(text = stringResource(R.string.orbot_socks_port)) },
                             placeholder = {
                                 Text(
                                     text = "9050",
-                                    color = MaterialTheme.colorScheme.placeholderText
+                                    color = MaterialTheme.colorScheme.placeholderText,
                                 )
-                            }
+                            },
                         )
                     }
                 }
@@ -122,7 +149,11 @@ fun ConnectOrbotDialog(onClose: () -> Unit, onPost: () -> Unit, onError: (String
 }
 
 @Composable
-fun UseOrbotButton(onPost: () -> Unit = {}, isActive: Boolean, modifier: Modifier = Modifier) {
+fun UseOrbotButton(
+    onPost: () -> Unit = {},
+    isActive: Boolean,
+    modifier: Modifier = Modifier,
+) {
     Button(
         modifier = modifier,
         onClick = {
@@ -131,9 +162,10 @@ fun UseOrbotButton(onPost: () -> Unit = {}, isActive: Boolean, modifier: Modifie
             }
         },
         shape = ButtonBorder,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isActive) MaterialTheme.colorScheme.primary else Color.Gray
-        )
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = if (isActive) MaterialTheme.colorScheme.primary else Color.Gray,
+            ),
     ) {
         Text(text = stringResource(R.string.use_orbot), color = Color.White)
     }

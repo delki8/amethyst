@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.note
 
 import android.content.Intent
@@ -76,7 +96,10 @@ import com.vitorpamplona.quartz.events.PeopleListEvent
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-private fun lightenColor(color: Color, amount: Float): Color {
+private fun lightenColor(
+    color: Color,
+    amount: Float,
+): Color {
     var argb = color.toArgb()
     val hslOut = floatArrayOf(0f, 0f, 0f)
     ColorUtils.colorToHSL(argb, hslOut)
@@ -109,13 +132,15 @@ val externalLinkForNote = { note: Note ->
 private fun VerticalDivider(color: Color) =
     Divider(
         color = color,
-        modifier = Modifier
-            .fillMaxHeight()
-            .width(1.dp)
+        modifier = Modifier.fillMaxHeight().width(1.dp),
     )
 
 @Composable
-fun LongPressToQuickAction(baseNote: Note, accountViewModel: AccountViewModel, content: @Composable (() -> Unit) -> Unit) {
+fun LongPressToQuickAction(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    content: @Composable (() -> Unit) -> Unit,
+) {
     val popupExpanded = remember { mutableStateOf(false) }
     val showPopup = remember { { popupExpanded.value = true } }
     val hidePopup = remember { { popupExpanded.value = false } }
@@ -126,7 +151,12 @@ fun LongPressToQuickAction(baseNote: Note, accountViewModel: AccountViewModel, c
 }
 
 @Composable
-fun NoteQuickActionMenu(note: Note, popupExpanded: Boolean, onDismiss: () -> Unit, accountViewModel: AccountViewModel) {
+fun NoteQuickActionMenu(
+    note: Note,
+    popupExpanded: Boolean,
+    onDismiss: () -> Unit,
+    accountViewModel: AccountViewModel,
+) {
     val showSelectTextDialog = remember { mutableStateOf(false) }
     val showDeleteAlertDialog = remember { mutableStateOf(false) }
     val showBlockAlertDialog = remember { mutableStateOf(false) }
@@ -139,20 +169,14 @@ fun NoteQuickActionMenu(note: Note, popupExpanded: Boolean, onDismiss: () -> Uni
             onDismiss,
             showBlockAlertDialog,
             showDeleteAlertDialog,
-            showReportDialog
+            showReportDialog,
         )
     }
 
     if (showSelectTextDialog.value) {
-        val decryptedNote = remember {
-            mutableStateOf<String?>(null)
-        }
+        val decryptedNote = remember { mutableStateOf<String?>(null) }
 
-        LaunchedEffect(key1 = Unit) {
-            accountViewModel.decrypt(note) {
-                decryptedNote.value = it
-            }
-        }
+        LaunchedEffect(key1 = Unit) { accountViewModel.decrypt(note) { decryptedNote.value = it } }
 
         decryptedNote.value?.let {
             SelectTextDialog(it) {
@@ -191,7 +215,7 @@ private fun RenderMainPopup(
     onDismiss: () -> Unit,
     showBlockAlertDialog: MutableState<Boolean>,
     showDeleteAlertDialog: MutableState<Boolean>,
-    showReportDialog: MutableState<Boolean>
+    showReportDialog: MutableState<Boolean>,
 ) {
     val context = LocalContext.current
     val primaryLight = lightenColor(MaterialTheme.colorScheme.primary, 0.1f)
@@ -199,19 +223,21 @@ private fun RenderMainPopup(
     val clipboardManager = LocalClipboardManager.current
     val scope = rememberCoroutineScope()
 
-    val backgroundColor = if (MaterialTheme.colorScheme.isLight) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.secondaryButtonBackground
-    }
+    val backgroundColor =
+        if (MaterialTheme.colorScheme.isLight) {
+            MaterialTheme.colorScheme.primary
+        } else {
+            MaterialTheme.colorScheme.secondaryButtonBackground
+        }
 
     val showToast = { stringResource: Int ->
         scope.launch {
             Toast.makeText(
                 context,
                 context.getString(stringResource),
-                Toast.LENGTH_SHORT
-            ).show()
+                Toast.LENGTH_SHORT,
+            )
+                .show()
         }
     }
 
@@ -222,13 +248,13 @@ private fun RenderMainPopup(
         Card(
             modifier = Modifier.shadow(elevation = 6.dp, shape = cardShape),
             shape = cardShape,
-            colors = CardDefaults.cardColors(containerColor = backgroundColor)
+            colors = CardDefaults.cardColors(containerColor = backgroundColor),
         ) {
             Column(modifier = Modifier.width(IntrinsicSize.Min)) {
                 Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                     NoteQuickActionItem(
                         icon = Icons.Default.ContentCopy,
-                        label = stringResource(R.string.quick_action_copy_text)
+                        label = stringResource(R.string.quick_action_copy_text),
                     ) {
                         accountViewModel.decrypt(note) {
                             clipboardManager.setText(AnnotatedString(it))
@@ -240,7 +266,7 @@ private fun RenderMainPopup(
                     VerticalDivider(primaryLight)
                     NoteQuickActionItem(
                         Icons.Default.AlternateEmail,
-                        stringResource(R.string.quick_action_copy_user_id)
+                        stringResource(R.string.quick_action_copy_user_id),
                     ) {
                         scope.launch(Dispatchers.IO) {
                             clipboardManager.setText(AnnotatedString("nostr:${note.author?.pubkeyNpub()}"))
@@ -251,7 +277,7 @@ private fun RenderMainPopup(
                     VerticalDivider(primaryLight)
                     NoteQuickActionItem(
                         Icons.Default.FormatQuote,
-                        stringResource(R.string.quick_action_copy_note_id)
+                        stringResource(R.string.quick_action_copy_note_id),
                     ) {
                         scope.launch(Dispatchers.IO) {
                             clipboardManager.setText(AnnotatedString("nostr:${note.toNEvent()}"))
@@ -265,7 +291,7 @@ private fun RenderMainPopup(
 
                         NoteQuickActionItem(
                             Icons.Default.Block,
-                            stringResource(R.string.quick_action_block)
+                            stringResource(R.string.quick_action_block),
                         ) {
                             if (accountViewModel.hideBlockAlertDialog) {
                                 note.author?.let { accountViewModel.hide(it) }
@@ -278,15 +304,13 @@ private fun RenderMainPopup(
                 }
                 Divider(
                     color = primaryLight,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .width(1.dp)
+                    modifier = Modifier.fillMaxWidth().width(1.dp),
                 )
                 Row(modifier = Modifier.height(IntrinsicSize.Min)) {
                     if (isOwnNote) {
                         NoteQuickActionItem(
                             Icons.Default.Delete,
-                            stringResource(R.string.quick_action_delete)
+                            stringResource(R.string.quick_action_delete),
                         ) {
                             if (accountViewModel.hideDeleteRequestDialog) {
                                 accountViewModel.delete(note)
@@ -298,7 +322,7 @@ private fun RenderMainPopup(
                     } else if (isFollowingUser) {
                         NoteQuickActionItem(
                             Icons.Default.PersonRemove,
-                            stringResource(R.string.quick_action_unfollow)
+                            stringResource(R.string.quick_action_unfollow),
                         ) {
                             accountViewModel.unfollow(note.author!!)
                             onDismiss()
@@ -306,7 +330,7 @@ private fun RenderMainPopup(
                     } else {
                         NoteQuickActionItem(
                             Icons.Default.PersonAdd,
-                            stringResource(R.string.quick_action_follow)
+                            stringResource(R.string.quick_action_follow),
                         ) {
                             accountViewModel.follow(note.author!!)
                             onDismiss()
@@ -316,7 +340,7 @@ private fun RenderMainPopup(
                     VerticalDivider(primaryLight)
                     NoteQuickActionItem(
                         icon = ImageVector.vectorResource(id = R.drawable.relays),
-                        label = stringResource(R.string.broadcast)
+                        label = stringResource(R.string.broadcast),
                     ) {
                         scope.launch(Dispatchers.IO) {
                             accountViewModel.broadcast(note)
@@ -327,25 +351,27 @@ private fun RenderMainPopup(
                     VerticalDivider(primaryLight)
                     NoteQuickActionItem(
                         icon = Icons.Default.Share,
-                        label = stringResource(R.string.quick_action_share)
+                        label = stringResource(R.string.quick_action_share),
                     ) {
-                        val sendIntent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            type = "text/plain"
-                            putExtra(
-                                Intent.EXTRA_TEXT,
-                                externalLinkForNote(note)
-                            )
-                            putExtra(
-                                Intent.EXTRA_TITLE,
-                                context.getString(R.string.quick_action_share_browser_link)
-                            )
-                        }
+                        val sendIntent =
+                            Intent().apply {
+                                action = Intent.ACTION_SEND
+                                type = "text/plain"
+                                putExtra(
+                                    Intent.EXTRA_TEXT,
+                                    externalLinkForNote(note),
+                                )
+                                putExtra(
+                                    Intent.EXTRA_TITLE,
+                                    context.getString(R.string.quick_action_share_browser_link),
+                                )
+                            }
 
-                        val shareIntent = Intent.createChooser(
-                            sendIntent,
-                            context.getString(R.string.quick_action_share)
-                        )
+                        val shareIntent =
+                            Intent.createChooser(
+                                sendIntent,
+                                context.getString(R.string.quick_action_share),
+                            )
                         ContextCompat.startActivity(context, shareIntent, null)
                         onDismiss()
                     }
@@ -355,7 +381,7 @@ private fun RenderMainPopup(
 
                         NoteQuickActionItem(
                             Icons.Default.Report,
-                            stringResource(R.string.quick_action_report)
+                            stringResource(R.string.quick_action_report),
                         ) {
                             showReportDialog.value = true
                         }
@@ -367,28 +393,32 @@ private fun RenderMainPopup(
 }
 
 @Composable
-fun NoteQuickActionItem(icon: ImageVector, label: String, onClick: () -> Unit) {
+fun NoteQuickActionItem(
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit,
+) {
     Column(
-        modifier = Modifier
-            .size(70.dp)
-            .clickable { onClick() },
+        modifier = Modifier.size(70.dp).clickable { onClick() },
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            modifier = Modifier
-                .size(24.dp)
-                .padding(bottom = 5.dp),
-            tint = Color.White
+            modifier = Modifier.size(24.dp).padding(bottom = 5.dp),
+            tint = Color.White,
         )
         Text(text = label, fontSize = 12.sp, color = Color.White, textAlign = TextAlign.Center)
     }
 }
 
 @Composable
-fun DeleteAlertDialog(note: Note, accountViewModel: AccountViewModel, onDismiss: () -> Unit) {
+fun DeleteAlertDialog(
+    note: Note,
+    accountViewModel: AccountViewModel,
+    onDismiss: () -> Unit,
+) {
     QuickActionAlertDialog(
         title = stringResource(R.string.quick_action_request_deletion_alert_title),
         textContent = stringResource(R.string.quick_action_request_deletion_alert_body),
@@ -403,32 +433,36 @@ fun DeleteAlertDialog(note: Note, accountViewModel: AccountViewModel, onDismiss:
             accountViewModel.dontShowDeleteRequestDialog()
             onDismiss()
         },
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
     )
 }
 
 @Composable
-private fun BlockAlertDialog(note: Note, accountViewModel: AccountViewModel, onDismiss: () -> Unit) =
-    QuickActionAlertDialog(
-        title = stringResource(R.string.report_dialog_block_hide_user_btn),
-        textContent = stringResource(R.string.report_dialog_blocking_a_user),
-        buttonIcon = Icons.Default.Block,
-        buttonText = stringResource(R.string.quick_action_block_dialog_btn),
-        buttonColors = ButtonDefaults.buttonColors(
+private fun BlockAlertDialog(
+    note: Note,
+    accountViewModel: AccountViewModel,
+    onDismiss: () -> Unit,
+) = QuickActionAlertDialog(
+    title = stringResource(R.string.report_dialog_block_hide_user_btn),
+    textContent = stringResource(R.string.report_dialog_blocking_a_user),
+    buttonIcon = Icons.Default.Block,
+    buttonText = stringResource(R.string.quick_action_block_dialog_btn),
+    buttonColors =
+        ButtonDefaults.buttonColors(
             containerColor = WarningColor,
-            contentColor = Color.White
+            contentColor = Color.White,
         ),
-        onClickDoOnce = {
-            note.author?.let { accountViewModel.hide(it) }
-            onDismiss()
-        },
-        onClickDontShowAgain = {
-            note.author?.let { accountViewModel.hide(it) }
-            accountViewModel.dontShowBlockAlertDialog()
-            onDismiss()
-        },
-        onDismiss = onDismiss
-    )
+    onClickDoOnce = {
+        note.author?.let { accountViewModel.hide(it) }
+        onDismiss()
+    },
+    onClickDontShowAgain = {
+        note.author?.let { accountViewModel.hide(it) }
+        accountViewModel.dontShowBlockAlertDialog()
+        onDismiss()
+    },
+    onDismiss = onDismiss,
+)
 
 @Composable
 fun QuickActionAlertDialog(
@@ -439,7 +473,7 @@ fun QuickActionAlertDialog(
     buttonColors: ButtonColors = ButtonDefaults.buttonColors(),
     onClickDoOnce: () -> Unit,
     onClickDontShowAgain: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     QuickActionAlertDialog(
         title = title,
@@ -447,14 +481,14 @@ fun QuickActionAlertDialog(
         icon = {
             Icon(
                 imageVector = buttonIcon,
-                contentDescription = null
+                contentDescription = null,
             )
         },
         buttonText = buttonText,
         buttonColors = buttonColors,
         onClickDoOnce = onClickDoOnce,
         onClickDontShowAgain = onClickDontShowAgain,
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
     )
 }
 
@@ -467,7 +501,7 @@ fun QuickActionAlertDialog(
     buttonColors: ButtonColors = ButtonDefaults.buttonColors(),
     onClickDoOnce: () -> Unit,
     onClickDontShowAgain: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     QuickActionAlertDialog(
         title = title,
@@ -475,14 +509,14 @@ fun QuickActionAlertDialog(
         icon = {
             Icon(
                 painter = painterResource(buttonIconResource),
-                contentDescription = null
+                contentDescription = null,
             )
         },
         buttonText = buttonText,
         buttonColors = buttonColors,
         onClickDoOnce = onClickDoOnce,
         onClickDontShowAgain = onClickDontShowAgain,
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
     )
 }
 
@@ -495,29 +529,27 @@ fun QuickActionAlertDialog(
     buttonColors: ButtonColors = ButtonDefaults.buttonColors(),
     onClickDoOnce: () -> Unit,
     onClickDontShowAgain: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(title)
-        },
-        text = {
-            Text(textContent)
-        },
+        title = { Text(title) },
+        text = { Text(textContent) },
         confirmButton = {
             Row(
-                modifier = Modifier
-                    .padding(all = 8.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier.padding(all = 8.dp).fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 TextButton(onClick = onClickDontShowAgain) {
                     Text(stringResource(R.string.quick_action_dont_show_again_button))
                 }
-                Button(onClick = onClickDoOnce, colors = buttonColors, contentPadding = PaddingValues(horizontal = 16.dp)) {
+                Button(
+                    onClick = onClickDoOnce,
+                    colors = buttonColors,
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         icon()
                         Spacer(Modifier.width(8.dp))
@@ -525,6 +557,6 @@ fun QuickActionAlertDialog(
                     }
                 }
             }
-        }
+        },
     )
 }

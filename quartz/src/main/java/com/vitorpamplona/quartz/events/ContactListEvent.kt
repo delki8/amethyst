@@ -1,20 +1,38 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.quartz.events
 
 import android.util.Log
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.Stable
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.vitorpamplona.quartz.utils.TimeUtils
-import com.vitorpamplona.quartz.encoders.toHexKey
-import com.vitorpamplona.quartz.crypto.CryptoUtils
-import com.vitorpamplona.quartz.crypto.KeyPair
 import com.vitorpamplona.quartz.encoders.ATag
 import com.vitorpamplona.quartz.encoders.HexKey
 import com.vitorpamplona.quartz.encoders.decodePublicKey
+import com.vitorpamplona.quartz.encoders.toHexKey
 import com.vitorpamplona.quartz.signers.NostrSigner
+import com.vitorpamplona.quartz.utils.TimeUtils
 
-@Immutable
-data class Contact(val pubKeyHex: String, val relayUri: String?)
+@Immutable data class Contact(val pubKeyHex: String, val relayUri: String?)
 
 @Stable
 class ContactListEvent(
@@ -23,21 +41,24 @@ class ContactListEvent(
     createdAt: Long,
     tags: Array<Array<String>>,
     content: String,
-    sig: HexKey
-) : Event(id, pubKey, createdAt, kind, tags, content, sig) {
+    sig: HexKey,
+) : Event(id, pubKey, createdAt, KIND, tags, content, sig) {
     // This function is only used by the user logged in
     // But it is used all the time.
 
     @delegate:Transient
     val verifiedFollowKeySet: Set<HexKey> by lazy {
-        tags.filter { it.size > 1 && it[0] == "p" }.mapNotNull {
-            try {
-                decodePublicKey(it[1]).toHexKey()
-            } catch (e: Exception) {
-                Log.w("ContactListEvent", "Can't parse tags as a follows: ${it[1]}", e)
-                null
+        tags
+            .filter { it.size > 1 && it[0] == "p" }
+            .mapNotNull {
+                try {
+                    decodePublicKey(it[1]).toHexKey()
+                } catch (e: Exception) {
+                    Log.w("ContactListEvent", "Can't parse tags as a follows: ${it[1]}", e)
+                    null
+                }
             }
-        }.toSet()
+            .toSet()
     }
 
     @delegate:Transient
@@ -51,48 +72,48 @@ class ContactListEvent(
     }
 
     @delegate:Transient
-    val verifiedFollowCommunitySet: Set<String> by lazy {
-        unverifiedFollowAddressSet().toSet()
-    }
+    val verifiedFollowCommunitySet: Set<String> by lazy { unverifiedFollowAddressSet().toSet() }
 
     @delegate:Transient
-    val verifiedFollowKeySetAndMe: Set<HexKey> by lazy {
-        verifiedFollowKeySet + pubKey
-    }
+    val verifiedFollowKeySetAndMe: Set<HexKey> by lazy { verifiedFollowKeySet + pubKey }
 
     fun unverifiedFollowKeySet() = tags.filter { it[0] == "p" }.mapNotNull { it.getOrNull(1) }
+
     fun unverifiedFollowTagSet() = tags.filter { it[0] == "t" }.mapNotNull { it.getOrNull(1) }
+
     fun unverifiedFollowGeohashSet() = tags.filter { it[0] == "g" }.mapNotNull { it.getOrNull(1) }
 
     fun unverifiedFollowAddressSet() = tags.filter { it[0] == "a" }.mapNotNull { it.getOrNull(1) }
 
-    fun follows() = tags.filter { it[0] == "p" }.mapNotNull {
+    fun follows() =
+        tags
+            .filter { it[0] == "p" }
+            .mapNotNull {
+                try {
+                    Contact(decodePublicKey(it[1]).toHexKey(), it.getOrNull(2))
+                } catch (e: Exception) {
+                    Log.w("ContactListEvent", "Can't parse tags as a follows: ${it[1]}", e)
+                    null
+                }
+            }
+
+    fun followsTags() = tags.filter { it[0] == "t" }.mapNotNull { it.getOrNull(2) }
+
+    fun relays(): Map<String, ReadWrite>? =
         try {
-            Contact(decodePublicKey(it[1]).toHexKey(), it.getOrNull(2))
+            if (content.isNotEmpty()) {
+                mapper.readValue<Map<String, ReadWrite>>(content)
+            } else {
+                null
+            }
         } catch (e: Exception) {
-            Log.w("ContactListEvent", "Can't parse tags as a follows: ${it[1]}", e)
+            Log.w("ContactListEvent", "Can't parse content as relay lists: $content", e)
             null
         }
-    }
-
-    fun followsTags() = tags.filter { it[0] == "t" }.mapNotNull {
-        it.getOrNull(2)
-    }
-
-    fun relays(): Map<String, ReadWrite>? = try {
-        if (content.isNotEmpty()) {
-            mapper.readValue<Map<String, ReadWrite>>(content)
-        } else {
-            null
-        }
-    } catch (e: Exception) {
-        Log.w("ContactListEvent", "Can't parse content as relay lists: $content", e)
-        null
-    }
 
     companion object {
-        const val kind = 3
-        const val alt = "Follow List"
+        const val KIND = 3
+        const val ALT = "Follow List"
 
         fun createFromScratch(
             followUsers: List<Contact>,
@@ -103,44 +124,50 @@ class ContactListEvent(
             relayUse: Map<String, ReadWrite>?,
             signer: NostrSigner,
             createdAt: Long = TimeUtils.now(),
-            onReady: (ContactListEvent) -> Unit
+            onReady: (ContactListEvent) -> Unit,
         ) {
-            val content = if (relayUse != null) {
-                mapper.writeValueAsString(relayUse)
-            } else {
-                ""
-            }
+            val content =
+                if (relayUse != null) {
+                    mapper.writeValueAsString(relayUse)
+                } else {
+                    ""
+                }
 
-            val tags = followUsers.map {
-                if (it.relayUri != null) {
-                    arrayOf("p", it.pubKeyHex, it.relayUri)
-                } else {
-                    arrayOf("p", it.pubKeyHex)
-                }
-            } + followTags.map {
-                arrayOf("t", it)
-            } + followEvents.map {
-                arrayOf("e", it)
-            } + followCommunities.map {
-                if (it.relay != null) {
-                    arrayOf("a", it.toTag(), it.relay)
-                } else {
-                    arrayOf("a", it.toTag())
-                }
-            } + followGeohashes.map {
-                arrayOf("g", it)
-            }
+            val tags =
+                followUsers.map {
+                    if (it.relayUri != null) {
+                        arrayOf("p", it.pubKeyHex, it.relayUri)
+                    } else {
+                        arrayOf("p", it.pubKeyHex)
+                    }
+                } +
+                    followTags.map { arrayOf("t", it) } +
+                    followEvents.map { arrayOf("e", it) } +
+                    followCommunities.map {
+                        if (it.relay != null) {
+                            arrayOf("a", it.toTag(), it.relay)
+                        } else {
+                            arrayOf("a", it.toTag())
+                        }
+                    } +
+                    followGeohashes.map { arrayOf("g", it) }
 
             return create(
                 content = content,
                 tags = tags.toTypedArray(),
                 signer = signer,
                 createdAt = createdAt,
-                onReady = onReady
+                onReady = onReady,
             )
         }
 
-        fun followUser(earlierVersion: ContactListEvent, pubKeyHex: String, signer: NostrSigner, createdAt: Long = TimeUtils.now(), onReady: (ContactListEvent) -> Unit) {
+        fun followUser(
+            earlierVersion: ContactListEvent,
+            pubKeyHex: String,
+            signer: NostrSigner,
+            createdAt: Long = TimeUtils.now(),
+            onReady: (ContactListEvent) -> Unit,
+        ) {
             if (earlierVersion.isTaggedUser(pubKeyHex)) return
 
             return create(
@@ -148,11 +175,17 @@ class ContactListEvent(
                 tags = earlierVersion.tags.plus(element = arrayOf("p", pubKeyHex)),
                 signer = signer,
                 createdAt = createdAt,
-                onReady = onReady
+                onReady = onReady,
             )
         }
 
-        fun unfollowUser(earlierVersion: ContactListEvent, pubKeyHex: String, signer: NostrSigner, createdAt: Long = TimeUtils.now(), onReady: (ContactListEvent) -> Unit) {
+        fun unfollowUser(
+            earlierVersion: ContactListEvent,
+            pubKeyHex: String,
+            signer: NostrSigner,
+            createdAt: Long = TimeUtils.now(),
+            onReady: (ContactListEvent) -> Unit,
+        ) {
             if (!earlierVersion.isTaggedUser(pubKeyHex)) return
 
             return create(
@@ -160,11 +193,17 @@ class ContactListEvent(
                 tags = earlierVersion.tags.filter { it.size > 1 && it[1] != pubKeyHex }.toTypedArray(),
                 signer = signer,
                 createdAt = createdAt,
-                onReady = onReady
+                onReady = onReady,
             )
         }
 
-        fun followHashtag(earlierVersion: ContactListEvent, hashtag: String, signer: NostrSigner, createdAt: Long = TimeUtils.now(), onReady: (ContactListEvent) -> Unit) {
+        fun followHashtag(
+            earlierVersion: ContactListEvent,
+            hashtag: String,
+            signer: NostrSigner,
+            createdAt: Long = TimeUtils.now(),
+            onReady: (ContactListEvent) -> Unit,
+        ) {
             if (earlierVersion.isTaggedHash(hashtag)) return
 
             return create(
@@ -172,23 +211,36 @@ class ContactListEvent(
                 tags = earlierVersion.tags.plus(element = arrayOf("t", hashtag)),
                 signer = signer,
                 createdAt = createdAt,
-                onReady = onReady
+                onReady = onReady,
             )
         }
 
-        fun unfollowHashtag(earlierVersion: ContactListEvent, hashtag: String, signer: NostrSigner, createdAt: Long = TimeUtils.now(), onReady: (ContactListEvent) -> Unit) {
+        fun unfollowHashtag(
+            earlierVersion: ContactListEvent,
+            hashtag: String,
+            signer: NostrSigner,
+            createdAt: Long = TimeUtils.now(),
+            onReady: (ContactListEvent) -> Unit,
+        ) {
             if (!earlierVersion.isTaggedHash(hashtag)) return
 
             return create(
                 content = earlierVersion.content,
-                tags = earlierVersion.tags.filter { it.size > 1 && !it[1].equals(hashtag, true) }.toTypedArray(),
+                tags =
+                    earlierVersion.tags.filter { it.size > 1 && !it[1].equals(hashtag, true) }.toTypedArray(),
                 signer = signer,
                 createdAt = createdAt,
-                onReady = onReady
+                onReady = onReady,
             )
         }
 
-        fun followGeohash(earlierVersion: ContactListEvent, hashtag: String, signer: NostrSigner, createdAt: Long = TimeUtils.now(), onReady: (ContactListEvent) -> Unit) {
+        fun followGeohash(
+            earlierVersion: ContactListEvent,
+            hashtag: String,
+            signer: NostrSigner,
+            createdAt: Long = TimeUtils.now(),
+            onReady: (ContactListEvent) -> Unit,
+        ) {
             if (earlierVersion.isTaggedGeoHash(hashtag)) return
 
             return create(
@@ -196,11 +248,17 @@ class ContactListEvent(
                 tags = earlierVersion.tags.plus(element = arrayOf("g", hashtag)),
                 signer = signer,
                 createdAt = createdAt,
-                onReady = onReady
+                onReady = onReady,
             )
         }
 
-        fun unfollowGeohash(earlierVersion: ContactListEvent, hashtag: String, signer: NostrSigner, createdAt: Long = TimeUtils.now(), onReady: (ContactListEvent) -> Unit) {
+        fun unfollowGeohash(
+            earlierVersion: ContactListEvent,
+            hashtag: String,
+            signer: NostrSigner,
+            createdAt: Long = TimeUtils.now(),
+            onReady: (ContactListEvent) -> Unit,
+        ) {
             if (!earlierVersion.isTaggedGeoHash(hashtag)) return
 
             return create(
@@ -208,11 +266,17 @@ class ContactListEvent(
                 tags = earlierVersion.tags.filter { it.size > 1 && it[1] != hashtag }.toTypedArray(),
                 signer = signer,
                 createdAt = createdAt,
-                onReady = onReady
+                onReady = onReady,
             )
         }
 
-        fun followEvent(earlierVersion: ContactListEvent, idHex: String, signer: NostrSigner, createdAt: Long = TimeUtils.now(), onReady: (ContactListEvent) -> Unit) {
+        fun followEvent(
+            earlierVersion: ContactListEvent,
+            idHex: String,
+            signer: NostrSigner,
+            createdAt: Long = TimeUtils.now(),
+            onReady: (ContactListEvent) -> Unit,
+        ) {
             if (earlierVersion.isTaggedEvent(idHex)) return
 
             return create(
@@ -220,11 +284,17 @@ class ContactListEvent(
                 tags = earlierVersion.tags.plus(element = arrayOf("e", idHex)),
                 signer = signer,
                 createdAt = createdAt,
-                onReady = onReady
+                onReady = onReady,
             )
         }
 
-        fun unfollowEvent(earlierVersion: ContactListEvent, idHex: String, signer: NostrSigner, createdAt: Long = TimeUtils.now(), onReady: (ContactListEvent) -> Unit) {
+        fun unfollowEvent(
+            earlierVersion: ContactListEvent,
+            idHex: String,
+            signer: NostrSigner,
+            createdAt: Long = TimeUtils.now(),
+            onReady: (ContactListEvent) -> Unit,
+        ) {
             if (!earlierVersion.isTaggedEvent(idHex)) return
 
             return create(
@@ -232,23 +302,38 @@ class ContactListEvent(
                 tags = earlierVersion.tags.filter { it.size > 1 && it[1] != idHex }.toTypedArray(),
                 signer = signer,
                 createdAt = createdAt,
-                onReady = onReady
+                onReady = onReady,
             )
         }
 
-        fun followAddressableEvent(earlierVersion: ContactListEvent, aTag: ATag, signer: NostrSigner, createdAt: Long = TimeUtils.now(), onReady: (ContactListEvent) -> Unit) {
+        fun followAddressableEvent(
+            earlierVersion: ContactListEvent,
+            aTag: ATag,
+            signer: NostrSigner,
+            createdAt: Long = TimeUtils.now(),
+            onReady: (ContactListEvent) -> Unit,
+        ) {
             if (earlierVersion.isTaggedAddressableNote(aTag.toTag())) return
 
             return create(
                 content = earlierVersion.content,
-                tags = earlierVersion.tags.plus(element = listOfNotNull("a", aTag.toTag(), aTag.relay).toTypedArray()),
+                tags =
+                    earlierVersion.tags.plus(
+                        element = listOfNotNull("a", aTag.toTag(), aTag.relay).toTypedArray(),
+                    ),
                 signer = signer,
                 createdAt = createdAt,
-                onReady = onReady
+                onReady = onReady,
             )
         }
 
-        fun unfollowAddressableEvent(earlierVersion: ContactListEvent, aTag: ATag, signer: NostrSigner, createdAt: Long = TimeUtils.now(), onReady: (ContactListEvent) -> Unit) {
+        fun unfollowAddressableEvent(
+            earlierVersion: ContactListEvent,
+            aTag: ATag,
+            signer: NostrSigner,
+            createdAt: Long = TimeUtils.now(),
+            onReady: (ContactListEvent) -> Unit,
+        ) {
             if (!earlierVersion.isTaggedAddressableNote(aTag.toTag())) return
 
             return create(
@@ -256,23 +341,30 @@ class ContactListEvent(
                 tags = earlierVersion.tags.filter { it.size > 1 && it[1] != aTag.toTag() }.toTypedArray(),
                 signer = signer,
                 createdAt = createdAt,
-                onReady = onReady
+                onReady = onReady,
             )
         }
 
-        fun updateRelayList(earlierVersion: ContactListEvent, relayUse: Map<String, ReadWrite>?, signer: NostrSigner, createdAt: Long = TimeUtils.now(), onReady: (ContactListEvent) -> Unit) {
-            val content = if (relayUse != null) {
-                mapper.writeValueAsString(relayUse)
-            } else {
-                ""
-            }
+        fun updateRelayList(
+            earlierVersion: ContactListEvent,
+            relayUse: Map<String, ReadWrite>?,
+            signer: NostrSigner,
+            createdAt: Long = TimeUtils.now(),
+            onReady: (ContactListEvent) -> Unit,
+        ) {
+            val content =
+                if (relayUse != null) {
+                    mapper.writeValueAsString(relayUse)
+                } else {
+                    ""
+                }
 
             return create(
                 content = content,
                 tags = earlierVersion.tags,
                 signer = signer,
                 createdAt = createdAt,
-                onReady = onReady
+                onReady = onReady,
             )
         }
 
@@ -281,15 +373,16 @@ class ContactListEvent(
             tags: Array<Array<String>>,
             signer: NostrSigner,
             createdAt: Long = TimeUtils.now(),
-            onReady: (ContactListEvent) -> Unit
+            onReady: (ContactListEvent) -> Unit,
         ) {
-            val newTags = if (tags.any { it.size > 1 && it[0] == "alt" }) {
-                tags
-            } else {
-                tags + arrayOf("alt", alt)
-            }
+            val newTags =
+                if (tags.any { it.size > 1 && it[0] == "alt" }) {
+                    tags
+                } else {
+                    tags + arrayOf("alt", ALT)
+                }
 
-            signer.sign(createdAt, kind, newTags, content, onReady)
+            signer.sign(createdAt, KIND, newTags, content, onReady)
         }
     }
 
@@ -300,7 +393,8 @@ class ContactListEvent(
 class UserMetadata {
     var name: String? = null
     var username: String? = null
-    var display_name: String? = null
+
+    @JsonProperty("display_name")
     var displayName: String? = null
     var picture: String? = null
     var banner: String? = null
@@ -322,12 +416,13 @@ class UserMetadata {
     var tags: ImmutableListOfLists<String>? = null
 
     fun anyName(): String? {
-        return display_name ?: displayName ?: name ?: username
+        return displayName ?: name ?: username
     }
 
     fun anyNameStartsWith(prefix: String): Boolean {
-        return listOfNotNull(name, username, display_name, displayName, nip05, lud06, lud16)
-            .any { it.contains(prefix, true) }
+        return listOfNotNull(name, username, displayName, nip05, lud06, lud16).any {
+            it.contains(prefix, true)
+        }
     }
 
     fun lnAddress(): String? {
@@ -339,7 +434,7 @@ class UserMetadata {
     }
 
     fun bestDisplayName(): String? {
-        return displayName?.ifBlank { null } ?: display_name?.ifBlank { null }
+        return displayName?.ifBlank { null }
     }
 
     fun nip05(): String? {
@@ -352,8 +447,7 @@ class UserMetadata {
     }
 }
 
-@Stable
-class ImmutableListOfLists<T>(val lists: Array<Array<T>>)
+@Stable class ImmutableListOfLists<T>(val lists: Array<Array<T>>)
 
 val EmptyTagList = ImmutableListOfLists<String>(emptyArray())
 

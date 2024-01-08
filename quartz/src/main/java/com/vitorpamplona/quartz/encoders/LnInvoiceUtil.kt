@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.quartz.encoders
 
 import java.math.BigDecimal
@@ -6,24 +26,146 @@ import java.util.regex.Pattern
 
 /** based on litecoinj */
 object LnInvoiceUtil {
-    private val invoicePattern = Pattern.compile("lnbc((\\d+)([munp])?)?1[^1\\s]+", Pattern.CASE_INSENSITIVE)
+    private val invoicePattern =
+        Pattern.compile("lnbc((\\d+)([munp])?)?1[^1\\s]+", Pattern.CASE_INSENSITIVE)
 
-    /** The Bech32 character set for encoding.  */
+    /** The Bech32 character set for encoding. */
     private const val CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
 
-    /** The Bech32 character set for decoding.  */
-    private val CHARSET_REV = byteArrayOf(
-        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-        15, -1, 10, 17, 21, 20, 26, 30, 7, 5, -1, -1, -1, -1, -1, -1,
-        -1, 29, -1, 24, 13, 25, 9, 8, 23, -1, 18, 22, 31, 27, 19, -1,
-        1, 0, 3, 16, 11, 28, 12, 14, 6, 4, 2, -1, -1, -1, -1, -1,
-        -1, 29, -1, 24, 13, 25, 9, 8, 23, -1, 18, 22, 31, 27, 19, -1,
-        1, 0, 3, 16, 11, 28, 12, 14, 6, 4, 2, -1, -1, -1, -1, -1
-    )
+    /** The Bech32 character set for decoding. */
+    private val CHARSET_REV =
+        byteArrayOf(
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            15,
+            -1,
+            10,
+            17,
+            21,
+            20,
+            26,
+            30,
+            7,
+            5,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            29,
+            -1,
+            24,
+            13,
+            25,
+            9,
+            8,
+            23,
+            -1,
+            18,
+            22,
+            31,
+            27,
+            19,
+            -1,
+            1,
+            0,
+            3,
+            16,
+            11,
+            28,
+            12,
+            14,
+            6,
+            4,
+            2,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+            29,
+            -1,
+            24,
+            13,
+            25,
+            9,
+            8,
+            23,
+            -1,
+            18,
+            22,
+            31,
+            27,
+            19,
+            -1,
+            1,
+            0,
+            3,
+            16,
+            11,
+            28,
+            12,
+            14,
+            6,
+            4,
+            2,
+            -1,
+            -1,
+            -1,
+            -1,
+            -1,
+        )
 
-    /** Find the polynomial with value coefficients mod the generator as 30-bit.  */
+    /** Find the polynomial with value coefficients mod the generator as 30-bit. */
     private fun polymod(values: ByteArray): Int {
         var c = 1
         for (v_i in values) {
@@ -38,7 +180,7 @@ object LnInvoiceUtil {
         return c
     }
 
-    /** Expand a HRP for use in checksum computation.  */
+    /** Expand a HRP for use in checksum computation. */
     private fun expandHrp(hrp: String): ByteArray {
         val hrpLength = hrp.length
         val ret = ByteArray(hrpLength * 2 + 1)
@@ -51,8 +193,11 @@ object LnInvoiceUtil {
         return ret
     }
 
-    /** Verify a checksum.  */
-    private fun verifyChecksum(hrp: String, values: ByteArray): Boolean {
+    /** Verify a checksum. */
+    private fun verifyChecksum(
+        hrp: String,
+        values: ByteArray,
+    ): Boolean {
         val hrpExpanded: ByteArray = expandHrp(hrp)
         val combined = ByteArray(hrpExpanded.size + values.size)
         System.arraycopy(hrpExpanded, 0, combined, 0, hrpExpanded.size)
@@ -67,7 +212,9 @@ object LnInvoiceUtil {
         var upper = false
         for (i in 0 until invoice.length) {
             val c = invoice[i]
-            if (c.code < 33 || c.code > 126) throw AddressFormatException("Invalid character: $c, pos: $i")
+            if (c.code < 33 || c.code > 126) {
+                throw AddressFormatException("Invalid character: $c, pos: $i")
+            }
             if (c in 'a'..'z') {
                 if (upper) throw AddressFormatException("Invalid character: $c, pos: $i")
                 lower = true
@@ -84,7 +231,9 @@ object LnInvoiceUtil {
         val values = ByteArray(dataPartLength)
         for (i in 0 until dataPartLength) {
             val c = invoice[i + pos + 1]
-            if (CHARSET_REV.get(c.code).toInt() == -1) throw AddressFormatException("Invalid character: " + c + ", pos: " + (i + pos + 1))
+            if (CHARSET_REV.get(c.code).toInt() == -1) {
+                throw AddressFormatException("Invalid character: " + c + ", pos: " + (i + pos + 1))
+            }
             values[i] = CHARSET_REV.get(c.code)
         }
         val hrp = invoice.substring(0, pos).lowercase(Locale.ROOT)
@@ -95,6 +244,7 @@ object LnInvoiceUtil {
     /**
      * Parses invoice amount according to
      * https://github.com/lightningnetwork/lightning-rfc/blob/master/11-payment-encoding.md#human-readable-part
+     *
      * @return invoice amount in bitcoins, zero if the invoice has no amount
      * @throws RuntimeException if invoice format is incorrect
      */
@@ -116,7 +266,9 @@ object LnInvoiceUtil {
         if (multiplierGroup == null) {
             return amount
         }
-        require(!(multiplierGroup == "p" && amountGroup[amountGroup.length - 1] != '0')) { "sub-millisatoshi amount" }
+        require(!(multiplierGroup == "p" && amountGroup[amountGroup.length - 1] != '0')) {
+            "sub-millisatoshi amount"
+        }
         return amount.multiply(multiplier(multiplierGroup))
     }
 
@@ -141,9 +293,9 @@ object LnInvoiceUtil {
     }
 
     /**
-     * Finds LN invoice in the provided input string and returns it.
-     * For example for input = "aaa bbb lnbc1xxx ccc" it will return "lnbc1xxx"
-     * It will only return the first invoice found in the input.
+     * Finds LN invoice in the provided input string and returns it. For example for input = "aaa bbb
+     * lnbc1xxx ccc" it will return "lnbc1xxx" It will only return the first invoice found in the
+     * input.
      *
      * @return the invoice if it was found. null for null input or if no invoice is found
      */
@@ -160,10 +312,9 @@ object LnInvoiceUtil {
     }
 
     /**
-     * If the string contains an LN invoice, returns a Pair of the start and end
-     * positions of the invoice in the string. Otherwise, returns (0, 0). This is
-     * used to ensure we don't accidentally cut an invoice in the middle when taking
-     * only a portion of the available text.
+     * If the string contains an LN invoice, returns a Pair of the start and end positions of the
+     * invoice in the string. Otherwise, returns (0, 0). This is used to ensure we don't accidentally
+     * cut an invoice in the middle when taking only a portion of the available text.
      */
     fun locateInvoice(input: String?): Pair<Int, Int> {
         if (input == null) {

@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.service
 
 import android.util.Log
@@ -21,6 +41,7 @@ abstract class NostrDataSource(val debugName: String) {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private var subscriptions = mapOf<String, Subscription>()
+
     data class Counter(var counter: Int)
 
     private var eventCounter = mapOf<String, Counter>()
@@ -30,66 +51,96 @@ abstract class NostrDataSource(val debugName: String) {
 
     fun printCounter() {
         eventCounter.forEach {
-            Log.d("STATE DUMP ${this.javaClass.simpleName}", "Received Events ${it.key}: ${it.value.counter}")
+            Log.d(
+                "STATE DUMP ${this.javaClass.simpleName}",
+                "Received Events ${it.key}: ${it.value.counter}",
+            )
         }
     }
 
-    private val clientListener = object : Client.Listener() {
-        override fun onEvent(event: Event, subscriptionId: String, relay: Relay, afterEOSE: Boolean) {
-            if (subscriptions.containsKey(subscriptionId)) {
-                val key = "$debugName $subscriptionId ${event.kind}"
-                val keyValue = eventCounter.get(key)
-                if (keyValue != null) {
-                    keyValue.counter++
-                } else {
-                    eventCounter = eventCounter + Pair(key, Counter(1))
+    private val clientListener =
+        object : Client.Listener() {
+            override fun onEvent(
+                event: Event,
+                subscriptionId: String,
+                relay: Relay,
+                afterEOSE: Boolean,
+            ) {
+                if (subscriptions.containsKey(subscriptionId)) {
+                    val key = "$debugName $subscriptionId ${event.kind}"
+                    val keyValue = eventCounter.get(key)
+                    if (keyValue != null) {
+                        keyValue.counter++
+                    } else {
+                        eventCounter = eventCounter + Pair(key, Counter(1))
+                    }
+
+                    // Log.d(this@NostrDataSource.javaClass.simpleName, "Relay ${relay.url}: ${event.kind}")
+
+                    consume(event, relay)
+                    if (afterEOSE) {
+                        markAsEOSE(subscriptionId, relay)
+                    }
                 }
+            }
 
-                // Log.d(this@NostrDataSource.javaClass.simpleName, "Relay ${relay.url}: ${event.kind}")
+            override fun onError(
+                error: Error,
+                subscriptionId: String,
+                relay: Relay,
+            ) {
+                // if (subscriptions.containsKey(subscriptionId)) {
+                // Log.e(
+                //    this@NostrDataSource.javaClass.simpleName,
+                //    "Relay OnError ${relay.url}: ${error.message}"
+                // )
+                // }
+            }
 
-                consume(event, relay)
-                if (afterEOSE) {
+            override fun onRelayStateChange(
+                type: Relay.StateType,
+                relay: Relay,
+                subscriptionId: String?,
+            ) {
+                // if (subscriptions.containsKey(subscriptionId)) {
+                //    Log.d(this@NostrDataSource.javaClass.simpleName, "Relay ${relay.url} ${subscriptionId}
+                // ${type.name}")
+                // }
+
+                if (
+                    type == Relay.StateType.EOSE &&
+                    subscriptionId != null &&
+                    subscriptions.containsKey(subscriptionId)
+                ) {
                     markAsEOSE(subscriptionId, relay)
                 }
             }
-        }
 
-        override fun onError(error: Error, subscriptionId: String, relay: Relay) {
-            // if (subscriptions.containsKey(subscriptionId)) {
-            // Log.e(
-            //    this@NostrDataSource.javaClass.simpleName,
-            //    "Relay OnError ${relay.url}: ${error.message}"
-            // )
-            // }
-        }
+            override fun onSendResponse(
+                eventId: String,
+                success: Boolean,
+                message: String,
+                relay: Relay,
+            ) {
+                if (success) {
+                    markAsSeenOnRelay(eventId, relay)
+                }
+            }
 
-        override fun onRelayStateChange(type: Relay.StateType, relay: Relay, subscriptionId: String?) {
-            // if (subscriptions.containsKey(subscriptionId)) {
-            //    Log.d(this@NostrDataSource.javaClass.simpleName, "Relay ${relay.url} ${subscriptionId} ${type.name}")
-            // }
+            override fun onAuth(
+                relay: Relay,
+                challenge: String,
+            ) {
+                auth(relay, challenge)
+            }
 
-            if (type == Relay.StateType.EOSE && subscriptionId != null && subscriptions.containsKey(subscriptionId)) {
-                markAsEOSE(subscriptionId, relay)
+            override fun onNotify(
+                relay: Relay,
+                description: String,
+            ) {
+                notify(relay, description)
             }
         }
-
-        override fun onSendResponse(eventId: String, success: Boolean, message: String, relay: Relay) {
-            if (success) {
-                markAsSeenOnRelay(eventId, relay)
-            }
-        }
-
-        override fun onAuth(relay: Relay, challenge: String) {
-            auth(relay, challenge)
-        }
-
-        override fun onNotify(
-            relay: Relay,
-            description: String
-        ) {
-            notify(relay, description)
-        }
-    }
 
     init {
         Log.d(this.javaClass.simpleName, "${this.javaClass.simpleName} Subscribe")
@@ -149,7 +200,7 @@ abstract class NostrDataSource(val debugName: String) {
 
     fun invalidateFilters() {
         scope.launch(Dispatchers.IO) {
-            bundler.invalidate() {
+            bundler.invalidate {
                 // println("DataSource: ${this.javaClass.simpleName} InvalidateFilters")
 
                 // adds the time to perform the refresh into this delay
@@ -160,9 +211,7 @@ abstract class NostrDataSource(val debugName: String) {
     }
 
     fun resetFilters() {
-        scope.launch(Dispatchers.IO) {
-            resetFiltersSuspend()
-        }
+        scope.launch(Dispatchers.IO) { resetFiltersSuspend() }
     }
 
     fun resetFiltersSuspend() {
@@ -199,14 +248,23 @@ abstract class NostrDataSource(val debugName: String) {
                         if (updatedSubscription.toJson() != currentFilters[updatedSubscription.id]) {
                             Client.close(updatedSubscription.id)
                             if (active) {
-                                Log.d(this@NostrDataSource.javaClass.simpleName, "Update Filter 1 ${updatedSubscription.id} ${Client.isSubscribed(clientListener)}")
+                                Log.d(
+                                    this@NostrDataSource.javaClass.simpleName,
+                                    "Update Filter 1 ${updatedSubscription.id} ${Client.isSubscribed(clientListener)}",
+                                )
                                 Client.sendFilter(updatedSubscription.id, updatedSubscriptionNewFilters)
                             }
                         } else {
                             // hasn't changed, does nothing.
                             if (active) {
-                                Log.d(this@NostrDataSource.javaClass.simpleName, "Update Filter 2 ${updatedSubscription.id} ${Client.isSubscribed(clientListener)}")
-                                Client.sendFilterOnlyIfDisconnected(updatedSubscription.id, updatedSubscriptionNewFilters)
+                                Log.d(
+                                    this@NostrDataSource.javaClass.simpleName,
+                                    "Update Filter 2 ${updatedSubscription.id} ${Client.isSubscribed(clientListener)}",
+                                )
+                                Client.sendFilterOnlyIfDisconnected(
+                                    updatedSubscription.id,
+                                    updatedSubscriptionNewFilters,
+                                )
                             }
                         }
                     }
@@ -217,7 +275,10 @@ abstract class NostrDataSource(val debugName: String) {
                         // was not active and becomes active, sends the filter.
                         if (updatedSubscription.toJson() != currentFilters[updatedSubscription.id]) {
                             if (active) {
-                                Log.d(this@NostrDataSource.javaClass.simpleName, "Update Filter 3 ${updatedSubscription.id} ${Client.isSubscribed(clientListener)}")
+                                Log.d(
+                                    this@NostrDataSource.javaClass.simpleName,
+                                    "Update Filter 3 ${updatedSubscription.id} ${Client.isSubscribed(clientListener)}",
+                                )
                                 Client.sendFilter(updatedSubscription.id, updatedSubscriptionNewFilters)
                             }
                         }
@@ -229,22 +290,40 @@ abstract class NostrDataSource(val debugName: String) {
         changingFilters.getAndSet(false)
     }
 
-    open fun consume(event: Event, relay: Relay) {
+    open fun consume(
+        event: Event,
+        relay: Relay,
+    ) {
         LocalCache.verifyAndConsume(event, relay)
     }
 
-    open fun markAsSeenOnRelay(eventId: String, relay: Relay) {
+    open fun markAsSeenOnRelay(
+        eventId: String,
+        relay: Relay,
+    ) {
         LocalCache.getNoteIfExists(eventId)?.addRelay(relay)
     }
 
-    open fun markAsEOSE(subscriptionId: String, relay: Relay) {
+    open fun markAsEOSE(
+        subscriptionId: String,
+        relay: Relay,
+    ) {
         subscriptions[subscriptionId]?.updateEOSE(
-            TimeUtils.oneMinuteAgo(), // in case people's clock is slighly off.
-            relay.url
+            // in case people's clock is slighly off.
+            TimeUtils.oneMinuteAgo(),
+            relay.url,
         )
     }
 
     abstract fun updateChannelFilters()
-    open fun auth(relay: Relay, challenge: String) = Unit
-    open fun notify(relay: Relay, description: String) = Unit
+
+    open fun auth(
+        relay: Relay,
+        challenge: String,
+    ) = Unit
+
+    open fun notify(
+        relay: Relay,
+        description: String,
+    ) = Unit
 }

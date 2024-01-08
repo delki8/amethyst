@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.benchmark
 
 import androidx.benchmark.junit4.BenchmarkRule
@@ -24,16 +44,17 @@ import java.util.concurrent.TimeUnit
 /**
  * Benchmark, which will execute on an Android device.
  *
- * The body of [BenchmarkRule.measureRepeated] is measured in a loop, and Studio will
- * output the result. Modify your code to see how it affects performance.
+ * The body of [BenchmarkRule.measureRepeated] is measured in a loop, and Studio will output the
+ * result. Modify your code to see how it affects performance.
  */
 @RunWith(AndroidJUnit4::class)
 class GiftWrapReceivingBenchmark {
+    @get:Rule val benchmarkRule = BenchmarkRule()
 
-    @get:Rule
-    val benchmarkRule = BenchmarkRule()
-
-    fun createWrap(sender: NostrSigner, receiver: NostrSigner): GiftWrapEvent {
+    fun createWrap(
+        sender: NostrSigner,
+        receiver: NostrSigner,
+    ): GiftWrapEvent {
         val countDownLatch = CountDownLatch(1)
         var wrap: GiftWrapEvent? = null
 
@@ -47,16 +68,16 @@ class GiftWrapReceivingBenchmark {
             markAsSensitive = true,
             zapRaiserAmount = 10000,
             geohash = null,
-            signer = sender
+            signer = sender,
         ) {
             SealedGossipEvent.create(
                 event = it,
                 encryptTo = receiver.pubKey,
-                signer = sender
+                signer = sender,
             ) {
                 GiftWrapEvent.create(
                     event = it,
-                    recipientPubKey = receiver.pubKey
+                    recipientPubKey = receiver.pubKey,
                 ) {
                     wrap = it
                     countDownLatch.countDown()
@@ -69,7 +90,10 @@ class GiftWrapReceivingBenchmark {
         return wrap!!
     }
 
-    fun createSeal(sender: NostrSigner, receiver: NostrSigner): SealedGossipEvent {
+    fun createSeal(
+        sender: NostrSigner,
+        receiver: NostrSigner,
+    ): SealedGossipEvent {
         val countDownLatch = CountDownLatch(1)
         var seal: SealedGossipEvent? = null
 
@@ -83,12 +107,12 @@ class GiftWrapReceivingBenchmark {
             markAsSensitive = true,
             zapRaiserAmount = 10000,
             geohash = null,
-            signer = sender
+            signer = sender,
         ) {
             SealedGossipEvent.create(
                 event = it,
                 encryptTo = receiver.pubKey,
-                signer = sender
+                signer = sender,
             ) {
                 seal = it
                 countDownLatch.countDown()
@@ -107,9 +131,7 @@ class GiftWrapReceivingBenchmark {
 
         val str = createWrap(sender, receiver).toJson()
 
-        benchmarkRule.measureRepeated {
-            Event.fromJson(str)
-        }
+        benchmarkRule.measureRepeated { Event.fromJson(str) }
     }
 
     @Test
@@ -119,9 +141,7 @@ class GiftWrapReceivingBenchmark {
 
         val wrap = createWrap(sender, receiver)
 
-        benchmarkRule.measureRepeated {
-            wrap.hasCorrectIDHash()
-        }
+        benchmarkRule.measureRepeated { wrap.hasCorrectIDHash() }
     }
 
     @Test
@@ -131,9 +151,7 @@ class GiftWrapReceivingBenchmark {
 
         val wrap = createWrap(sender, receiver)
 
-        benchmarkRule.measureRepeated {
-            wrap.hasVerifiedSignature()
-        }
+        benchmarkRule.measureRepeated { wrap.hasVerifiedSignature() }
     }
 
     @Test
@@ -144,7 +162,13 @@ class GiftWrapReceivingBenchmark {
         val wrap = createWrap(sender, receiver)
 
         benchmarkRule.measureRepeated {
-            assertNotNull(CryptoUtils.decryptNIP44v1(wrap.content, sender.keyPair.privKey!!, wrap.pubKey.hexToByteArray()))
+            assertNotNull(
+                CryptoUtils.decryptNIP44v2(
+                    wrap.content,
+                    receiver.keyPair.privKey!!,
+                    wrap.pubKey.hexToByteArray(),
+                ),
+            )
         }
     }
 
@@ -155,11 +179,14 @@ class GiftWrapReceivingBenchmark {
 
         val wrap = createWrap(sender, receiver)
 
-        val innerJson = CryptoUtils.decryptNIP44v1(wrap.content, receiver.keyPair.privKey!!, wrap.pubKey.hexToByteArray())
+        val innerJson =
+            CryptoUtils.decryptNIP44v2(
+                wrap.content,
+                receiver.keyPair.privKey!!,
+                wrap.pubKey.hexToByteArray(),
+            )
 
-        benchmarkRule.measureRepeated {
-            assertNotNull(innerJson?.let { Event.fromJson(it) })
-        }
+        benchmarkRule.measureRepeated { assertNotNull(innerJson?.let { Event.fromJson(it) }) }
     }
 
     @Test
@@ -170,7 +197,13 @@ class GiftWrapReceivingBenchmark {
         val seal = createSeal(sender, receiver)
 
         benchmarkRule.measureRepeated {
-            assertNotNull(CryptoUtils.decryptNIP44v1(seal.content, sender.keyPair.privKey!!, seal.pubKey.hexToByteArray()))
+            assertNotNull(
+                CryptoUtils.decryptNIP44v2(
+                    seal.content,
+                    receiver.keyPair.privKey!!,
+                    seal.pubKey.hexToByteArray(),
+                ),
+            )
         }
     }
 
@@ -181,11 +214,13 @@ class GiftWrapReceivingBenchmark {
 
         val seal = createSeal(sender, receiver)
 
-        val innerJson = CryptoUtils.decryptNIP44v1(seal.content, receiver.keyPair.privKey!!, seal.pubKey.hexToByteArray())
+        val innerJson =
+            CryptoUtils.decryptNIP44v2(
+                seal.content,
+                receiver.keyPair.privKey!!,
+                seal.pubKey.hexToByteArray(),
+            )
 
-        benchmarkRule.measureRepeated {
-            assertNotNull(innerJson?.let { Gossip.fromJson(it) })
-        }
+        benchmarkRule.measureRepeated { assertNotNull(innerJson?.let { Gossip.fromJson(it) }) }
     }
-
 }

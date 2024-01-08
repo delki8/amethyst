@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.actions
 
 import androidx.compose.foundation.clickable
@@ -80,60 +100,72 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun JoinUserOrChannelView(onClose: () -> Unit, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
-    val searchBarViewModel: SearchBarViewModel = viewModel(
-        key = "SearchBarViewModel",
-        factory = SearchBarViewModel.Factory(
-            accountViewModel.account
+fun JoinUserOrChannelView(
+    onClose: () -> Unit,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
+    val searchBarViewModel: SearchBarViewModel =
+        viewModel(
+            key = "SearchBarViewModel",
+            factory =
+                SearchBarViewModel.Factory(
+                    accountViewModel.account,
+                ),
         )
-    )
 
     JoinUserOrChannelView(
         searchBarViewModel = searchBarViewModel,
         onClose = onClose,
         accountViewModel = accountViewModel,
-        nav = nav
+        nav = nav,
     )
 }
 
 @Composable
-fun JoinUserOrChannelView(searchBarViewModel: SearchBarViewModel, onClose: () -> Unit, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+fun JoinUserOrChannelView(
+    searchBarViewModel: SearchBarViewModel,
+    onClose: () -> Unit,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     Dialog(
         onDismissRequest = {
             NostrSearchEventOrUserDataSource.clear()
             searchBarViewModel.clear()
             onClose()
         },
-        properties = DialogProperties(
-            dismissOnClickOutside = false
-        )
+        properties =
+            DialogProperties(
+                dismissOnClickOutside = false,
+            ),
     ) {
-        Surface() {
+        Surface {
             Column(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .heightIn(min = 500.dp)
+                modifier = Modifier.padding(10.dp).heightIn(min = 500.dp),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    CloseButton(onPress = {
-                        searchBarViewModel.clear()
-                        NostrSearchEventOrUserDataSource.clear()
-                        onClose()
-                    })
+                    CloseButton(
+                        onPress = {
+                            searchBarViewModel.clear()
+                            NostrSearchEventOrUserDataSource.clear()
+                            onClose()
+                        },
+                    )
 
                     Text(
                         text = stringResource(R.string.channel_list_join_conversation),
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
 
                     Text(
                         text = "",
                         color = MaterialTheme.colorScheme.placeholderText,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                 }
 
@@ -149,16 +181,14 @@ fun JoinUserOrChannelView(searchBarViewModel: SearchBarViewModel, onClose: () ->
 private fun RenderSearch(
     searchBarViewModel: SearchBarViewModel,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val listState = rememberLazyListState()
 
     val lifeCycleOwner = LocalLifecycleOwner.current
 
     // Create a channel for processing search queries.
-    val searchTextChanges = remember {
-        Channel<String>(Channel.CONFLATED)
-    }
+    val searchTextChanges = remember { Channel<String>(Channel.CONFLATED) }
 
     LaunchedEffect(Unit) {
         launch(Dispatchers.IO) {
@@ -174,7 +204,8 @@ private fun RenderSearch(
     LaunchedEffect(Unit) {
         // Wait for text changes to stop for 300 ms before firing off search.
         withContext(Dispatchers.IO) {
-            searchTextChanges.receiveAsFlow()
+            searchTextChanges
+                .receiveAsFlow()
                 .filter { it.isNotBlank() }
                 .distinctUntilChanged()
                 .debounce(300)
@@ -186,31 +217,28 @@ private fun RenderSearch(
                     searchBarViewModel.invalidateData()
 
                     // makes sure to show the top of the search
-                    launch(Dispatchers.Main) {
-                        listState.animateScrollToItem(0)
-                    }
+                    launch(Dispatchers.Main) { listState.animateScrollToItem(0) }
                 }
         }
     }
 
     DisposableEffect(lifeCycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                println("Join Start")
-                NostrSearchEventOrUserDataSource.start()
-                searchBarViewModel.invalidateData()
+        val observer =
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    println("Join Start")
+                    NostrSearchEventOrUserDataSource.start()
+                    searchBarViewModel.invalidateData()
+                }
+                if (event == Lifecycle.Event.ON_PAUSE) {
+                    println("Join Stop")
+                    NostrSearchEventOrUserDataSource.clear()
+                    NostrSearchEventOrUserDataSource.stop()
+                }
             }
-            if (event == Lifecycle.Event.ON_PAUSE) {
-                println("Join Stop")
-                NostrSearchEventOrUserDataSource.clear()
-                NostrSearchEventOrUserDataSource.stop()
-            }
-        }
 
         lifeCycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifeCycleOwner.lifecycle.removeObserver(observer)
-        }
+        onDispose { lifeCycleOwner.lifecycle.removeObserver(observer) }
     }
 
     // LAST ROW
@@ -223,7 +251,7 @@ private fun RenderSearch(
 @Composable
 private fun SearchEditTextForJoin(
     searchBarViewModel: SearchBarViewModel,
-    searchTextChanges: Channel<String>
+    searchTextChanges: Channel<String>,
 ) {
     val scope = rememberCoroutineScope()
 
@@ -239,37 +267,31 @@ private fun SearchEditTextForJoin(
     }
 
     Row(
-        modifier = Modifier
-            .padding(horizontal = 10.dp)
-            .fillMaxWidth(),
+        modifier = Modifier.padding(horizontal = 10.dp).fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         OutlinedTextField(
             label = { Text(text = stringResource(R.string.channel_list_user_or_group_id)) },
             value = searchBarViewModel.searchValue,
             onValueChange = {
                 searchBarViewModel.updateSearchValue(it)
-                scope.launch(Dispatchers.IO) {
-                    searchTextChanges.trySend(it)
-                }
+                scope.launch(Dispatchers.IO) { searchTextChanges.trySend(it) }
             },
-            leadingIcon = {
-                SearchIcon(modifier = Size20Modifier, Color.Unspecified)
-            },
-            modifier = Modifier
-                .weight(1f, true)
-                .defaultMinSize(minHeight = 20.dp)
-                .focusRequester(focusRequester)
-                .onFocusChanged {
-                    if (it.isFocused) {
-                        keyboardController?.show()
-                    }
-                },
+            leadingIcon = { SearchIcon(modifier = Size20Modifier, Color.Unspecified) },
+            modifier =
+                Modifier.weight(1f, true)
+                    .defaultMinSize(minHeight = 20.dp)
+                    .focusRequester(focusRequester)
+                    .onFocusChanged {
+                        if (it.isFocused) {
+                            keyboardController?.show()
+                        }
+                    },
             placeholder = {
                 Text(
                     text = stringResource(R.string.channel_list_user_or_group_id_demo),
-                    color = MaterialTheme.colorScheme.placeholderText
+                    color = MaterialTheme.colorScheme.placeholderText,
                 )
             },
             trailingIcon = {
@@ -278,15 +300,15 @@ private fun SearchEditTextForJoin(
                         onClick = {
                             searchBarViewModel.clear()
                             NostrSearchEventOrUserDataSource.clear()
-                        }
+                        },
                     ) {
                         Icon(
                             imageVector = Icons.Default.Clear,
-                            contentDescription = stringResource(R.string.clear)
+                            contentDescription = stringResource(R.string.clear),
                         )
                     }
                 }
-            }
+            },
         )
     }
 }
@@ -296,35 +318,31 @@ private fun RenderSearchResults(
     searchBarViewModel: SearchBarViewModel,
     listState: LazyListState,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     if (searchBarViewModel.isSearching) {
         val users by searchBarViewModel.searchResultsUsers.collectAsStateWithLifecycle()
         val channels by searchBarViewModel.searchResultsChannels.collectAsStateWithLifecycle()
 
-        val automaticallyShowProfilePicture = remember {
-            accountViewModel.settings.showProfilePictures.value
-        }
+        val automaticallyShowProfilePicture =
+            remember {
+                accountViewModel.settings.showProfilePictures.value
+            }
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .padding(vertical = 10.dp)
+            modifier = Modifier.fillMaxWidth().fillMaxHeight().padding(vertical = 10.dp),
         ) {
             LazyColumn(
                 modifier = Modifier.fillMaxHeight(),
                 contentPadding = FeedPadding,
-                state = listState
+                state = listState,
             ) {
                 itemsIndexed(
                     users,
-                    key = { _, item -> "u" + item.pubkeyHex }
+                    key = { _, item -> "u" + item.pubkeyHex },
                 ) { _, item ->
                     UserComposeForChat(item, accountViewModel) {
-                        accountViewModel.createChatRoomFor(item) {
-                            nav("Room/$it")
-                        }
+                        accountViewModel.createChatRoomFor(item) { nav("Room/$it") }
 
                         searchBarViewModel.clear()
                     }
@@ -332,7 +350,7 @@ private fun RenderSearchResults(
 
                 itemsIndexed(
                     channels,
-                    key = { _, item -> "c" + item.idHex }
+                    key = { _, item -> "c" + item.idHex },
                 ) { _, item ->
                     RenderChannel(item, automaticallyShowProfilePicture) {
                         nav("Channel/${item.idHex}")
@@ -348,11 +366,9 @@ private fun RenderSearchResults(
 private fun RenderChannel(
     item: com.vitorpamplona.amethyst.model.Channel,
     loadProfilePicture: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
-    val hasNewMessages = remember {
-        mutableStateOf(false)
-    }
+    val hasNewMessages = remember { mutableStateOf(false) }
 
     ChannelName(
         channelIdHex = item.idHex,
@@ -360,14 +376,14 @@ private fun RenderChannel(
         channelTitle = {
             Text(
                 item.toBestDisplayName(),
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
         },
         channelLastTime = null,
         channelLastContent = item.summary(),
         hasNewMessages,
         onClick = onClick,
-        loadProfilePicture = loadProfilePicture
+        loadProfilePicture = loadProfilePicture,
     )
 }
 
@@ -375,33 +391,29 @@ private fun RenderChannel(
 fun UserComposeForChat(
     baseUser: User,
     accountViewModel: AccountViewModel,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Column(
         modifier =
-        Modifier.clickable(
-            onClick = onClick
-        )
+            Modifier.clickable(
+                onClick = onClick,
+            ),
     ) {
         Row(
-            modifier = Modifier
-                .padding(
+            modifier =
+                Modifier.padding(
                     start = 12.dp,
                     end = 12.dp,
-                    top = 10.dp
+                    top = 10.dp,
                 ),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             ClickableUserPicture(baseUser, Size55dp, accountViewModel)
 
             Column(
-                modifier = Modifier
-                    .padding(start = 10.dp)
-                    .weight(1f)
+                modifier = Modifier.padding(start = 10.dp).weight(1f),
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    UsernameDisplay(baseUser)
-                }
+                Row(verticalAlignment = Alignment.CenterVertically) { UsernameDisplay(baseUser) }
 
                 DisplayUserAboutInfo(baseUser)
             }
@@ -409,7 +421,7 @@ fun UserComposeForChat(
 
         Divider(
             modifier = Modifier.padding(top = 10.dp),
-            thickness = DividerThickness
+            thickness = DividerThickness,
         )
     }
 }
@@ -417,16 +429,12 @@ fun UserComposeForChat(
 @Composable
 private fun DisplayUserAboutInfo(baseUser: User) {
     val baseUserState by baseUser.live().metadata.observeAsState()
-    val about by remember(baseUserState) {
-        derivedStateOf {
-            baseUserState?.user?.info?.about ?: ""
-        }
-    }
+    val about by remember(baseUserState) { derivedStateOf { baseUserState?.user?.info?.about ?: "" } }
 
     Text(
         text = about,
         color = MaterialTheme.colorScheme.placeholderText,
         maxLines = 1,
-        overflow = TextOverflow.Ellipsis
+        overflow = TextOverflow.Ellipsis,
     )
 }

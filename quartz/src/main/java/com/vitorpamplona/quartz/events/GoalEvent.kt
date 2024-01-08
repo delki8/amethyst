@@ -1,12 +1,29 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.quartz.events
 
 import androidx.compose.runtime.Immutable
-import com.vitorpamplona.quartz.utils.TimeUtils
-import com.vitorpamplona.quartz.encoders.toHexKey
-import com.vitorpamplona.quartz.crypto.CryptoUtils
-import com.vitorpamplona.quartz.encoders.ATag
 import com.vitorpamplona.quartz.encoders.HexKey
 import com.vitorpamplona.quartz.signers.NostrSigner
+import com.vitorpamplona.quartz.utils.TimeUtils
 
 @Immutable
 class GoalEvent(
@@ -15,11 +32,11 @@ class GoalEvent(
     createdAt: Long,
     tags: Array<Array<String>>,
     content: String,
-    sig: HexKey
-) : BaseAddressableEvent(id, pubKey, createdAt, kind, tags, content, sig) {
+    sig: HexKey,
+) : BaseAddressableEvent(id, pubKey, createdAt, KIND, tags, content, sig) {
     companion object {
-        const val kind = 9041
-        const val alt = "Zap Goal"
+        const val KIND = 9041
+        const val ALT = "Zap Goal"
 
         private const val SUMMARY = "summary"
         private const val CLOSED_AT = "closed_at"
@@ -37,13 +54,14 @@ class GoalEvent(
             linkedEvent: Event? = null,
             signer: NostrSigner,
             createdAt: Long = TimeUtils.now(),
-            onReady: (GoalEvent) -> Unit
+            onReady: (GoalEvent) -> Unit,
         ) {
-            val tags = mutableListOf(
-                arrayOf(AMOUNT, amount.toString()),
-                arrayOf("relays") + relays,
-                arrayOf("alt", alt)
-            )
+            val tags =
+                mutableListOf(
+                    arrayOf(AMOUNT, amount.toString()),
+                    arrayOf("relays") + relays,
+                    arrayOf("alt", ALT),
+                )
 
             if (linkedEvent is AddressableEvent) {
                 tags.add(arrayOf("a", linkedEvent.address().toTag()))
@@ -56,7 +74,7 @@ class GoalEvent(
             image?.let { tags.add(arrayOf(IMAGE, it)) }
             websiteUrl?.let { tags.add(arrayOf("r", it)) }
 
-            signer.sign(createdAt, kind, tags.toTypedArray(), description, onReady)
+            signer.sign(createdAt, KIND, tags.toTypedArray(), description, onReady)
         }
     }
 }

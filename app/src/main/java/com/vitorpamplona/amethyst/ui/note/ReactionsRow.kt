@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.note
 
 import android.content.Context
@@ -126,11 +146,9 @@ fun ReactionsRow(
     baseNote: Note,
     showReactionDetail: Boolean,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    val wantsToSeeReactions = remember(baseNote) {
-        mutableStateOf(false)
-    }
+    val wantsToSeeReactions = remember(baseNote) { mutableStateOf(false) }
 
     Spacer(modifier = HalfDoubleVertSpacer)
 
@@ -152,7 +170,7 @@ private fun InnerReactionRow(
     showReactionDetail: Boolean,
     wantsToSeeReactions: MutableState<Boolean>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     GenericInnerReactionRow(
         showReactionDetail = showReactionDetail,
@@ -162,14 +180,19 @@ private fun InnerReactionRow(
             }
         },
         two = {
-            ReplyReactionWithDialog(baseNote, MaterialTheme.colorScheme.placeholderText, accountViewModel, nav)
+            ReplyReactionWithDialog(
+                baseNote,
+                MaterialTheme.colorScheme.placeholderText,
+                accountViewModel,
+                nav,
+            )
         },
         three = {
             BoostWithDialog(
                 baseNote,
                 MaterialTheme.colorScheme.placeholderText,
                 accountViewModel,
-                nav
+                nav,
             )
         },
         four = {
@@ -182,9 +205,9 @@ private fun InnerReactionRow(
             ViewCountReaction(
                 note = baseNote,
                 grayTint = MaterialTheme.colorScheme.placeholderText,
-                viewCountColorFilter = MaterialTheme.colorScheme.placeholderTextColorFilter
+                viewCountColorFilter = MaterialTheme.colorScheme.placeholderTextColorFilter,
             )
-        }
+        },
     )
 }
 
@@ -196,7 +219,7 @@ private fun GenericInnerReactionRow(
     three: @Composable () -> Unit,
     four: @Composable () -> Unit,
     five: @Composable () -> Unit,
-    six: @Composable () -> Unit
+    six: @Composable () -> Unit,
 ) {
     Row(verticalAlignment = CenterVertically, modifier = ReactionRowHeight) {
         val fullWeight = remember { Modifier.weight(1f) }
@@ -204,31 +227,21 @@ private fun GenericInnerReactionRow(
         if (showReactionDetail) {
             Row(
                 verticalAlignment = CenterVertically,
-                modifier = remember { ReactionRowExpandButton.then(fullWeight) }
+                modifier = remember { ReactionRowExpandButton.then(fullWeight) },
             ) {
                 one()
             }
         }
 
-        Row(verticalAlignment = CenterVertically, modifier = fullWeight) {
-            two()
-        }
+        Row(verticalAlignment = CenterVertically, modifier = fullWeight) { two() }
 
-        Row(verticalAlignment = CenterVertically, modifier = fullWeight) {
-            three()
-        }
+        Row(verticalAlignment = CenterVertically, modifier = fullWeight) { three() }
 
-        Row(verticalAlignment = CenterVertically, modifier = fullWeight) {
-            four()
-        }
+        Row(verticalAlignment = CenterVertically, modifier = fullWeight) { four() }
 
-        Row(verticalAlignment = CenterVertically, modifier = fullWeight) {
-            five()
-        }
+        Row(verticalAlignment = CenterVertically, modifier = fullWeight) { five() }
 
-        Row(verticalAlignment = CenterVertically, modifier = fullWeight) {
-            six()
-        }
+        Row(verticalAlignment = CenterVertically, modifier = fullWeight) { six() }
     }
 }
 
@@ -237,32 +250,33 @@ private fun LoadAndDisplayZapraiser(
     baseNote: Note,
     showReactionDetail: Boolean,
     wantsToSeeReactions: MutableState<Boolean>,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
-    val zapraiserAmount by remember(baseNote) {
-        derivedStateOf {
-            baseNote.event?.zapraiserAmount() ?: 0
-        }
-    }
+    val zapraiserAmount by
+        remember(baseNote) { derivedStateOf { baseNote.event?.zapraiserAmount() ?: 0 } }
 
     if (zapraiserAmount > 0) {
         Box(
-            modifier = remember {
-                ReactionRowZapraiserSize
-                    .padding(start = if (showReactionDetail) Size75dp else Size0dp)
-            },
-            contentAlignment = CenterStart
+            modifier =
+                remember {
+                    ReactionRowZapraiserSize.padding(start = if (showReactionDetail) Size75dp else Size0dp)
+                },
+            contentAlignment = CenterStart,
         ) {
             RenderZapRaiser(baseNote, zapraiserAmount, wantsToSeeReactions.value, accountViewModel)
         }
     }
 }
 
-@Immutable
-data class ZapraiserStatus(val progress: Float, val left: String)
+@Immutable data class ZapraiserStatus(val progress: Float, val left: String)
 
 @Composable
-fun RenderZapRaiser(baseNote: Note, zapraiserAmount: Long, details: Boolean, accountViewModel: AccountViewModel) {
+fun RenderZapRaiser(
+    baseNote: Note,
+    zapraiserAmount: Long,
+    details: Boolean,
+    accountViewModel: AccountViewModel,
+) {
     val zapsState by baseNote.live().zaps.observeAsState()
 
     var zapraiserStatus by remember { mutableStateOf(ZapraiserStatus(0F, "$zapraiserAmount")) }
@@ -277,51 +291,55 @@ fun RenderZapRaiser(baseNote: Note, zapraiserAmount: Long, details: Boolean, acc
         }
     }
 
-    val color = if (zapraiserStatus.progress > 0.99) {
-        DarkerGreen
-    } else {
-        MaterialTheme.colorScheme.mediumImportanceLink
-    }
+    val color =
+        if (zapraiserStatus.progress > 0.99) {
+            DarkerGreen
+        } else {
+            MaterialTheme.colorScheme.mediumImportanceLink
+        }
 
     LinearProgressIndicator(
-        modifier = remember(details) {
-            Modifier
-                .fillMaxWidth()
-                .height(if (details) 24.dp else 4.dp)
-        },
+        modifier = remember(details) { Modifier.fillMaxWidth().height(if (details) 24.dp else 4.dp) },
         color = color,
-        progress = zapraiserStatus.progress
+        progress = zapraiserStatus.progress,
     )
 
     if (details) {
         Box(
             contentAlignment = Center,
-            modifier = TinyBorders
+            modifier = TinyBorders,
         ) {
-            val totalPercentage by remember(zapraiserStatus) {
-                derivedStateOf {
-                    "${(zapraiserStatus.progress * 100).roundToInt()}%"
+            val totalPercentage by
+                remember(zapraiserStatus) {
+                    derivedStateOf { "${(zapraiserStatus.progress * 100).roundToInt()}%" }
                 }
-            }
 
             Text(
-                text = stringResource(id = R.string.sats_to_complete, totalPercentage, zapraiserStatus.left),
+                text =
+                    stringResource(id = R.string.sats_to_complete, totalPercentage, zapraiserStatus.left),
                 modifier = NoSoTinyBorders,
                 color = MaterialTheme.colorScheme.placeholderText,
                 fontSize = Font14SP,
-                maxLines = 1
+                maxLines = 1,
             )
         }
     }
 }
 
 @Composable
-private fun WatchReactionsZapsBoostsAndDisplayIfExists(baseNote: Note, content: @Composable () -> Unit) {
-    val hasReactions by baseNote.live().hasReactions.observeAsState(
-        baseNote.zaps.isNotEmpty() ||
-            baseNote.boosts.isNotEmpty() ||
-            baseNote.reactions.isNotEmpty()
-    )
+private fun WatchReactionsZapsBoostsAndDisplayIfExists(
+    baseNote: Note,
+    content: @Composable () -> Unit,
+) {
+    val hasReactions by
+        baseNote
+            .live()
+            .hasReactions
+            .observeAsState(
+                baseNote.zaps.isNotEmpty() ||
+                    baseNote.boosts.isNotEmpty() ||
+                    baseNote.reactions.isNotEmpty(),
+            )
 
     if (hasReactions) {
         content()
@@ -330,45 +348,36 @@ private fun WatchReactionsZapsBoostsAndDisplayIfExists(baseNote: Note, content: 
 
 fun <T, K, R> LiveData<T>.combineWith(
     liveData1: LiveData<K>,
-    block: (T?, K?) -> R
+    block: (T?, K?) -> R,
 ): LiveData<R> {
     val result = MediatorLiveData<R>()
-    result.addSource(this) {
-        result.value = block(this.value, liveData1.value)
-    }
-    result.addSource(liveData1) {
-        result.value = block(this.value, liveData1.value)
-    }
+    result.addSource(this) { result.value = block(this.value, liveData1.value) }
+    result.addSource(liveData1) { result.value = block(this.value, liveData1.value) }
     return result
 }
 
 fun <T, K, P, R> LiveData<T>.combineWith(
     liveData1: LiveData<K>,
     liveData2: LiveData<P>,
-    block: (T?, K?, P?) -> R
+    block: (T?, K?, P?) -> R,
 ): LiveData<R> {
     val result = MediatorLiveData<R>()
-    result.addSource(this) {
-        result.value = block(this.value, liveData1.value, liveData2.value)
-    }
-    result.addSource(liveData1) {
-        result.value = block(this.value, liveData1.value, liveData2.value)
-    }
-    result.addSource(liveData2) {
-        result.value = block(this.value, liveData1.value, liveData2.value)
-    }
+    result.addSource(this) { result.value = block(this.value, liveData1.value, liveData2.value) }
+    result.addSource(liveData1) { result.value = block(this.value, liveData1.value, liveData2.value) }
+    result.addSource(liveData2) { result.value = block(this.value, liveData1.value, liveData2.value) }
     return result
 }
 
 @Composable
 private fun RenderShowIndividualReactionsButton(wantsToSeeReactions: MutableState<Boolean>) {
     IconButton(
-        onClick = {
-            wantsToSeeReactions.value = !wantsToSeeReactions.value
-        },
-        modifier = Size20Modifier
+        onClick = { wantsToSeeReactions.value = !wantsToSeeReactions.value },
+        modifier = Size20Modifier,
     ) {
-        Crossfade(targetState = wantsToSeeReactions.value, label = "RenderShowIndividualReactionsButton") {
+        Crossfade(
+            targetState = wantsToSeeReactions.value,
+            label = "RenderShowIndividualReactionsButton",
+        ) {
             if (it) {
                 ExpandLessIcon(modifier = Size22Modifier)
             } else {
@@ -382,18 +391,27 @@ private fun RenderShowIndividualReactionsButton(wantsToSeeReactions: MutableStat
 private fun ReactionDetailGallery(
     baseNote: Note,
     nav: (String) -> Unit,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
     val defaultBackgroundColor = MaterialTheme.colorScheme.background
     val backgroundColor = remember { mutableStateOf<Color>(defaultBackgroundColor) }
 
-    val hasReactions by baseNote.live().hasReactions.observeAsState(
-        baseNote.zaps.isNotEmpty() || baseNote.boosts.isNotEmpty() || baseNote.reactions.isNotEmpty()
-    )
+    val hasReactions by
+        baseNote
+            .live()
+            .hasReactions
+            .observeAsState(
+                baseNote.zaps.isNotEmpty() ||
+                    baseNote.boosts.isNotEmpty() ||
+                    baseNote.reactions.isNotEmpty(),
+            )
 
     if (hasReactions) {
-        Row(verticalAlignment = CenterVertically, modifier = Modifier.padding(start = 10.dp, top = 5.dp)) {
-            Column() {
+        Row(
+            verticalAlignment = CenterVertically,
+            modifier = Modifier.padding(start = 10.dp, top = 5.dp),
+        ) {
+            Column {
                 WatchZapAndRenderGallery(baseNote, backgroundColor, nav, accountViewModel)
                 WatchBoostsAndRenderGallery(baseNote, nav, accountViewModel)
                 WatchReactionsAndRenderGallery(baseNote, nav, accountViewModel)
@@ -406,7 +424,7 @@ private fun ReactionDetailGallery(
 private fun WatchBoostsAndRenderGallery(
     baseNote: Note,
     nav: (String) -> Unit,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
     val boostsEvents by baseNote.live().boosts.observeAsState()
 
@@ -415,7 +433,7 @@ private fun WatchBoostsAndRenderGallery(
             RenderBoostGallery(
                 it,
                 nav,
-                accountViewModel
+                accountViewModel,
             )
         }
     }
@@ -425,12 +443,11 @@ private fun WatchBoostsAndRenderGallery(
 private fun WatchReactionsAndRenderGallery(
     baseNote: Note,
     nav: (String) -> Unit,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
     val reactionsState by baseNote.live().reactions.observeAsState()
-    val reactionEvents by remember(reactionsState) {
-        derivedStateOf { baseNote.reactions.toImmutableMap() }
-    }
+    val reactionEvents by
+        remember(reactionsState) { derivedStateOf { baseNote.reactions.toImmutableMap() } }
 
     if (reactionEvents.isNotEmpty()) {
         reactionEvents.forEach {
@@ -439,7 +456,7 @@ private fun WatchReactionsAndRenderGallery(
                 it.key,
                 reactions,
                 nav,
-                accountViewModel
+                accountViewModel,
             )
         }
     }
@@ -450,20 +467,19 @@ private fun WatchZapAndRenderGallery(
     baseNote: Note,
     backgroundColor: MutableState<Color>,
     nav: (String) -> Unit,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
     val zapsState by baseNote.live().zaps.observeAsState()
 
-    var zapEvents by remember(zapsState) {
-        mutableStateOf(
-            accountViewModel.cachedDecryptAmountMessageInGroup(baseNote)
-        )
-    }
+    var zapEvents by
+        remember(zapsState) {
+            mutableStateOf(
+                accountViewModel.cachedDecryptAmountMessageInGroup(baseNote),
+            )
+        }
 
     LaunchedEffect(key1 = zapsState) {
-        accountViewModel.decryptAmountMessageInGroup(baseNote) {
-            zapEvents = it
-        }
+        accountViewModel.decryptAmountMessageInGroup(baseNote) { zapEvents = it }
     }
 
     if (zapEvents.isNotEmpty()) {
@@ -471,7 +487,7 @@ private fun WatchZapAndRenderGallery(
             zapEvents,
             backgroundColor,
             nav,
-            accountViewModel
+            accountViewModel,
         )
     }
 }
@@ -481,11 +497,9 @@ private fun BoostWithDialog(
     baseNote: Note,
     grayTint: Color,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    var wantsToQuote by remember {
-        mutableStateOf<Note?>(null)
-    }
+    var wantsToQuote by remember { mutableStateOf<Note?>(null) }
 
     if (wantsToQuote != null) {
         NewPostView(
@@ -493,13 +507,11 @@ private fun BoostWithDialog(
             baseReplyTo = null,
             quote = wantsToQuote,
             accountViewModel = accountViewModel,
-            nav = nav
+            nav = nav,
         )
     }
 
-    BoostReaction(baseNote, grayTint, accountViewModel) {
-        wantsToQuote = baseNote
-    }
+    BoostReaction(baseNote, grayTint, accountViewModel) { wantsToQuote = baseNote }
 }
 
 @Composable
@@ -507,11 +519,9 @@ private fun ReplyReactionWithDialog(
     baseNote: Note,
     grayTint: Color,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    var wantsToReplyTo by remember {
-        mutableStateOf<Note?>(null)
-    }
+    var wantsToReplyTo by remember { mutableStateOf<Note?>(null) }
 
     if (wantsToReplyTo != null) {
         NewPostView(
@@ -519,13 +529,11 @@ private fun ReplyReactionWithDialog(
             baseReplyTo = wantsToReplyTo,
             quote = null,
             accountViewModel = accountViewModel,
-            nav = nav
+            nav = nav,
         )
     }
 
-    ReplyReaction(baseNote, grayTint, accountViewModel) {
-        wantsToReplyTo = baseNote
-    }
+    ReplyReaction(baseNote, grayTint, accountViewModel) { wantsToReplyTo = baseNote }
 }
 
 @Composable
@@ -535,7 +543,7 @@ fun ReplyReaction(
     accountViewModel: AccountViewModel,
     showCounter: Boolean = true,
     iconSizeModifier: Modifier = Size17Modifier,
-    onPress: () -> Unit
+    onPress: () -> Unit,
 ) {
     IconButton(
         modifier = iconSizeModifier,
@@ -545,10 +553,10 @@ fun ReplyReaction(
             } else {
                 accountViewModel.toast(
                     R.string.read_only_user,
-                    R.string.login_with_a_private_key_to_be_able_to_reply
+                    R.string.login_with_a_private_key_to_be_able_to_reply,
                 )
             }
-        }
+        },
     ) {
         CommentIcon(iconSizeModifier, grayTint)
     }
@@ -559,18 +567,24 @@ fun ReplyReaction(
 }
 
 @Composable
-fun ReplyCounter(baseNote: Note, textColor: Color) {
+fun ReplyCounter(
+    baseNote: Note,
+    textColor: Color,
+) {
     val repliesState by baseNote.live().replyCount.observeAsState(baseNote.replies.size)
 
     SlidingAnimationCount(repliesState, textColor)
 }
 
 @Composable
-private fun SlidingAnimationCount(baseCount: Int, textColor: Color) {
+private fun SlidingAnimationCount(
+    baseCount: Int,
+    textColor: Color,
+) {
     AnimatedContent<Int>(
         targetState = baseCount,
         transitionSpec = AnimatedContentTransitionScope<Int>::transitionSpec,
-        label = "SlidingAnimationCount"
+        label = "SlidingAnimationCount",
     ) { count ->
         TextCount(count, textColor)
     }
@@ -584,38 +598,47 @@ private fun <S> AnimatedContentTransitionScope<S>.transitionSpec(): ContentTrans
 @ExperimentalAnimationApi
 val slideAnimation: ContentTransform =
     (
-        slideInVertically(animationSpec = tween(durationMillis = 100)) { height -> height } + fadeIn(
-            animationSpec = tween(durationMillis = 100)
-        )
-        ).togetherWith(
-        slideOutVertically(animationSpec = tween(durationMillis = 100)) { height -> -height } + fadeOut(
-            animationSpec = tween(durationMillis = 100)
-        )
+        slideInVertically(animationSpec = tween(durationMillis = 100)) { height -> height } +
+            fadeIn(
+                animationSpec = tween(durationMillis = 100),
+            )
     )
+        .togetherWith(
+            slideOutVertically(animationSpec = tween(durationMillis = 100)) { height -> -height } +
+                fadeOut(
+                    animationSpec = tween(durationMillis = 100),
+                ),
+        )
 
 @Composable
-fun TextCount(count: Int, textColor: Color) {
+fun TextCount(
+    count: Int,
+    textColor: Color,
+) {
     Text(
         text = showCount(count),
         fontSize = Font14SP,
         color = textColor,
         modifier = HalfStartPadding,
-        maxLines = 1
+        maxLines = 1,
     )
 }
 
 @Composable
-private fun SlidingAnimationAmount(amount: MutableState<String>, textColor: Color) {
+private fun SlidingAnimationAmount(
+    amount: MutableState<String>,
+    textColor: Color,
+) {
     AnimatedContent(
         targetState = amount.value,
         transitionSpec = AnimatedContentTransitionScope<String>::transitionSpec,
-        label = "SlidingAnimationAmount"
+        label = "SlidingAnimationAmount",
     ) { count ->
         Text(
             text = count,
             fontSize = Font14SP,
             color = textColor,
-            maxLines = 1
+            maxLines = 1,
         )
     }
 }
@@ -627,17 +650,13 @@ fun BoostReaction(
     accountViewModel: AccountViewModel,
     iconSizeModifier: Modifier = Size20Modifier,
     iconSize: Dp = Size20dp,
-    onQuotePress: () -> Unit
+    onQuotePress: () -> Unit,
 ) {
     var wantsToBoost by remember { mutableStateOf(false) }
 
     IconButton(
         modifier = iconSizeModifier,
-        onClick = {
-            accountViewModel.tryBoost(baseNote) {
-                wantsToBoost = true
-            }
-        }
+        onClick = { accountViewModel.tryBoost(baseNote) { wantsToBoost = true } },
     ) {
         ObserveBoostIcon(baseNote, accountViewModel) { hasBoosted ->
             RepostedIcon(iconSizeModifier, if (hasBoosted) Color.Unspecified else grayTint)
@@ -648,16 +667,12 @@ fun BoostReaction(
                 baseNote,
                 iconSize,
                 accountViewModel,
-                onDismiss = {
-                    wantsToBoost = false
-                },
+                onDismiss = { wantsToBoost = false },
                 onQuote = {
                     wantsToBoost = false
                     onQuotePress()
                 },
-                onRepost = {
-                    accountViewModel.boost(baseNote)
-                }
+                onRepost = { accountViewModel.boost(baseNote) },
             )
         }
     }
@@ -666,20 +681,31 @@ fun BoostReaction(
 }
 
 @Composable
-fun ObserveBoostIcon(baseNote: Note, accountViewModel: AccountViewModel, inner: @Composable (Boolean) -> Unit) {
-    val hasBoosted by remember(baseNote) {
-        baseNote.live().boosts.map {
-            it.note.isBoostedBy(accountViewModel.userProfile())
-        }.distinctUntilChanged()
-    }.observeAsState(
-        baseNote.isBoostedBy(accountViewModel.userProfile())
-    )
+fun ObserveBoostIcon(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    inner: @Composable (Boolean) -> Unit,
+) {
+    val hasBoosted by
+        remember(baseNote) {
+            baseNote
+                .live()
+                .boosts
+                .map { it.note.isBoostedBy(accountViewModel.userProfile()) }
+                .distinctUntilChanged()
+        }
+            .observeAsState(
+                baseNote.isBoostedBy(accountViewModel.userProfile()),
+            )
 
     inner(hasBoosted)
 }
 
 @Composable
-fun BoostText(baseNote: Note, grayTint: Color) {
+fun BoostText(
+    baseNote: Note,
+    grayTint: Color,
+) {
     val boostState by baseNote.live().boostCount.observeAsState(baseNote.boosts.size)
 
     SlidingAnimationCount(boostState, grayTint)
@@ -694,32 +720,28 @@ fun LikeReaction(
     nav: (String) -> Unit,
     iconSize: Dp = Size20dp,
     heartSizeModifier: Modifier = Size16Modifier,
-    iconFontSize: TextUnit = Font14SP
+    iconFontSize: TextUnit = Font14SP,
 ) {
     var wantsToChangeReactionSymbol by remember { mutableStateOf(false) }
     var wantsToReact by remember { mutableStateOf(false) }
 
     Box(
         contentAlignment = Center,
-        modifier = Modifier.size(iconSize).combinedClickable(
-            role = Role.Button,
-            interactionSource = remember { MutableInteractionSource() },
-            indication = rememberRipple(bounded = false, radius = Size24dp),
-            onClick = {
-                likeClick(
-                    accountViewModel,
-                    onMultipleChoices = {
-                        wantsToReact = true
+        modifier =
+            Modifier.size(iconSize)
+                .combinedClickable(
+                    role = Role.Button,
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = rememberRipple(bounded = false, radius = Size24dp),
+                    onClick = {
+                        likeClick(
+                            accountViewModel,
+                            onMultipleChoices = { wantsToReact = true },
+                            onWantsToSignReaction = { accountViewModel.reactToOrDelete(baseNote) },
+                        )
                     },
-                    onWantsToSignReaction = {
-                        accountViewModel.reactToOrDelete(baseNote)
-                    }
-                )
-            },
-            onLongClick = {
-                wantsToChangeReactionSymbol = true
-            }
-        )
+                    onLongClick = { wantsToChangeReactionSymbol = true },
+                ),
     ) {
         ObserveLikeIcon(baseNote, accountViewModel) { reactionType ->
             Crossfade(targetState = reactionType.value, label = "LikeIcon") {
@@ -735,7 +757,7 @@ fun LikeReaction(
             UpdateReactionTypeDialog(
                 { wantsToChangeReactionSymbol = false },
                 accountViewModel = accountViewModel,
-                nav
+                nav,
             )
         }
 
@@ -744,31 +766,25 @@ fun LikeReaction(
                 baseNote,
                 iconSize,
                 accountViewModel,
-                onDismiss = {
-                    wantsToReact = false
-                },
+                onDismiss = { wantsToReact = false },
                 onChangeAmount = {
                     wantsToReact = false
                     wantsToChangeReactionSymbol = true
-                }
+                },
             )
         }
     }
 
-    ObserveLikeText(baseNote) { reactionCount ->
-        SlidingAnimationCount(reactionCount, grayTint)
-    }
+    ObserveLikeText(baseNote) { reactionCount -> SlidingAnimationCount(reactionCount, grayTint) }
 }
 
 @Composable
 fun ObserveLikeIcon(
     baseNote: Note,
     accountViewModel: AccountViewModel,
-    inner: @Composable (MutableState<String?>) -> Unit
+    inner: @Composable (MutableState<String?>) -> Unit,
 ) {
-    val reactionType = remember(baseNote) {
-        mutableStateOf<String?>(null)
-    }
+    val reactionType = remember(baseNote) { mutableStateOf<String?>(null) }
 
     val reactionsState by baseNote.live().reactions.observeAsState()
 
@@ -787,20 +803,22 @@ fun ObserveLikeIcon(
 private fun RenderReactionType(
     reactionType: String,
     iconSizeModifier: Modifier = Size20Modifier,
-    iconFontSize: TextUnit
+    iconFontSize: TextUnit,
 ) {
     if (reactionType.isNotEmpty() && reactionType[0] == ':') {
-        val renderable = remember(reactionType) {
-            listOf(
-                ImageUrlType(reactionType.removePrefix(":").substringAfter(":"))
-            ).toImmutableList()
-        }
+        val renderable =
+            remember(reactionType) {
+                listOf(
+                    ImageUrlType(reactionType.removePrefix(":").substringAfter(":")),
+                )
+                    .toImmutableList()
+            }
 
         InLineIconRenderer(
             renderable,
             style = SpanStyle(color = Color.White),
             fontSize = iconFontSize,
-            maxLines = 1
+            maxLines = 1,
         )
     } else {
         when (reactionType) {
@@ -812,7 +830,10 @@ private fun RenderReactionType(
 }
 
 @Composable
-fun ObserveLikeText(baseNote: Note, inner: @Composable (Int) -> Unit) {
+fun ObserveLikeText(
+    baseNote: Note,
+    inner: @Composable (Int) -> Unit,
+) {
     val reactionCount by baseNote.live().reactionCount.observeAsState(0)
 
     inner(reactionCount)
@@ -821,17 +842,17 @@ fun ObserveLikeText(baseNote: Note, inner: @Composable (Int) -> Unit) {
 private fun likeClick(
     accountViewModel: AccountViewModel,
     onMultipleChoices: () -> Unit,
-    onWantsToSignReaction: () -> Unit
+    onWantsToSignReaction: () -> Unit,
 ) {
     if (accountViewModel.account.reactionChoices.isEmpty()) {
         accountViewModel.toast(
             R.string.no_reactions_setup,
-            R.string.no_reaction_type_setup_long_press_to_change
+            R.string.no_reaction_type_setup_long_press_to_change,
         )
     } else if (!accountViewModel.isWriteable()) {
         accountViewModel.toast(
             R.string.read_only_user,
-            R.string.login_with_a_private_key_to_like_posts
+            R.string.login_with_a_private_key_to_like_posts,
         )
     } else if (accountViewModel.account.reactionChoices.size == 1) {
         onWantsToSignReaction()
@@ -849,17 +870,18 @@ fun ZapReaction(
     iconSize: Dp = Size20dp,
     iconSizeModifier: Modifier = Size20Modifier,
     animationSize: Dp = 14.dp,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     var wantsToZap by remember { mutableStateOf(false) }
     var wantsToChangeZapAmount by remember { mutableStateOf(false) }
     var wantsToSetCustomZap by remember { mutableStateOf(false) }
     var showErrorMessageDialog by remember { mutableStateOf<String?>(null) }
-    var wantsToPay by remember(baseNote) {
-        mutableStateOf<ImmutableList<ZapPaymentHandler.Payable>>(
-            persistentListOf()
-        )
-    }
+    var wantsToPay by
+        remember(baseNote) {
+            mutableStateOf<ImmutableList<ZapPaymentHandler.Payable>>(
+                persistentListOf(),
+            )
+        }
 
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -868,41 +890,30 @@ fun ZapReaction(
 
     Row(
         verticalAlignment = CenterVertically,
-        modifier = iconSizeModifier.combinedClickable(
-            role = Role.Button,
-            interactionSource = remember { MutableInteractionSource() },
-            indication = rememberRipple(bounded = false, radius = Size24dp),
-            onClick = {
-                zapClick(
-                    baseNote,
-                    accountViewModel,
-                    context,
-                    onZappingProgress = { progress: Float ->
-                        scope.launch {
-                            zappingProgress = progress
-                        }
-                    },
-                    onMultipleChoices = {
-                        wantsToZap = true
-                    },
-                    onError = { _, message ->
-                        scope.launch {
-                            zappingProgress = 0f
-                            showErrorMessageDialog = message
-                        }
-                    },
-                    onPayViaIntent = {
-                        wantsToPay = it
-                    }
-                )
-            },
-            onLongClick = {
-                wantsToChangeZapAmount = true
-            },
-            onDoubleClick = {
-                wantsToSetCustomZap = true
-            }
-        )
+        modifier =
+            iconSizeModifier.combinedClickable(
+                role = Role.Button,
+                interactionSource = remember { MutableInteractionSource() },
+                indication = rememberRipple(bounded = false, radius = Size24dp),
+                onClick = {
+                    zapClick(
+                        baseNote,
+                        accountViewModel,
+                        context,
+                        onZappingProgress = { progress: Float -> scope.launch { zappingProgress = progress } },
+                        onMultipleChoices = { wantsToZap = true },
+                        onError = { _, message ->
+                            scope.launch {
+                                zappingProgress = 0f
+                                showErrorMessageDialog = message
+                            }
+                        },
+                        onPayViaIntent = { wantsToPay = it },
+                    )
+                },
+                onLongClick = { wantsToChangeZapAmount = true },
+                onDoubleClick = { wantsToSetCustomZap = true },
+            ),
     ) {
         if (wantsToZap) {
             ZapAmountChoicePopup(
@@ -923,14 +934,8 @@ fun ZapReaction(
                         showErrorMessageDialog = message
                     }
                 },
-                onProgress = {
-                    scope.launch(Dispatchers.Main) {
-                        zappingProgress = it
-                    }
-                },
-                onPayViaIntent = {
-                    wantsToPay = it
-                }
+                onProgress = { scope.launch(Dispatchers.Main) { zappingProgress = it } },
+                onPayViaIntent = { wantsToPay = it },
             )
         }
 
@@ -946,14 +951,14 @@ fun ZapReaction(
                         }
                     }
                 },
-                onDismiss = { showErrorMessageDialog = null }
+                onDismiss = { showErrorMessageDialog = null },
             )
         }
 
         if (wantsToChangeZapAmount) {
             UpdateZapAmountDialog(
                 onClose = { wantsToChangeZapAmount = false },
-                accountViewModel = accountViewModel
+                accountViewModel = accountViewModel,
             )
         }
 
@@ -961,16 +966,14 @@ fun ZapReaction(
             PayViaIntentDialog(
                 payingInvoices = wantsToPay,
                 accountViewModel = accountViewModel,
-                onClose = {
-                    wantsToPay = persistentListOf()
-                },
+                onClose = { wantsToPay = persistentListOf() },
                 onError = {
                     wantsToPay = persistentListOf()
                     scope.launch {
                         zappingProgress = 0f
                         showErrorMessageDialog = it
                     }
-                }
+                },
             )
         }
 
@@ -983,16 +986,10 @@ fun ZapReaction(
                         showErrorMessageDialog = message
                     }
                 },
-                onProgress = {
-                    scope.launch(Dispatchers.Main) {
-                        zappingProgress = it
-                    }
-                },
-                onPayViaIntent = {
-                    wantsToPay = it
-                },
+                onProgress = { scope.launch(Dispatchers.Main) { zappingProgress = it } },
+                onPayViaIntent = { wantsToPay = it },
                 accountViewModel = accountViewModel,
-                baseNote = baseNote
+                baseNote = baseNote,
             )
         }
 
@@ -1000,18 +997,20 @@ fun ZapReaction(
             Spacer(ModifierWidth3dp)
 
             CircularProgressIndicator(
-                progress = animateFloatAsState(
-                    targetValue = zappingProgress,
-                    animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
-                    label = "ZapIconIndicator"
-                ).value,
+                progress =
+                    animateFloatAsState(
+                        targetValue = zappingProgress,
+                        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
+                        label = "ZapIconIndicator",
+                    )
+                        .value,
                 modifier = remember { Modifier.size(animationSize) },
-                strokeWidth = 2.dp
+                strokeWidth = 2.dp,
             )
         } else {
             ObserveZapIcon(
                 baseNote,
-                accountViewModel
+                accountViewModel,
             ) { wasZappedByLoggedInUser ->
                 Crossfade(targetState = wasZappedByLoggedInUser.value, label = "ZapIcon") {
                     if (it) {
@@ -1036,17 +1035,17 @@ private fun zapClick(
     onZappingProgress: (Float) -> Unit,
     onMultipleChoices: () -> Unit,
     onError: (String, String) -> Unit,
-    onPayViaIntent: (ImmutableList<ZapPaymentHandler.Payable>) -> Unit
+    onPayViaIntent: (ImmutableList<ZapPaymentHandler.Payable>) -> Unit,
 ) {
     if (accountViewModel.account.zapAmountChoices.isEmpty()) {
         accountViewModel.toast(
             context.getString(R.string.error_dialog_zap_error),
-            context.getString(R.string.no_zap_amount_setup_long_press_to_change)
+            context.getString(R.string.no_zap_amount_setup_long_press_to_change),
         )
     } else if (!accountViewModel.isWriteable()) {
         accountViewModel.toast(
             context.getString(R.string.error_dialog_zap_error),
-            context.getString(R.string.login_with_a_private_key_to_be_able_to_send_zaps)
+            context.getString(R.string.login_with_a_private_key_to_be_able_to_send_zaps),
         )
     } else if (accountViewModel.account.zapAmountChoices.size == 1) {
         accountViewModel.zap(
@@ -1056,11 +1055,9 @@ private fun zapClick(
             "",
             context,
             onError = onError,
-            onProgress = {
-                onZappingProgress(it)
-            },
+            onProgress = { onZappingProgress(it) },
             zapType = accountViewModel.account.defaultZapType,
-            onPayViaIntent = onPayViaIntent
+            onPayViaIntent = onPayViaIntent,
         )
     } else if (accountViewModel.account.zapAmountChoices.size > 1) {
         onMultipleChoices()
@@ -1071,7 +1068,7 @@ private fun zapClick(
 private fun ObserveZapIcon(
     baseNote: Note,
     accountViewModel: AccountViewModel,
-    inner: @Composable (MutableState<Boolean>) -> Unit
+    inner: @Composable (MutableState<Boolean>) -> Unit,
 ) {
     val wasZappedByLoggedInUser = remember { mutableStateOf(false) }
 
@@ -1094,11 +1091,9 @@ private fun ObserveZapIcon(
 private fun ObserveZapAmountText(
     baseNote: Note,
     accountViewModel: AccountViewModel,
-    inner: @Composable (MutableState<String>) -> Unit
+    inner: @Composable (MutableState<String>) -> Unit,
 ) {
-    val zapAmountTxt = remember(baseNote) {
-        mutableStateOf(showAmount(baseNote.zapsAmount))
-    }
+    val zapAmountTxt = remember(baseNote) { mutableStateOf(showAmount(baseNote.zapsAmount)) }
     val zapsState by baseNote.live().zaps.observeAsState()
 
     LaunchedEffect(key1 = zapsState) {
@@ -1118,7 +1113,7 @@ fun ViewCountReaction(
     grayTint: Color,
     barChartModifier: Modifier = Size19Modifier,
     numberSizeModifier: Modifier = Height24dpModifier,
-    viewCountColorFilter: ColorFilter
+    viewCountColorFilter: ColorFilter,
 ) {
     ViewCountIcon(barChartModifier, grayTint)
     DrawViewCount(note, numberSizeModifier, viewCountColorFilter)
@@ -1128,35 +1123,41 @@ fun ViewCountReaction(
 private fun DrawViewCount(
     note: Note,
     iconModifier: Modifier = Modifier,
-    viewCountColorFilter: ColorFilter
+    viewCountColorFilter: ColorFilter,
 ) {
     val context = LocalContext.current
 
     AsyncImage(
-        model = remember(note) {
-            ImageRequest.Builder(context)
-                .data("https://counter.amethyst.social/${note.idHex}.svg?label=+&color=00000000")
-                .diskCachePolicy(CachePolicy.DISABLED)
-                .memoryCachePolicy(CachePolicy.ENABLED)
-                .build()
-        },
+        model =
+            remember(note) {
+                ImageRequest.Builder(context)
+                    .data("https://counter.amethyst.social/${note.idHex}.svg?label=+&color=00000000")
+                    .diskCachePolicy(CachePolicy.DISABLED)
+                    .memoryCachePolicy(CachePolicy.ENABLED)
+                    .build()
+            },
         contentDescription = context.getString(R.string.view_count),
         modifier = iconModifier,
-        colorFilter = viewCountColorFilter
+        colorFilter = viewCountColorFilter,
     )
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun BoostTypeChoicePopup(baseNote: Note, iconSize: Dp, accountViewModel: AccountViewModel, onDismiss: () -> Unit, onQuote: () -> Unit, onRepost: () -> Unit) {
-    val iconSizePx = with(LocalDensity.current) {
-        -iconSize.toPx().toInt()
-    }
+private fun BoostTypeChoicePopup(
+    baseNote: Note,
+    iconSize: Dp,
+    accountViewModel: AccountViewModel,
+    onDismiss: () -> Unit,
+    onQuote: () -> Unit,
+    onRepost: () -> Unit,
+) {
+    val iconSizePx = with(LocalDensity.current) { -iconSize.toPx().toInt() }
 
     Popup(
         alignment = Alignment.BottomCenter,
         offset = IntOffset(0, iconSizePx),
-        onDismissRequest = { onDismiss() }
+        onDismissRequest = { onDismiss() },
     ) {
         FlowRow {
             Button(
@@ -1171,10 +1172,10 @@ private fun BoostTypeChoicePopup(baseNote: Note, iconSize: Dp, accountViewModel:
                     }
                 },
                 shape = ButtonBorder,
-                colors = ButtonDefaults
-                    .buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                    ),
             ) {
                 Text(stringResource(R.string.boost), color = Color.White, textAlign = TextAlign.Center)
             }
@@ -1183,10 +1184,10 @@ private fun BoostTypeChoicePopup(baseNote: Note, iconSize: Dp, accountViewModel:
                 modifier = Modifier.padding(horizontal = 3.dp),
                 onClick = onQuote,
                 shape = ButtonBorder,
-                colors = ButtonDefaults
-                    .buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
+                colors =
+                    ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                    ),
             ) {
                 Text(stringResource(R.string.quote), color = Color.White, textAlign = TextAlign.Center)
             }
@@ -1201,23 +1202,19 @@ fun ReactionChoicePopup(
     iconSize: Dp,
     accountViewModel: AccountViewModel,
     onDismiss: () -> Unit,
-    onChangeAmount: () -> Unit
+    onChangeAmount: () -> Unit,
 ) {
     val accountState by accountViewModel.accountLiveData.observeAsState()
     val account = accountState?.account ?: return
 
-    val toRemove = remember {
-        baseNote.reactedBy(account.userProfile()).toImmutableSet()
-    }
+    val toRemove = remember { baseNote.reactedBy(account.userProfile()).toImmutableSet() }
 
-    val iconSizePx = with(LocalDensity.current) {
-        -iconSize.toPx().toInt()
-    }
+    val iconSizePx = with(LocalDensity.current) { -iconSize.toPx().toInt() }
 
     Popup(
         alignment = Alignment.BottomCenter,
         offset = IntOffset(0, iconSizePx),
-        onDismissRequest = { onDismiss() }
+        onDismissRequest = { onDismiss() },
     ) {
         FlowRow(horizontalArrangement = Arrangement.Center) {
             account.reactionChoices.forEach { reactionType ->
@@ -1227,7 +1224,7 @@ fun ReactionChoicePopup(
                     accountViewModel,
                     onDismiss,
                     onChangeAmount,
-                    toRemove
+                    toRemove,
                 )
             }
         }
@@ -1242,58 +1239,61 @@ private fun ActionableReactionButton(
     accountViewModel: AccountViewModel,
     onDismiss: () -> Unit,
     onChangeAmount: () -> Unit,
-    toRemove: ImmutableSet<String>
+    toRemove: ImmutableSet<String>,
 ) {
     Button(
         modifier = Modifier.padding(horizontal = 3.dp),
         onClick = {
             accountViewModel.reactToOrDelete(
                 baseNote,
-                reactionType
+                reactionType,
             )
             onDismiss()
         },
         shape = ButtonBorder,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary
-        )
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+            ),
     ) {
-        val thisModifier = remember(reactionType) {
-            Modifier.combinedClickable(
-                onClick = {
-                    accountViewModel.reactToOrDelete(
-                        baseNote,
-                        reactionType
-                    )
-                    onDismiss()
-                },
-                onLongClick = {
-                    onChangeAmount()
-                }
-            )
-        }
-
-        val removeSymbol = remember(reactionType) {
-            if (reactionType in toRemove) {
-                " ✖"
-            } else {
-                ""
+        val thisModifier =
+            remember(reactionType) {
+                Modifier.combinedClickable(
+                    onClick = {
+                        accountViewModel.reactToOrDelete(
+                            baseNote,
+                            reactionType,
+                        )
+                        onDismiss()
+                    },
+                    onLongClick = { onChangeAmount() },
+                )
             }
-        }
+
+        val removeSymbol =
+            remember(reactionType) {
+                if (reactionType in toRemove) {
+                    " ✖"
+                } else {
+                    ""
+                }
+            }
 
         if (reactionType.startsWith(":")) {
             val noStartColon = reactionType.removePrefix(":")
             val url = noStartColon.substringAfter(":")
 
-            val renderable = listOf(
-                ImageUrlType(url),
-                TextType(removeSymbol)
-            ).toImmutableList()
+            val renderable =
+                listOf(
+                    ImageUrlType(url),
+                    TextType(removeSymbol),
+                )
+                    .toImmutableList()
 
             InLineIconRenderer(
                 renderable,
                 style = SpanStyle(color = Color.White),
-                maxLines = 1
+                maxLines = 1,
             )
         } else {
             when (reactionType) {
@@ -1302,29 +1302,29 @@ private fun ActionableReactionButton(
                         painter = painterResource(R.drawable.ic_liked),
                         null,
                         modifier = remember { thisModifier.size(16.dp) },
-                        tint = Color.White
+                        tint = Color.White,
                     )
                     Text(
                         text = removeSymbol,
                         color = Color.White,
                         textAlign = TextAlign.Center,
-                        modifier = thisModifier
+                        modifier = thisModifier,
                     )
                 }
-
-                "-" -> Text(
-                    text = "\uD83D\uDC4E$removeSymbol",
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    modifier = thisModifier
-                )
-
-                else -> Text(
-                    "$reactionType$removeSymbol",
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                    modifier = thisModifier
-                )
+                "-" ->
+                    Text(
+                        text = "\uD83D\uDC4E$removeSymbol",
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = thisModifier,
+                    )
+                else ->
+                    Text(
+                        "$reactionType$removeSymbol",
+                        color = Color.White,
+                        textAlign = TextAlign.Center,
+                        modifier = thisModifier,
+                    )
             }
         }
     }
@@ -1340,19 +1340,17 @@ fun ZapAmountChoicePopup(
     onChangeAmount: () -> Unit,
     onError: (title: String, text: String) -> Unit,
     onProgress: (percent: Float) -> Unit,
-    onPayViaIntent: (ImmutableList<ZapPaymentHandler.Payable>) -> Unit
+    onPayViaIntent: (ImmutableList<ZapPaymentHandler.Payable>) -> Unit,
 ) {
     val context = LocalContext.current
     val zapMessage = ""
 
-    val iconSizePx = with(LocalDensity.current) {
-        -iconSize.toPx().toInt()
-    }
+    val iconSizePx = with(LocalDensity.current) { -iconSize.toPx().toInt() }
 
     Popup(
         alignment = Alignment.BottomCenter,
         offset = IntOffset(0, iconSizePx),
-        onDismissRequest = { onDismiss() }
+        onDismissRequest = { onDismiss() },
     ) {
         FlowRow(horizontalArrangement = Arrangement.Center) {
             accountViewModel.account.zapAmountChoices.forEach { amountInSats ->
@@ -1368,39 +1366,38 @@ fun ZapAmountChoicePopup(
                             onError,
                             onProgress,
                             onPayViaIntent,
-                            accountViewModel.account.defaultZapType
+                            accountViewModel.account.defaultZapType,
                         )
                         onDismiss()
                     },
                     shape = ButtonBorder,
-                    colors = ButtonDefaults
-                        .buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                        ),
                 ) {
                     Text(
                         "⚡ ${showAmount(amountInSats.toBigDecimal().setScale(1))}",
                         color = Color.White,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.combinedClickable(
-                            onClick = {
-                                accountViewModel.zap(
-                                    baseNote,
-                                    amountInSats * 1000,
-                                    null,
-                                    zapMessage,
-                                    context,
-                                    onError,
-                                    onProgress,
-                                    onPayViaIntent,
-                                    accountViewModel.account.defaultZapType
-                                )
-                                onDismiss()
-                            },
-                            onLongClick = {
-                                onChangeAmount()
-                            }
-                        )
+                        modifier =
+                            Modifier.combinedClickable(
+                                onClick = {
+                                    accountViewModel.zap(
+                                        baseNote,
+                                        amountInSats * 1000,
+                                        null,
+                                        zapMessage,
+                                        context,
+                                        onError,
+                                        onProgress,
+                                        onPayViaIntent,
+                                        accountViewModel.account.defaultZapType,
+                                    )
+                                    onDismiss()
+                                },
+                                onLongClick = { onChangeAmount() },
+                            ),
                     )
                 }
             }

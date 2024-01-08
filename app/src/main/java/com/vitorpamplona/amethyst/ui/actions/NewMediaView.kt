@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.actions
 
 import android.graphics.Bitmap
@@ -56,7 +76,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @Composable
-fun NewMediaView(uri: Uri, onClose: () -> Unit, postViewModel: NewMediaModel, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+fun NewMediaView(
+    uri: Uri,
+    onClose: () -> Unit,
+    postViewModel: NewMediaModel,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     val account = accountViewModel.account
     val resolver = LocalContext.current.contentResolver
     val context = LocalContext.current
@@ -70,66 +96,60 @@ fun NewMediaView(uri: Uri, onClose: () -> Unit, postViewModel: NewMediaModel, ac
         }
     }
 
-    var showRelaysDialog by remember {
-        mutableStateOf(false)
-    }
-    var relayList = remember {
-        accountViewModel.account.activeWriteRelays().toImmutableList()
-    }
+    var showRelaysDialog by remember { mutableStateOf(false) }
+    var relayList = remember { accountViewModel.account.activeWriteRelays().toImmutableList() }
 
     Dialog(
         onDismissRequest = { onClose() },
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            dismissOnClickOutside = false,
-            decorFitsSystemWindows = false
-        )
+        properties =
+            DialogProperties(
+                usePlatformDefaultWidth = false,
+                dismissOnClickOutside = false,
+                decorFitsSystemWindows = false,
+            ),
     ) {
         Surface(
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
         ) {
             if (showRelaysDialog) {
                 RelaySelectionDialog(
                     preSelectedList = relayList,
-                    onClose = {
-                        showRelaysDialog = false
-                    },
-                    onPost = {
-                        relayList = it
-                    },
+                    onClose = { showRelaysDialog = false },
+                    onPost = { relayList = it },
                     accountViewModel = accountViewModel,
-                    nav = nav
+                    nav = nav,
                 )
             }
 
             Column(
-                modifier = Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)
-                    .fillMaxWidth()
-                    .fillMaxHeight().imePadding()
+                modifier =
+                    Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp)
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                        .imePadding(),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    CloseButton(onPress = {
-                        postViewModel.cancel()
-                        onClose()
-                    })
+                    CloseButton(
+                        onPress = {
+                            postViewModel.cancel()
+                            onClose()
+                        },
+                    )
 
                     Box {
                         IconButton(
                             modifier = Modifier.align(Alignment.Center),
-                            onClick = {
-                                showRelaysDialog = true
-                            }
+                            onClick = { showRelaysDialog = true },
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.relays),
                                 contentDescription = null,
                                 modifier = Modifier.height(25.dp),
-                                tint = MaterialTheme.colorScheme.onBackground
+                                tint = MaterialTheme.colorScheme.onBackground,
                             )
                         }
                     }
@@ -144,19 +164,15 @@ fun NewMediaView(uri: Uri, onClose: () -> Unit, postViewModel: NewMediaModel, ac
                                 }
                             }
                         },
-                        isActive = postViewModel.canPost()
+                        isActive = postViewModel.canPost(),
                     )
                 }
 
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
+                    modifier = Modifier.fillMaxWidth().weight(1f),
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .verticalScroll(scroolState)
+                        modifier = Modifier.fillMaxWidth().verticalScroll(scroolState),
                     ) {
                         ImageVideoPost(postViewModel, accountViewModel)
                     }
@@ -167,36 +183,44 @@ fun NewMediaView(uri: Uri, onClose: () -> Unit, postViewModel: NewMediaModel, ac
 }
 
 @Composable
-fun ImageVideoPost(postViewModel: NewMediaModel, accountViewModel: AccountViewModel) {
-    val fileServers = Nip96MediaServers.DEFAULT.map { ServerOption(it, false) } + listOf(
-        ServerOption(
-            Nip96MediaServers.ServerName(
-                "NIP95",
-                stringResource(id = R.string.upload_server_relays_nip95)
-            ),
-            true
-        )
-    )
+fun ImageVideoPost(
+    postViewModel: NewMediaModel,
+    accountViewModel: AccountViewModel,
+) {
+    val fileServers =
+        Nip96MediaServers.DEFAULT.map { ServerOption(it, false) } +
+            listOf(
+                ServerOption(
+                    Nip96MediaServers.ServerName(
+                        "NIP95",
+                        stringResource(id = R.string.upload_server_relays_nip95),
+                    ),
+                    true,
+                ),
+            )
 
-    val fileServerOptions = remember { fileServers.map { TitleExplainer(it.server.name, it.server.baseUrl) }.toImmutableList() }
+    val fileServerOptions =
+        remember {
+            fileServers.map { TitleExplainer(it.server.name, it.server.baseUrl) }.toImmutableList()
+        }
     val resolver = LocalContext.current.contentResolver
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 10.dp)
-            .windowInsetsPadding(WindowInsets(0.dp, 0.dp, 0.dp, 0.dp))
+        modifier =
+            Modifier.fillMaxWidth()
+                .padding(bottom = 10.dp)
+                .windowInsetsPadding(WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)),
     ) {
         if (postViewModel.isImage() == true) {
             AsyncImage(
                 model = postViewModel.galleryUri.toString(),
                 contentDescription = postViewModel.galleryUri.toString(),
                 contentScale = ContentScale.FillWidth,
-                modifier = Modifier
-                    .padding(top = 4.dp)
-                    .fillMaxWidth()
-                    .windowInsetsPadding(WindowInsets(0.dp, 0.dp, 0.dp, 0.dp))
+                modifier =
+                    Modifier.padding(top = 4.dp)
+                        .fillMaxWidth()
+                        .windowInsetsPadding(WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)),
             )
         } else if (postViewModel.isVideo() == true && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             var bitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -218,9 +242,7 @@ fun ImageVideoPost(postViewModel: NewMediaModel, accountViewModel: AccountViewMo
                     bitmap = it.asImageBitmap(),
                     contentDescription = "some useful description",
                     contentScale = ContentScale.FillWidth,
-                    modifier = Modifier
-                        .padding(top = 4.dp)
-                        .fillMaxWidth()
+                    modifier = Modifier.padding(top = 4.dp).fillMaxWidth(),
                 )
             }
         } else {
@@ -228,7 +250,7 @@ fun ImageVideoPost(postViewModel: NewMediaModel, accountViewModel: AccountViewMo
                 VideoView(
                     videoUri = it.toString(),
                     roundedCorner = false,
-                    accountViewModel = accountViewModel
+                    accountViewModel = accountViewModel,
                 )
             }
         }
@@ -236,57 +258,53 @@ fun ImageVideoPost(postViewModel: NewMediaModel, accountViewModel: AccountViewMo
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         TextSpinner(
             label = stringResource(id = R.string.file_server),
-            placeholder = fileServers.firstOrNull {
-                it.server == accountViewModel.account.defaultFileServer
-            }?.server?.name ?: fileServers[0].server.name,
+            placeholder =
+                fileServers
+                    .firstOrNull { it.server == accountViewModel.account.defaultFileServer }
+                    ?.server
+                    ?.name
+                    ?: fileServers[0].server.name,
             options = fileServerOptions,
-            onSelect = {
-                postViewModel.selectedServer = fileServers[it]
-            },
-            modifier = Modifier
-                .windowInsetsPadding(WindowInsets(0.dp, 0.dp, 0.dp, 0.dp))
-                .weight(1f)
+            onSelect = { postViewModel.selectedServer = fileServers[it] },
+            modifier = Modifier.windowInsetsPadding(WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)).weight(1f),
         )
     }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
     ) {
         SettingSwitchItem(
             checked = postViewModel.sensitiveContent,
             onCheckedChange = { postViewModel.sensitiveContent = it },
             title = R.string.add_sensitive_content_label,
-            description = R.string.add_sensitive_content_description
+            description = R.string.add_sensitive_content_description,
         )
     }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .windowInsetsPadding(WindowInsets(0.dp, 0.dp, 0.dp, 0.dp))
+        modifier = Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)),
     ) {
         OutlinedTextField(
             label = { Text(text = stringResource(R.string.content_description)) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)),
+            modifier = Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets(0.dp, 0.dp, 0.dp, 0.dp)),
             value = postViewModel.alt,
             onValueChange = { postViewModel.alt = it },
             placeholder = {
                 Text(
                     text = stringResource(R.string.content_description_example),
-                    color = MaterialTheme.colorScheme.placeholderText
+                    color = MaterialTheme.colorScheme.placeholderText,
                 )
             },
-            keyboardOptions = KeyboardOptions.Default.copy(
-                capitalization = KeyboardCapitalization.Sentences
-            )
+            keyboardOptions =
+                KeyboardOptions.Default.copy(
+                    capitalization = KeyboardCapitalization.Sentences,
+                ),
         )
     }
 }

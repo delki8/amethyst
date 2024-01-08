@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.dal
 
 import com.vitorpamplona.amethyst.model.Account
@@ -18,14 +38,15 @@ import com.vitorpamplona.quartz.events.TextNoteEvent
 import com.vitorpamplona.quartz.utils.TimeUtils
 
 class HomeNewThreadFeedFilter(val account: Account) : AdditiveFeedFilter<Note>() {
-
     override fun feedKey(): String {
         return account.userProfile().pubkeyHex + "-" + account.defaultHomeFollowList.value
     }
 
     override fun showHiddenKey(): Boolean {
-        return account.defaultHomeFollowList.value == PeopleListEvent.blockListFor(account.userProfile().pubkeyHex) ||
-            account.defaultHomeFollowList.value == MuteListEvent.blockListFor(account.userProfile().pubkeyHex)
+        return account.defaultHomeFollowList.value ==
+            PeopleListEvent.blockListFor(account.userProfile().pubkeyHex) ||
+            account.defaultHomeFollowList.value ==
+            MuteListEvent.blockListFor(account.userProfile().pubkeyHex)
     }
 
     override fun feed(): List<Note> {
@@ -39,7 +60,10 @@ class HomeNewThreadFeedFilter(val account: Account) : AdditiveFeedFilter<Note>()
         return innerApplyFilter(collection, false)
     }
 
-    private fun innerApplyFilter(collection: Collection<Note>, ignoreAddressables: Boolean): Set<Note> {
+    private fun innerApplyFilter(
+        collection: Collection<Note>,
+        ignoreAddressables: Boolean,
+    ): Set<Note> {
         val isGlobal = account.defaultHomeFollowList.value == GLOBAL_FOLLOWS
         val gRelays = account.activeGlobalRelays()
         val isHiddenList = showHiddenKey()
@@ -57,10 +81,27 @@ class HomeNewThreadFeedFilter(val account: Account) : AdditiveFeedFilter<Note>()
             .filter { it ->
                 val noteEvent = it.event
                 val isGlobalRelay = it.relays.any { gRelays.contains(it.url) }
-                (noteEvent is TextNoteEvent || noteEvent is ClassifiedsEvent || noteEvent is RepostEvent || noteEvent is GenericRepostEvent || noteEvent is LongTextNoteEvent || noteEvent is PollNoteEvent || noteEvent is HighlightEvent || noteEvent is AudioTrackEvent || noteEvent is AudioHeaderEvent) &&
+                (
+                    noteEvent is TextNoteEvent ||
+                        noteEvent is ClassifiedsEvent ||
+                        noteEvent is RepostEvent ||
+                        noteEvent is GenericRepostEvent ||
+                        noteEvent is LongTextNoteEvent ||
+                        noteEvent is PollNoteEvent ||
+                        noteEvent is HighlightEvent ||
+                        noteEvent is AudioTrackEvent ||
+                        noteEvent is AudioHeaderEvent
+                ) &&
                     (!ignoreAddressables || noteEvent.kind() < 10000) &&
-                    ((isGlobal && isGlobalRelay) || it.author?.pubkeyHex in followingKeySet || noteEvent.isTaggedHashes(followingTagSet) || noteEvent.isTaggedGeoHashes(followingGeohashSet) || noteEvent.isTaggedAddressableNotes(followingCommunities)) &&
-                    // && account.isAcceptable(it)  // This filter follows only. No need to check if acceptable
+                    (
+                        (isGlobal && isGlobalRelay) ||
+                            it.author?.pubkeyHex in followingKeySet ||
+                            noteEvent.isTaggedHashes(followingTagSet) ||
+                            noteEvent.isTaggedGeoHashes(followingGeohashSet) ||
+                            noteEvent.isTaggedAddressableNotes(followingCommunities)
+                    ) &&
+                    // && account.isAcceptable(it)  // This filter follows only. No need to check if
+                    // acceptable
                     (isHiddenList || it.author?.let { !account.isHidden(it.pubkeyHex) } ?: true) &&
                     ((it.event?.createdAt() ?: 0) < oneMinuteInTheFuture) &&
                     it.isNewThread() &&
@@ -68,9 +109,15 @@ class HomeNewThreadFeedFilter(val account: Account) : AdditiveFeedFilter<Note>()
                         (noteEvent !is RepostEvent && noteEvent !is GenericRepostEvent) || // not a repost
                             (
                                 it.replyTo?.lastOrNull()?.author?.pubkeyHex !in followingKeySet ||
-                                    (noteEvent.createdAt() > (it.replyTo?.lastOrNull()?.createdAt() ?: 0) + oneHr)
-                                ) // or a repost of by a non-follower's post (likely not seen yet)
-                        )
+                                    (
+                                        noteEvent.createdAt() >
+                                            (
+                                                it.replyTo?.lastOrNull()?.createdAt()
+                                                    ?: 0
+                                            ) + oneHr
+                                    )
+                            ) // or a repost of by a non-follower's post (likely not seen yet)
+                    )
             }
             .toSet()
     }

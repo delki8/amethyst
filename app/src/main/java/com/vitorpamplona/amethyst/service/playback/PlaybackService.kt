@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.service.playback
 
 import android.content.Intent
@@ -27,12 +47,14 @@ class PlaybackService : MediaSessionService() {
 
     fun newProgressiveDataSource(): MediaSource.Factory {
         return ProgressiveMediaSource.Factory(
-            (applicationContext as Amethyst).videoCache.get(HttpClient.getHttpClient())
+            (applicationContext as Amethyst).videoCache.get(HttpClient.getHttpClient()),
         )
     }
 
     fun lazyHlsDS(): MultiPlayerPlaybackManager {
-        managerHls?.let { return it }
+        managerHls?.let {
+            return it
+        }
 
         val newInstance = MultiPlayerPlaybackManager(newHslDataSource(), videoViewedPositionCache)
         managerHls = newInstance
@@ -40,15 +62,20 @@ class PlaybackService : MediaSessionService() {
     }
 
     fun lazyProgressiveDS(): MultiPlayerPlaybackManager {
-        managerProgressive?.let { return it }
+        managerProgressive?.let {
+            return it
+        }
 
-        val newInstance = MultiPlayerPlaybackManager(newProgressiveDataSource(), videoViewedPositionCache)
+        val newInstance =
+            MultiPlayerPlaybackManager(newProgressiveDataSource(), videoViewedPositionCache)
         managerProgressive = newInstance
         return newInstance
     }
 
     fun lazyLocalDS(): MultiPlayerPlaybackManager {
-        managerLocal?.let { return it }
+        managerLocal?.let {
+            return it
+        }
 
         val newInstance = MultiPlayerPlaybackManager(cachedPositions = videoViewedPositionCache)
         managerLocal = newInstance
@@ -71,7 +98,8 @@ class PlaybackService : MediaSessionService() {
         val toDestroyProgressive = managerProgressive
 
         managerHls = MultiPlayerPlaybackManager(newHslDataSource(), videoViewedPositionCache)
-        managerProgressive = MultiPlayerPlaybackManager(newProgressiveDataSource(), videoViewedPositionCache)
+        managerProgressive =
+            MultiPlayerPlaybackManager(newProgressiveDataSource(), videoViewedPositionCache)
 
         toDestroyHls?.releaseAppPlayers()
         toDestroyProgressive?.releaseAppPlayers()
@@ -105,7 +133,10 @@ class PlaybackService : MediaSessionService() {
         }
     }
 
-    override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
+    override fun onUpdateNotification(
+        session: MediaSession,
+        startInForegroundRequired: Boolean,
+    ) {
         // Updates any new player ready
         super.onUpdateNotification(session, startInForegroundRequired)
 
@@ -153,6 +184,12 @@ class PlaybackService : MediaSessionService() {
 
         val manager = getAppropriateMediaSessionManager(uri)
 
-        return manager?.getMediaSession(id, uri, callbackUri, context = this, applicationContext = applicationContext)
+        return manager?.getMediaSession(
+            id,
+            uri,
+            callbackUri,
+            context = this,
+            applicationContext = applicationContext,
+        )
     }
 }

@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.service.lang
 
 import android.util.LruCache
@@ -20,16 +40,24 @@ import java.util.regex.Pattern
 data class ResultOrError(
     val result: String?,
     val sourceLang: String?,
-    val targetLang: String?
+    val targetLang: String?,
 )
 
 object LanguageTranslatorService {
     var executorService = Executors.newScheduledThreadPool(5)
 
-    private val options = LanguageIdentificationOptions.Builder().setExecutor(executorService).setConfidenceThreshold(0.6f).build()
+    private val options =
+        LanguageIdentificationOptions.Builder()
+            .setExecutor(executorService)
+            .setConfidenceThreshold(0.6f)
+            .build()
     private val languageIdentification = LanguageIdentification.getClient(options)
     val lnRegex = Pattern.compile("\\blnbc[a-z0-9]+\\b", Pattern.CASE_INSENSITIVE)
-    val tagRegex = Pattern.compile("(nostr:)?@?(nsec1|npub1|nevent1|naddr1|note1|nprofile1|nrelay1)([qpzry9x8gf2tvdw0s3jn54khce6mua7l]+)", Pattern.CASE_INSENSITIVE)
+    val tagRegex =
+        Pattern.compile(
+            "(nostr:)?@?(nsec1|npub1|nevent1|naddr1|note1|nprofile1|nrelay1)([qpzry9x8gf2tvdw0s3jn54khce6mua7l]+)",
+            Pattern.CASE_INSENSITIVE,
+        )
 
     private val translators =
         object : LruCache<TranslatorOptions, Translator>(3) {
@@ -41,7 +69,7 @@ object LanguageTranslatorService {
                 evicted: Boolean,
                 key: TranslatorOptions,
                 oldValue: Translator,
-                newValue: Translator?
+                newValue: Translator?,
             ) {
                 oldValue.close()
             }
@@ -55,7 +83,11 @@ object LanguageTranslatorService {
         return languageIdentification.identifyLanguage(text)
     }
 
-    fun translate(text: String, source: String, target: String): Task<ResultOrError> {
+    fun translate(
+        text: String,
+        source: String,
+        target: String,
+    ): Task<ResultOrError> {
         checkNotInMainThread()
         val sourceLangCode = TranslateLanguage.fromLanguageTag(source)
         val targetLangCode = TranslateLanguage.fromLanguageTag(target)
@@ -64,11 +96,12 @@ object LanguageTranslatorService {
             return Tasks.forCanceled()
         }
 
-        val options = TranslatorOptions.Builder()
-            .setExecutor(executorService)
-            .setSourceLanguage(sourceLangCode)
-            .setTargetLanguage(targetLangCode)
-            .build()
+        val options =
+            TranslatorOptions.Builder()
+                .setExecutor(executorService)
+                .setSourceLanguage(sourceLangCode)
+                .setTargetLanguage(targetLangCode)
+                .build()
 
         val translator = translators[options]
 
@@ -87,7 +120,8 @@ object LanguageTranslatorService {
 
                 val results: MutableList<String> = ArrayList()
                 for (task in tasks) {
-                    val fixedText = task.result.replace("# [", "#[") // fixes tags that always return with a space
+                    val fixedText =
+                        task.result.replace("# [", "#[") // fixes tags that always return with a space
                     results.add(decodeDictionary(fixedText, dict))
                 }
                 ResultOrError(results.joinToString("\n"), source, target)
@@ -95,7 +129,10 @@ object LanguageTranslatorService {
         }
     }
 
-    private fun encodeDictionary(text: String, dict: Map<String, String>): String {
+    private fun encodeDictionary(
+        text: String,
+        dict: Map<String, String>,
+    ): String {
         var newText = text
         for (pair in dict) {
             newText = newText.replace(pair.value, pair.key, true)
@@ -103,7 +140,10 @@ object LanguageTranslatorService {
         return newText
     }
 
-    private fun decodeDictionary(text: String, dict: Map<String, String>): String {
+    private fun decodeDictionary(
+        text: String,
+        dict: Map<String, String>,
+    ): String {
         var newText = text
         for (pair in dict) {
             newText = newText.replace(pair.key, pair.value, true)
@@ -149,13 +189,19 @@ object LanguageTranslatorService {
 
         var counter = 0
 
-        return urlsInText.filter { !it.originalUrl.contains("，") && !it.originalUrl.contains("。") }.associate {
-            counter++
-            "A$counter" to it.originalUrl
-        }
+        return urlsInText
+            .filter { !it.originalUrl.contains("，") && !it.originalUrl.contains("。") }
+            .associate {
+                counter++
+                "A$counter" to it.originalUrl
+            }
     }
 
-    fun autoTranslate(text: String, dontTranslateFrom: Set<String>, translateTo: String): Task<ResultOrError> {
+    fun autoTranslate(
+        text: String,
+        dontTranslateFrom: Set<String>,
+        translateTo: String,
+    ): Task<ResultOrError> {
         return identifyLanguage(text).onSuccessTask(executorService) {
             if (it.equals(translateTo, true)) {
                 Tasks.forCanceled()

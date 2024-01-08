@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.note
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -38,23 +58,23 @@ fun ReplyInformation(
     replyTo: ImmutableList<Note>?,
     mentions: ImmutableList<String>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     var sortedMentions by remember { mutableStateOf<ImmutableList<User>?>(null) }
 
     LaunchedEffect(Unit) {
         launch(Dispatchers.IO) {
-            sortedMentions = mentions.mapNotNull { LocalCache.checkGetOrCreateUser(it) }
-                .toSet()
-                .sortedBy { !accountViewModel.account.userProfile().isFollowingCached(it) }
-                .toImmutableList()
+            sortedMentions =
+                mentions
+                    .mapNotNull { LocalCache.checkGetOrCreateUser(it) }
+                    .toSet()
+                    .sortedBy { !accountViewModel.account.userProfile().isFollowingCached(it) }
+                    .toImmutableList()
         }
     }
 
     if (sortedMentions != null) {
-        ReplyInformation(replyTo, sortedMentions) {
-            nav("User/${it.pubkeyHex}")
-        }
+        ReplyInformation(replyTo, sortedMentions) { nav("User/${it.pubkeyHex}") }
     }
 }
 
@@ -64,11 +84,11 @@ private fun ReplyInformation(
     replyTo: ImmutableList<Note>?,
     sortedMentions: ImmutableList<User>?,
     prefix: String = "",
-    onUserTagClick: (User) -> Unit
+    onUserTagClick: (User) -> Unit,
 ) {
     var expanded by remember { mutableStateOf((sortedMentions?.size ?: 0) <= 2) }
 
-    FlowRow() {
+    FlowRow {
         if (sortedMentions != null && sortedMentions.isNotEmpty()) {
             if (replyTo != null && replyTo.isNotEmpty()) {
                 val repliesToDisplay = if (expanded) sortedMentions else sortedMentions.take(2)
@@ -76,7 +96,7 @@ private fun ReplyInformation(
                 Text(
                     stringResource(R.string.replying_to),
                     fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.placeholderText
+                    color = MaterialTheme.colorScheme.placeholderText,
                 )
 
                 repliesToDisplay.forEachIndexed { idx, user ->
@@ -87,13 +107,13 @@ private fun ReplyInformation(
                             Text(
                                 ", ",
                                 fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
                         } else if (idx < repliesToDisplay.size - 1) {
                             Text(
                                 stringResource(R.string.and),
                                 fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
                         }
                     } else {
@@ -101,25 +121,29 @@ private fun ReplyInformation(
                             Text(
                                 ", ",
                                 fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
                         } else if (idx < repliesToDisplay.size) {
                             Text(
                                 stringResource(R.string.and),
                                 fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
 
                             ClickableText(
                                 AnnotatedString("${sortedMentions.size - 2}"),
-                                style = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.lessImportantLink, fontSize = 13.sp),
-                                onClick = { expanded = true }
+                                style =
+                                    LocalTextStyle.current.copy(
+                                        color = MaterialTheme.colorScheme.lessImportantLink,
+                                        fontSize = 13.sp,
+                                    ),
+                                onClick = { expanded = true },
                             )
 
                             Text(
                                 " ${stringResource(R.string.others)}",
                                 fontSize = 13.sp,
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
                         }
                     }
@@ -134,7 +158,7 @@ fun ReplyInformationChannel(
     replyTo: ImmutableList<Note>?,
     mentions: ImmutableList<String>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     var sortedMentions by remember { mutableStateOf<ImmutableList<User>>(persistentListOf()) }
 
@@ -150,9 +174,7 @@ fun ReplyInformationChannel(
         ReplyInformationChannel(
             replyTo,
             sortedMentions,
-            onUserTagClick = {
-                nav("User/${it.pubkeyHex}")
-            }
+            onUserTagClick = { nav("User/${it.pubkeyHex}") },
         )
         Spacer(modifier = StdVertSpacer)
     }
@@ -164,15 +186,15 @@ fun ReplyInformationChannel(
     replyTo: ImmutableList<Note>?,
     mentions: ImmutableList<User>?,
     prefix: String = "",
-    onUserTagClick: (User) -> Unit
+    onUserTagClick: (User) -> Unit,
 ) {
-    FlowRow() {
+    FlowRow {
         if (mentions != null && mentions.isNotEmpty()) {
             if (replyTo != null && replyTo.isNotEmpty()) {
                 Text(
                     stringResource(id = R.string.replying_to),
                     fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.placeholderText
+                    color = MaterialTheme.colorScheme.placeholderText,
                 )
 
                 mentions.forEachIndexed { idx, user ->
@@ -182,13 +204,13 @@ fun ReplyInformationChannel(
                         Text(
                             ", ",
                             fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.placeholderText
+                            color = MaterialTheme.colorScheme.placeholderText,
                         )
                     } else if (idx < mentions.size - 1) {
                         Text(
                             " ${stringResource(id = R.string.and)} ",
                             fontSize = 13.sp,
-                            color = MaterialTheme.colorScheme.placeholderText
+                            color = MaterialTheme.colorScheme.placeholderText,
                         )
                     }
                 }
@@ -201,17 +223,22 @@ fun ReplyInformationChannel(
 private fun ReplyInfoMention(
     user: User,
     prefix: String,
-    onUserTagClick: (User) -> Unit
+    onUserTagClick: (User) -> Unit,
 ) {
     val innerUserState by user.live().metadata.observeAsState()
 
     CreateClickableTextWithEmoji(
-        clickablePart = remember(innerUserState) { "$prefix${innerUserState?.user?.toBestDisplayName()}" },
-        tags = remember(innerUserState) { innerUserState?.user?.info?.latestMetadata?.tags?.toImmutableListOfLists() },
-        style = LocalTextStyle.current.copy(
-            color = MaterialTheme.colorScheme.lessImportantLink,
-            fontSize = 13.sp
-        ),
-        onClick = { onUserTagClick(user) }
+        clickablePart =
+            remember(innerUserState) { "$prefix${innerUserState?.user?.toBestDisplayName()}" },
+        tags =
+            remember(innerUserState) {
+                innerUserState?.user?.info?.latestMetadata?.tags?.toImmutableListOfLists()
+            },
+        style =
+            LocalTextStyle.current.copy(
+                color = MaterialTheme.colorScheme.lessImportantLink,
+                fontSize = 13.sp,
+            ),
+        onClick = { onUserTagClick(user) },
     )
 }

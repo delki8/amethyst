@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.components
 
 import android.util.Log
@@ -44,7 +64,8 @@ import kotlinx.collections.immutable.toImmutableList
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun SelectNotificationProvider(sharedPreferencesViewModel: SharedPreferencesViewModel) {
-    val notificationPermissionState = CheckifItNeedsToRequestNotificationPermission(sharedPreferencesViewModel)
+    val notificationPermissionState =
+        CheckifItNeedsToRequestNotificationPermission(sharedPreferencesViewModel)
 
     if (notificationPermissionState.status.isGranted) {
         if (!sharedPreferencesViewModel.sharedPrefs.dontShowPushNotificationSelector) {
@@ -53,7 +74,7 @@ fun SelectNotificationProvider(sharedPreferencesViewModel: SharedPreferencesView
                 mutableStateOf(PushDistributorHandler.savedDistributorExists())
             }
             if (!distributorPresent) {
-                LoadDistributors() { currentDistributor, list, readableListWithExplainer ->
+                LoadDistributors { currentDistributor, list, readableListWithExplainer ->
                     if (readableListWithExplainer.size > 1) {
                         SpinnerSelectionDialog(
                             title = stringResource(id = R.string.select_push_server),
@@ -73,54 +94,51 @@ fun SelectNotificationProvider(sharedPreferencesViewModel: SharedPreferencesView
                             onDismiss = {
                                 distributorPresent = true
                                 Log.d("Amethyst", "NotificationScreen: Distributor dialog dismissed.")
-                            }
+                            },
                         )
                     } else {
                         AlertDialog(
-                            onDismissRequest = {
-                                distributorPresent = true
-                            },
-                            title = {
-                                Text(stringResource(R.string.push_server_install_app))
-                            },
+                            onDismissRequest = { distributorPresent = true },
+                            title = { Text(stringResource(R.string.push_server_install_app)) },
                             text = {
                                 Material3RichText(
-                                    style = RichTextStyle().resolveDefaults()
+                                    style = RichTextStyle().resolveDefaults(),
                                 ) {
                                     Markdown(
-                                        content = stringResource(R.string.push_server_install_app_description)
+                                        content = stringResource(R.string.push_server_install_app_description),
                                     )
                                 }
                             },
                             confirmButton = {
                                 Row(
-                                    modifier = Modifier
-                                        .padding(all = 8.dp)
-                                        .fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    modifier = Modifier.padding(all = 8.dp).fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
                                 ) {
-                                    TextButton(onClick = {
-                                        distributorPresent = true
-                                        sharedPreferencesViewModel.dontShowPushNotificationSelector()
-                                    }) {
+                                    TextButton(
+                                        onClick = {
+                                            distributorPresent = true
+                                            sharedPreferencesViewModel.dontShowPushNotificationSelector()
+                                        },
+                                    ) {
                                         Text(stringResource(R.string.quick_action_dont_show_again_button))
                                     }
-                                    Button(onClick = {
-                                        distributorPresent = true
-                                    }, contentPadding = PaddingValues(horizontal = 16.dp)) {
+                                    Button(
+                                        onClick = { distributorPresent = true },
+                                        contentPadding = PaddingValues(horizontal = 16.dp),
+                                    ) {
                                         Row(
-                                            verticalAlignment = Alignment.CenterVertically
+                                            verticalAlignment = Alignment.CenterVertically,
                                         ) {
                                             Icon(
                                                 imageVector = Icons.Default.Check,
-                                                contentDescription = null
+                                                contentDescription = null,
                                             )
                                             Spacer(Modifier.width(8.dp))
                                             Text(stringResource(R.string.error_dialog_button_ok))
                                         }
                                     }
                                 }
-                            }
+                            },
                         )
                     }
                 }
@@ -133,35 +151,34 @@ fun SelectNotificationProvider(sharedPreferencesViewModel: SharedPreferencesView
 }
 
 @Composable
-fun LoadDistributors(
-    onInner: @Composable (String, ImmutableList<String>, ImmutableList<TitleExplainer>) -> Unit
-) {
+fun LoadDistributors(onInner: @Composable (String, ImmutableList<String>, ImmutableList<TitleExplainer>) -> Unit) {
     val currentDistributor = PushDistributorHandler.getSavedDistributor().ifBlank { null } ?: "None"
 
-    val list = remember {
-        PushDistributorHandler.getInstalledDistributors().plus("None").toImmutableList()
-    }
+    val list =
+        remember {
+            PushDistributorHandler.getInstalledDistributors().plus("None").toImmutableList()
+        }
 
     val readableListWithExplainer =
         PushDistributorHandler.formattedDistributorNames()
             .mapIndexed { index, name ->
                 TitleExplainer(
                     name,
-                    stringResource(id = R.string.push_server_uses_app_explainer, list[index])
+                    stringResource(id = R.string.push_server_uses_app_explainer, list[index]),
                 )
             }
             .plus(
                 TitleExplainer(
                     stringResource(id = R.string.push_server_none),
-                    stringResource(id = R.string.push_server_none_explainer)
-                )
+                    stringResource(id = R.string.push_server_none_explainer),
+                ),
             )
             .toImmutableList()
 
     onInner(
         currentDistributor,
         list,
-        readableListWithExplainer
+        readableListWithExplainer,
     )
 }
 
@@ -169,12 +186,12 @@ fun LoadDistributors(
 fun PushNotificationSettingsRow(sharedPreferencesViewModel: SharedPreferencesViewModel) {
     val context = LocalContext.current
 
-    LoadDistributors() { currentDistributor, list, readableListWithExplainer ->
+    LoadDistributors { currentDistributor, list, readableListWithExplainer ->
         SettingsRow(
             R.string.push_server_title,
             R.string.push_server_explainer,
             selectedItens = readableListWithExplainer,
-            selectedIndex = list.indexOf(currentDistributor)
+            selectedIndex = list.indexOf(currentDistributor),
         ) { index ->
             if (list[index] == "None") {
                 sharedPreferencesViewModel.dontAskForNotificationPermissions()

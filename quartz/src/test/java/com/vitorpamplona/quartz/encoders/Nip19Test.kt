@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.quartz.encoders
 
 import org.junit.Assert
@@ -27,7 +47,7 @@ class Nip19Test {
         Assert.assertEquals(Nip19.Type.USER, actual?.type)
         Assert.assertEquals(
             "bb3d6543d4a4f45f402b674ecb5cb2155ff12456fcdd2d66d9727660d3037365",
-            actual?.hex
+            actual?.hex,
         )
     }
 
@@ -39,7 +59,7 @@ class Nip19Test {
         Assert.assertEquals(Nip19.Type.NOTE, actual?.type)
         Assert.assertEquals(
             "82c19ee9db7644829b4420f40b72ce2d32e5b7962744b261d0d53e770432dac3",
-            actual?.hex
+            actual?.hex,
         )
     }
 

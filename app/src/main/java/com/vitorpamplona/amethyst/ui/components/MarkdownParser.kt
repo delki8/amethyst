@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.components
 
 import android.util.Log
@@ -9,15 +29,19 @@ import com.vitorpamplona.quartz.encoders.Nip19
 import com.vitorpamplona.quartz.events.ImmutableListOfLists
 
 class MarkdownParser {
-    private fun getDisplayNameAndNIP19FromTag(tag: String, tags: ImmutableListOfLists<String>): Pair<String, String>? {
+    private fun getDisplayNameAndNIP19FromTag(
+        tag: String,
+        tags: ImmutableListOfLists<String>,
+    ): Pair<String, String>? {
         val matcher = tagIndex.matcher(tag)
-        val (index, suffix) = try {
-            matcher.find()
-            Pair(matcher.group(1)?.toInt(), matcher.group(2) ?: "")
-        } catch (e: Exception) {
-            Log.w("Tag Parser", "Couldn't link tag $tag", e)
-            Pair(null, null)
-        }
+        val (index, suffix) =
+            try {
+                matcher.find()
+                Pair(matcher.group(1)?.toInt(), matcher.group(2) ?: "")
+            } catch (e: Exception) {
+                Log.w("Tag Parser", "Couldn't link tag $tag", e)
+                Pair(null, null)
+            }
 
         if (index != null && index >= 0 && index < tags.lists.size) {
             val tag = tags.lists[index]
@@ -60,7 +84,10 @@ class MarkdownParser {
         return null
     }
 
-    fun returnNIP19References(content: String, tags: ImmutableListOfLists<String>?): List<Nip19.Return> {
+    fun returnNIP19References(
+        content: String,
+        tags: ImmutableListOfLists<String>?,
+    ): List<Nip19.Return> {
         checkNotInMainThread()
 
         val listOfReferences = mutableListOf<Nip19.Return>()
@@ -68,9 +95,7 @@ class MarkdownParser {
             paragraph.split(' ').forEach { word: String ->
                 if (startsWithNIP19Scheme(word)) {
                     val parsedNip19 = Nip19.uriToRoute(word)
-                    parsedNip19?.let {
-                        listOfReferences.add(it)
-                    }
+                    parsedNip19?.let { listOfReferences.add(it) }
                 }
             }
         }
@@ -88,7 +113,10 @@ class MarkdownParser {
         return listOfReferences
     }
 
-    fun returnMarkdownWithSpecialContent(content: String, tags: ImmutableListOfLists<String>?): String {
+    fun returnMarkdownWithSpecialContent(
+        content: String,
+        tags: ImmutableListOfLists<String>?,
+    ): String {
         var returnContent = ""
         content.split('\n').forEach { paragraph ->
             paragraph.split(' ').forEach { word: String ->
@@ -105,17 +133,18 @@ class MarkdownParser {
                     returnContent += "[$word](tel:$word) "
                 } else if (startsWithNIP19Scheme(word)) {
                     val parsedNip19 = Nip19.uriToRoute(word)
-                    returnContent += if (parsedNip19 !== null) {
-                        val pair = getDisplayNameFromNip19(parsedNip19)
-                        if (pair != null) {
-                            val (displayName, nip19) = pair
-                            "[$displayName](nostr:$nip19) "
+                    returnContent +=
+                        if (parsedNip19 !== null) {
+                            val pair = getDisplayNameFromNip19(parsedNip19)
+                            if (pair != null) {
+                                val (displayName, nip19) = pair
+                                "[$displayName](nostr:$nip19) "
+                            } else {
+                                "$word "
+                            }
                         } else {
                             "$word "
                         }
-                    } else {
-                        "$word "
-                    }
                 } else if (word.startsWith("#")) {
                     if (tagIndex.matcher(word).matches() && tags != null) {
                         val pair = getDisplayNameAndNIP19FromTag(word, tags)
@@ -127,13 +156,14 @@ class MarkdownParser {
                     } else if (hashTagsPattern.matcher(word).matches()) {
                         val hashtagMatcher = hashTagsPattern.matcher(word)
 
-                        val (myTag, mySuffix) = try {
-                            hashtagMatcher.find()
-                            Pair(hashtagMatcher.group(1), hashtagMatcher.group(2))
-                        } catch (e: Exception) {
-                            Log.e("Hashtag Parser", "Couldn't link hashtag $word", e)
-                            Pair(null, null)
-                        }
+                        val (myTag, mySuffix) =
+                            try {
+                                hashtagMatcher.find()
+                                Pair(hashtagMatcher.group(1), hashtagMatcher.group(2))
+                            } catch (e: Exception) {
+                                Log.e("Hashtag Parser", "Couldn't link hashtag $word", e)
+                                Pair(null, null)
+                            }
 
                         if (myTag != null) {
                             returnContent += "[#$myTag](nostr:Hashtag?id=$myTag)$mySuffix "

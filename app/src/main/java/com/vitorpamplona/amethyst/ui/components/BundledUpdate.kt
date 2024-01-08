@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.components
 
 import androidx.compose.runtime.Stable
@@ -14,20 +34,21 @@ import kotlinx.coroutines.withContext
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.atomic.AtomicBoolean
 
-/**
- * This class is designed to have a waiting time between two calls of invalidate
- */
+/** This class is designed to have a waiting time between two calls of invalidate */
 @Stable
 class BundledUpdate(
     val delay: Long,
-    val dispatcher: CoroutineDispatcher = Dispatchers.Default
+    val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
     val scope = CoroutineScope(dispatcher + SupervisorJob())
 
     private var onlyOneInBlock = AtomicBoolean()
     private var invalidatesAgain = false
 
-    fun invalidate(ignoreIfDoing: Boolean = false, onUpdate: suspend () -> Unit) {
+    fun invalidate(
+        ignoreIfDoing: Boolean = false,
+        onUpdate: suspend () -> Unit,
+    ) {
         if (onlyOneInBlock.getAndSet(true)) {
             if (!ignoreIfDoing) {
                 invalidatesAgain = true
@@ -56,20 +77,21 @@ class BundledUpdate(
     }
 }
 
-/**
- * This class is designed to have a waiting time between two calls of invalidate
- */
+/** This class is designed to have a waiting time between two calls of invalidate */
 @Stable
 class BundledInsert<T>(
     val delay: Long,
-    val dispatcher: CoroutineDispatcher = Dispatchers.Default
+    val dispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) {
     val scope = CoroutineScope(dispatcher + SupervisorJob())
 
     private var onlyOneInBlock = AtomicBoolean()
     private var queue = LinkedBlockingQueue<T>()
 
-    fun invalidateList(newObject: T, onUpdate: suspend (Set<T>) -> Unit) {
+    fun invalidateList(
+        newObject: T,
+        onUpdate: suspend (Set<T>) -> Unit,
+    ) {
         checkNotInMainThread()
 
         queue.put(newObject)
@@ -93,9 +115,7 @@ class BundledInsert<T>(
                     onUpdate(mySet2)
                 }
             } finally {
-                withContext(NonCancellable) {
-                    onlyOneInBlock.set(false)
-                }
+                withContext(NonCancellable) { onlyOneInBlock.set(false) }
             }
         }
     }

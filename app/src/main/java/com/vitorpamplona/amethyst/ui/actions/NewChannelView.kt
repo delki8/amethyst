@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.actions
 
 import androidx.compose.foundation.layout.Arrangement
@@ -31,37 +51,43 @@ import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.amethyst.ui.theme.placeholderText
 
 @Composable
-fun NewChannelView(onClose: () -> Unit, accountViewModel: AccountViewModel, channel: PublicChatChannel? = null) {
+fun NewChannelView(
+    onClose: () -> Unit,
+    accountViewModel: AccountViewModel,
+    channel: PublicChatChannel? = null,
+) {
     val postViewModel: NewChannelViewModel = viewModel()
     postViewModel.load(accountViewModel.account, channel)
 
     Dialog(
         onDismissRequest = { onClose() },
-        properties = DialogProperties(
-            dismissOnClickOutside = false
-        )
+        properties =
+            DialogProperties(
+                dismissOnClickOutside = false,
+            ),
     ) {
-        Surface() {
+        Surface {
             Column(
-                modifier = Modifier.padding(10.dp).verticalScroll(rememberScrollState())
+                modifier = Modifier.padding(10.dp).verticalScroll(rememberScrollState()),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    CloseButton(onPress = {
-                        postViewModel.clear()
-                        onClose()
-                    })
+                    CloseButton(
+                        onPress = {
+                            postViewModel.clear()
+                            onClose()
+                        },
+                    )
 
                     PostButton(
                         onPost = {
                             postViewModel.create()
                             onClose()
                         },
-                        postViewModel.channelName.value.text.isNotBlank()
+                        postViewModel.channelName.value.text.isNotBlank(),
                     )
                 }
 
@@ -75,13 +101,14 @@ fun NewChannelView(onClose: () -> Unit, accountViewModel: AccountViewModel, chan
                     placeholder = {
                         Text(
                             text = stringResource(R.string.my_awesome_group),
-                            color = MaterialTheme.colorScheme.placeholderText
+                            color = MaterialTheme.colorScheme.placeholderText,
                         )
                     },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        capitalization = KeyboardCapitalization.Sentences
-                    ),
-                    textStyle = LocalTextStyle.current.copy(textDirection = TextDirection.Content)
+                    keyboardOptions =
+                        KeyboardOptions.Default.copy(
+                            capitalization = KeyboardCapitalization.Sentences,
+                        ),
+                    textStyle = LocalTextStyle.current.copy(textDirection = TextDirection.Content),
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
@@ -94,32 +121,30 @@ fun NewChannelView(onClose: () -> Unit, accountViewModel: AccountViewModel, chan
                     placeholder = {
                         Text(
                             text = "http://mygroup.com/logo.jpg",
-                            color = MaterialTheme.colorScheme.placeholderText
+                            color = MaterialTheme.colorScheme.placeholderText,
                         )
-                    }
+                    },
                 )
 
                 Spacer(modifier = Modifier.height(15.dp))
 
                 OutlinedTextField(
                     label = { Text(text = stringResource(R.string.description)) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp),
+                    modifier = Modifier.fillMaxWidth().height(100.dp),
                     value = postViewModel.channelDescription.value,
                     onValueChange = { postViewModel.channelDescription.value = it },
                     placeholder = {
                         Text(
                             text = stringResource(R.string.about_us),
-                            color = MaterialTheme.colorScheme.placeholderText
+                            color = MaterialTheme.colorScheme.placeholderText,
                         )
                     },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        capitalization = KeyboardCapitalization.Sentences
-                    ),
+                    keyboardOptions =
+                        KeyboardOptions.Default.copy(
+                            capitalization = KeyboardCapitalization.Sentences,
+                        ),
                     textStyle = LocalTextStyle.current.copy(textDirection = TextDirection.Content),
-                    maxLines = 10
-
+                    maxLines = 10,
                 )
             }
         }

@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.navigation
 
 import android.os.Bundle
@@ -40,136 +60,179 @@ sealed class Route(
     val icon: Int,
     val notifSize: Modifier = Modifier.size(Size23dp),
     val iconSize: Modifier = Modifier.size(Size20dp),
-    val hasNewItems: (Account, Set<com.vitorpamplona.amethyst.model.Note>) -> Boolean = { _, _ -> false },
-    val arguments: ImmutableList<NamedNavArgument> = persistentListOf()
+    val hasNewItems: (Account, Set<com.vitorpamplona.amethyst.model.Note>) -> Boolean = { _, _ ->
+        false
+    },
+    val arguments: ImmutableList<NamedNavArgument> = persistentListOf(),
 ) {
-    object Home : Route(
-        route = "Home?nip47={nip47}",
-        icon = R.drawable.ic_home,
-        notifSize = Modifier.size(Size25dp),
-        iconSize = Modifier.size(Size24dp),
-        arguments = listOf(
-            navArgument("nip47") { type = NavType.StringType; nullable = true; defaultValue = null }
-        ).toImmutableList(),
-        hasNewItems = { accountViewModel, newNotes -> HomeLatestItem.hasNewItems(accountViewModel, newNotes) }
-    )
+    object Home :
+        Route(
+            route = "Home?nip47={nip47}",
+            icon = R.drawable.ic_home,
+            notifSize = Modifier.size(Size25dp),
+            iconSize = Modifier.size(Size24dp),
+            arguments =
+                listOf(
+                    navArgument("nip47") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                )
+                    .toImmutableList(),
+            hasNewItems = { accountViewModel, newNotes ->
+                HomeLatestItem.hasNewItems(accountViewModel, newNotes)
+            },
+        )
 
-    object Global : Route(
-        route = "Global",
-        icon = R.drawable.ic_globe
-    )
+    object Global :
+        Route(
+            route = "Global",
+            icon = R.drawable.ic_globe,
+        )
 
-    object Search : Route(
-        route = "Search",
-        icon = R.drawable.ic_search
-    )
+    object Search :
+        Route(
+            route = "Search",
+            icon = R.drawable.ic_search,
+        )
 
-    object Video : Route(
-        route = "Video",
-        icon = R.drawable.ic_video
-    )
+    object Video :
+        Route(
+            route = "Video",
+            icon = R.drawable.ic_video,
+        )
 
-    object Discover : Route(
-        route = "Discover",
-        icon = R.drawable.ic_sensors,
-        hasNewItems = { accountViewModel, newNotes -> DiscoverLatestItem.hasNewItems(accountViewModel, newNotes) }
-    )
+    object Discover :
+        Route(
+            route = "Discover",
+            icon = R.drawable.ic_sensors,
+            hasNewItems = { accountViewModel, newNotes ->
+                DiscoverLatestItem.hasNewItems(accountViewModel, newNotes)
+            },
+        )
 
-    object Notification : Route(
-        route = "Notification",
-        icon = R.drawable.ic_notifications,
-        hasNewItems = { accountViewModel, newNotes -> NotificationLatestItem.hasNewItems(accountViewModel, newNotes) }
-    )
+    object Notification :
+        Route(
+            route = "Notification",
+            icon = R.drawable.ic_notifications,
+            hasNewItems = { accountViewModel, newNotes ->
+                NotificationLatestItem.hasNewItems(accountViewModel, newNotes)
+            },
+        )
 
-    object Message : Route(
-        route = "Message",
-        icon = R.drawable.ic_dm,
-        hasNewItems = { accountViewModel, newNotes -> MessagesLatestItem.hasNewItems(accountViewModel, newNotes) }
-    )
+    object Message :
+        Route(
+            route = "Message",
+            icon = R.drawable.ic_dm,
+            hasNewItems = { accountViewModel, newNotes ->
+                MessagesLatestItem.hasNewItems(accountViewModel, newNotes)
+            },
+        )
 
-    object BlockedUsers : Route(
-        route = "BlockedUsers",
-        icon = R.drawable.ic_security
-    )
+    object BlockedUsers :
+        Route(
+            route = "BlockedUsers",
+            icon = R.drawable.ic_security,
+        )
 
-    object Bookmarks : Route(
-        route = "Bookmarks",
-        icon = R.drawable.ic_bookmarks
-    )
+    object Bookmarks :
+        Route(
+            route = "Bookmarks",
+            icon = R.drawable.ic_bookmarks,
+        )
 
-    object Profile : Route(
-        route = "User/{id}",
-        icon = R.drawable.ic_profile,
-        arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList()
-    )
+    object Profile :
+        Route(
+            route = "User/{id}",
+            icon = R.drawable.ic_profile,
+            arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList(),
+        )
 
-    object Note : Route(
-        route = "Note/{id}",
-        icon = R.drawable.ic_moments,
-        arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList()
-    )
+    object Note :
+        Route(
+            route = "Note/{id}",
+            icon = R.drawable.ic_moments,
+            arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList(),
+        )
 
-    object Hashtag : Route(
-        route = "Hashtag/{id}",
-        icon = R.drawable.ic_moments,
-        arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList()
-    )
+    object Hashtag :
+        Route(
+            route = "Hashtag/{id}",
+            icon = R.drawable.ic_moments,
+            arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList(),
+        )
 
-    object Geohash : Route(
-        route = "Geohash/{id}",
-        icon = R.drawable.ic_moments,
-        arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList()
-    )
+    object Geohash :
+        Route(
+            route = "Geohash/{id}",
+            icon = R.drawable.ic_moments,
+            arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList(),
+        )
 
-    object Community : Route(
-        route = "Community/{id}",
-        icon = R.drawable.ic_moments,
-        arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList()
-    )
+    object Community :
+        Route(
+            route = "Community/{id}",
+            icon = R.drawable.ic_moments,
+            arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList(),
+        )
 
-    object Room : Route(
-        route = "Room/{id}?message={message}",
-        icon = R.drawable.ic_moments,
-        arguments = listOf(
-            navArgument("id") { type = NavType.StringType },
-            navArgument("message") { type = NavType.StringType; nullable = true; defaultValue = null }
-        ).toImmutableList()
-    )
+    object Room :
+        Route(
+            route = "Room/{id}?message={message}",
+            icon = R.drawable.ic_moments,
+            arguments =
+                listOf(
+                    navArgument("id") { type = NavType.StringType },
+                    navArgument("message") {
+                        type = NavType.StringType
+                        nullable = true
+                        defaultValue = null
+                    },
+                )
+                    .toImmutableList(),
+        )
 
-    object RoomByAuthor : Route(
-        route = "RoomByAuthor/{id}",
-        icon = R.drawable.ic_moments,
-        arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList()
-    )
+    object RoomByAuthor :
+        Route(
+            route = "RoomByAuthor/{id}",
+            icon = R.drawable.ic_moments,
+            arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList(),
+        )
 
-    object Channel : Route(
-        route = "Channel/{id}",
-        icon = R.drawable.ic_moments,
-        arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList()
-    )
+    object Channel :
+        Route(
+            route = "Channel/{id}",
+            icon = R.drawable.ic_moments,
+            arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList(),
+        )
 
-    object Event : Route(
-        route = "Event/{id}",
-        icon = R.drawable.ic_moments,
-        arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList()
-    )
+    object Event :
+        Route(
+            route = "Event/{id}",
+            icon = R.drawable.ic_moments,
+            arguments = listOf(navArgument("id") { type = NavType.StringType }).toImmutableList(),
+        )
 
-    object Settings : Route(
-        route = "Settings",
-        icon = R.drawable.ic_settings
-    )
+    object Settings :
+        Route(
+            route = "Settings",
+            icon = R.drawable.ic_settings,
+        )
 
     companion object {
-        val InvertedLayouts = setOf(
-            Channel.route,
-            Room.route,
-            RoomByAuthor.route
-        )
+        val InvertedLayouts =
+            setOf(
+                Channel.route,
+                Room.route,
+                RoomByAuthor.route,
+            )
     }
 }
 
 // **
-// *  Functions below only exist because we have not broken the datasource classes into backend and frontend.
+// *  Functions below only exist because we have not broken the datasource classes into backend and
+// frontend.
 // **
 @Composable
 fun currentRoute(navController: NavHostController): String? {
@@ -191,30 +254,44 @@ open class LatestItem {
         }
     }
 
-    fun updateNewestItem(newNotes: Set<Note>, account: Account, filter: AdditiveFeedFilter<Note>): Note? {
+    fun updateNewestItem(
+        newNotes: Set<Note>,
+        account: Account,
+        filter: AdditiveFeedFilter<Note>,
+    ): Note? {
         val newestItem = newestItemPerAccount[account.userProfile().pubkeyHex]
 
         // Block list got updated
         if (newestItem == null || !account.isAcceptable(newestItem)) {
-            newestItemPerAccount = newestItemPerAccount + Pair(
-                account.userProfile().pubkeyHex,
-                filterMore(filter.feed(), account).firstOrNull { it.createdAt() != null }
-            )
+            newestItemPerAccount =
+                newestItemPerAccount +
+                Pair(
+                    account.userProfile().pubkeyHex,
+                    filterMore(filter.feed(), account).firstOrNull { it.createdAt() != null },
+                )
         } else {
-            newestItemPerAccount = newestItemPerAccount + Pair(
-                account.userProfile().pubkeyHex,
-                filter.sort(filterMore(filter.applyFilter(newNotes), account) + newestItem).first()
-            )
+            newestItemPerAccount =
+                newestItemPerAccount +
+                Pair(
+                    account.userProfile().pubkeyHex,
+                    filter.sort(filterMore(filter.applyFilter(newNotes), account) + newestItem).first(),
+                )
         }
 
         return newestItemPerAccount[account.userProfile().pubkeyHex]
     }
 
-    open fun filterMore(newItems: Set<Note>, account: Account): Set<Note> {
+    open fun filterMore(
+        newItems: Set<Note>,
+        account: Account,
+    ): Set<Note> {
         return newItems
     }
 
-    open fun filterMore(newItems: List<Note>, account: Account): List<Note> {
+    open fun filterMore(
+        newItems: List<Note>,
+        account: Account,
+    ): List<Note> {
         return newItems
     }
 }
@@ -222,7 +299,7 @@ open class LatestItem {
 object HomeLatestItem : LatestItem() {
     fun hasNewItems(
         account: Account,
-        newNotes: Set<Note>
+        newNotes: Set<Note>,
     ): Boolean {
         checkNotInMainThread()
 
@@ -237,7 +314,7 @@ object HomeLatestItem : LatestItem() {
 object DiscoverLatestItem : LatestItem() {
     fun hasNewItems(
         account: Account,
-        newNotes: Set<Note>
+        newNotes: Set<Note>,
     ): Boolean {
         checkNotInMainThread()
 
@@ -247,11 +324,12 @@ object DiscoverLatestItem : LatestItem() {
 
         val noteEvent = newestItem?.event
 
-        val dateToUse = if (noteEvent is LiveActivitiesEvent) {
-            noteEvent.starts() ?: newestItem.createdAt()
-        } else {
-            newestItem?.createdAt()
-        }
+        val dateToUse =
+            if (noteEvent is LiveActivitiesEvent) {
+                noteEvent.starts() ?: newestItem.createdAt()
+            } else {
+                newestItem?.createdAt()
+            }
 
         return (dateToUse ?: 0) > lastTime
     }
@@ -260,7 +338,7 @@ object DiscoverLatestItem : LatestItem() {
 object NotificationLatestItem : LatestItem() {
     fun hasNewItems(
         account: Account,
-        newNotes: Set<Note>
+        newNotes: Set<Note>,
     ): Boolean {
         checkNotInMainThread()
 
@@ -275,7 +353,7 @@ object NotificationLatestItem : LatestItem() {
 object MessagesLatestItem : LatestItem() {
     fun hasNewItems(
         account: Account,
-        newNotes: Set<Note>
+        newNotes: Set<Note>,
     ): Boolean {
         checkNotInMainThread()
 
@@ -293,7 +371,10 @@ object MessagesLatestItem : LatestItem() {
         return isNew(newestItem, account)
     }
 
-    fun isNew(it: Note?, account: Account): Boolean {
+    fun isNew(
+        it: Note?,
+        account: Account,
+    ): Boolean {
         if (it == null) return false
 
         val currentUser = account.userProfile().pubkeyHex
@@ -306,16 +387,18 @@ object MessagesLatestItem : LatestItem() {
         }
     }
 
-    override fun filterMore(newItems: Set<Note>, account: Account): Set<Note> {
-        return newItems.filter {
-            isNew(it, account)
-        }.toSet()
+    override fun filterMore(
+        newItems: Set<Note>,
+        account: Account,
+    ): Set<Note> {
+        return newItems.filter { isNew(it, account) }.toSet()
     }
 
-    override fun filterMore(newItems: List<Note>, account: Account): List<Note> {
-        return newItems.filter {
-            isNew(it, account)
-        }
+    override fun filterMore(
+        newItems: List<Note>,
+        account: Account,
+    ): List<Note> {
+        return newItems.filter { isNew(it, account) }
     }
 }
 
@@ -325,14 +408,12 @@ fun getRouteWithArguments(navController: NavHostController): String? {
 }
 
 fun getRouteWithArguments(navState: State<NavBackStackEntry?>): String? {
-    return navState.value?.let {
-        getRouteWithArguments(it.destination, it.arguments)
-    }
+    return navState.value?.let { getRouteWithArguments(it.destination, it.arguments) }
 }
 
 private fun getRouteWithArguments(
     destination: NavDestination,
-    arguments: Bundle?
+    arguments: Bundle?,
 ): String? {
     var route = destination.route ?: return null
     arguments?.let { bundle ->
@@ -341,7 +422,8 @@ private fun getRouteWithArguments(
             val value = it.value.type[bundle, key]?.toString()
             if (value == null) {
                 val keyStart = route.indexOf("{$key}")
-                // if it is a parameter, removes the complete segment `var={key}` and adjust connectors `#`, `&` or `&`
+                // if it is a parameter, removes the complete segment `var={key}` and adjust connectors `#`,
+                // `&` or `&`
                 if (keyStart > 0 && route[keyStart - 1] == '=') {
                     val end = keyStart + "{$key}".length
                     var start = keyStart

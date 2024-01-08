@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.service
 
 import com.vitorpamplona.amethyst.model.User
@@ -22,11 +42,12 @@ object NostrSingleUserDataSource : NostrDataSource("SingleUserFeed") {
         return listOf(
             TypedFilter(
                 types = COMMON_FEED_TYPES,
-                filter = JsonFilter(
-                    kinds = listOf(MetadataEvent.kind),
-                    authors = firstTimers
-                )
-            )
+                filter =
+                    JsonFilter(
+                        kinds = listOf(MetadataEvent.KIND),
+                        authors = firstTimers,
+                    ),
+            ),
         )
     }
 
@@ -37,52 +58,60 @@ object NostrSingleUserDataSource : NostrDataSource("SingleUserFeed") {
 
         if (secondTimers.isEmpty()) return null
 
-        return groupByEOSEPresence(secondTimers).map { group ->
-            val groupIds = group.map { it.pubkeyHex }
-            val minEOSEs = findMinimumEOSEsForUsers(group)
-            listOf(
-                TypedFilter(
-                    types = COMMON_FEED_TYPES,
-                    filter = JsonFilter(
-                        kinds = listOf(MetadataEvent.kind, StatusEvent.kind),
-                        authors = groupIds,
-                        since = minEOSEs
-                    )
-                ),
-                TypedFilter(
-                    types = COMMON_FEED_TYPES,
-                    filter = JsonFilter(
-                        kinds = listOf(ReportEvent.kind),
-                        tags = mapOf("p" to groupIds),
-                        since = minEOSEs
-                    )
+        return groupByEOSEPresence(secondTimers)
+            .map { group ->
+                val groupIds = group.map { it.pubkeyHex }
+                val minEOSEs = findMinimumEOSEsForUsers(group)
+                listOf(
+                    TypedFilter(
+                        types = COMMON_FEED_TYPES,
+                        filter =
+                            JsonFilter(
+                                kinds = listOf(MetadataEvent.KIND, StatusEvent.KIND),
+                                authors = groupIds,
+                                since = minEOSEs,
+                            ),
+                    ),
+                    TypedFilter(
+                        types = COMMON_FEED_TYPES,
+                        filter =
+                            JsonFilter(
+                                kinds = listOf(ReportEvent.KIND),
+                                tags = mapOf("p" to groupIds),
+                                since = minEOSEs,
+                            ),
+                    ),
                 )
-            )
-        }.flatten()
+            }
+            .flatten()
     }
 
-    val userChannel = requestNewChannel() { time, relayUrl ->
-        checkNotInMainThread()
+    val userChannel =
+        requestNewChannel { time, relayUrl ->
+            checkNotInMainThread()
 
-        usersToWatch.forEach {
-            if (it.info?.latestMetadata != null) {
-                val eose = it.latestEOSEs[relayUrl]
-                if (eose == null) {
-                    it.latestEOSEs = it.latestEOSEs + Pair(relayUrl, EOSETime(time))
-                } else {
-                    eose.time = time
+            usersToWatch.forEach {
+                if (it.info?.latestMetadata != null) {
+                    val eose = it.latestEOSEs[relayUrl]
+                    if (eose == null) {
+                        it.latestEOSEs = it.latestEOSEs + Pair(relayUrl, EOSETime(time))
+                    } else {
+                        eose.time = time
+                    }
                 }
             }
         }
-    }
 
     override fun updateChannelFilters() {
         checkNotInMainThread()
 
-        userChannel.typedFilters = listOfNotNull(
-            createUserMetadataFilter(),
-            createUserMetadataStatusReportFilter()
-        ).flatten().ifEmpty { null }
+        userChannel.typedFilters =
+            listOfNotNull(
+                createUserMetadataFilter(),
+                createUserMetadataStatusReportFilter(),
+            )
+                .flatten()
+                .ifEmpty { null }
     }
 
     fun add(user: User) {

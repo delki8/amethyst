@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.note
 
 import androidx.compose.animation.Crossfade
@@ -8,7 +28,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -55,6 +74,8 @@ import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
 import com.vitorpamplona.amethyst.ui.theme.ChatBubbleMaxSizeModifier
 import com.vitorpamplona.amethyst.ui.theme.ChatBubbleShapeMe
 import com.vitorpamplona.amethyst.ui.theme.ChatBubbleShapeThem
+import com.vitorpamplona.amethyst.ui.theme.ChatPaddingInnerQuoteModifier
+import com.vitorpamplona.amethyst.ui.theme.ChatPaddingModifier
 import com.vitorpamplona.amethyst.ui.theme.DoubleHorzSpacer
 import com.vitorpamplona.amethyst.ui.theme.Font12SP
 import com.vitorpamplona.amethyst.ui.theme.ReactionRowHeightChat
@@ -85,7 +106,7 @@ fun ChatroomMessageCompose(
     parentBackgroundColor: MutableState<Color>? = null,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    onWantsToReply: (Note) -> Unit
+    onWantsToReply: (Note) -> Unit,
 ) {
     val hasEvent by baseNote.live().hasEvent.observeAsState(baseNote.event != null)
 
@@ -98,17 +119,18 @@ fun ChatroomMessageCompose(
                 parentBackgroundColor,
                 accountViewModel,
                 nav,
-                onWantsToReply
+                onWantsToReply,
             )
         } else {
-            LongPressToQuickAction(baseNote = baseNote, accountViewModel = accountViewModel) { showPopup ->
+            LongPressToQuickAction(baseNote = baseNote, accountViewModel = accountViewModel) { showPopup,
+                ->
                 BlankNote(
                     remember {
                         Modifier.combinedClickable(
-                            onClick = { },
-                            onLongClick = showPopup
+                            onClick = {},
+                            onLongClick = showPopup,
                         )
-                    }
+                    },
                 )
             }
         }
@@ -123,13 +145,15 @@ fun CheckHiddenChatMessage(
     parentBackgroundColor: MutableState<Color>? = null,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    onWantsToReply: (Note) -> Unit
+    onWantsToReply: (Note) -> Unit,
 ) {
-    val isHidden by remember {
-        accountViewModel.account.liveHiddenUsers.map {
-            baseNote.isHiddenFor(it)
-        }.distinctUntilChanged()
-    }.observeAsState(false)
+    val isHidden by
+        remember {
+            accountViewModel.account.liveHiddenUsers
+                .map { baseNote.isHiddenFor(it) }
+                .distinctUntilChanged()
+        }
+            .observeAsState(accountViewModel.isNoteHidden(baseNote))
 
     if (!isHidden) {
         LoadedChatMessageCompose(
@@ -139,7 +163,7 @@ fun CheckHiddenChatMessage(
             parentBackgroundColor,
             accountViewModel,
             nav,
-            onWantsToReply
+            onWantsToReply,
         )
     }
 }
@@ -152,11 +176,11 @@ fun LoadedChatMessageCompose(
     parentBackgroundColor: MutableState<Color>? = null,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    onWantsToReply: (Note) -> Unit
+    onWantsToReply: (Note) -> Unit,
 ) {
     var state by remember {
         mutableStateOf(
-            AccountViewModel.NoteComposeReportState()
+            AccountViewModel.NoteComposeReportState(),
         )
     }
 
@@ -168,11 +192,10 @@ fun LoadedChatMessageCompose(
 
     var showReportedNote by remember { mutableStateOf(false) }
 
-    val showHiddenNote by remember(state, showReportedNote) {
-        derivedStateOf {
-            !state.isAcceptable && !showReportedNote
+    val showHiddenNote by
+        remember(state, showReportedNote) {
+            derivedStateOf { !state.isAcceptable && !showReportedNote }
         }
-    }
 
     Crossfade(targetState = showHiddenNote) {
         if (it) {
@@ -183,14 +206,13 @@ fun LoadedChatMessageCompose(
                 Modifier,
                 innerQuote,
                 nav,
-                onClick = { showReportedNote = true }
+                onClick = { showReportedNote = true },
             )
         } else {
-            val canPreview by remember(state, showReportedNote) {
-                derivedStateOf {
-                    (!state.isAcceptable && showReportedNote) || state.canPreview
+            val canPreview by
+                remember(state, showReportedNote) {
+                    derivedStateOf { (!state.isAcceptable && showReportedNote) || state.canPreview }
                 }
-            }
 
             NormalChatNote(
                 baseNote,
@@ -200,7 +222,7 @@ fun LoadedChatMessageCompose(
                 parentBackgroundColor,
                 accountViewModel,
                 nav,
-                onWantsToReply
+                onWantsToReply,
             )
         }
     }
@@ -216,107 +238,97 @@ fun NormalChatNote(
     parentBackgroundColor: MutableState<Color>? = null,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    onWantsToReply: (Note) -> Unit
+    onWantsToReply: (Note) -> Unit,
 ) {
-    val drawAuthorInfo by remember {
-        derivedStateOf {
-            val noteEvent = note.event
-            if (accountViewModel.isLoggedUser(note.author)) {
-                false // never shows the user's pictures
-            } else if (noteEvent is PrivateDmEvent) {
-                false // one-on-one, never shows it.
-            } else if (noteEvent is ChatMessageEvent) {
-                // only shows in a group chat.
-                noteEvent.chatroomKey(accountViewModel.userProfile().pubkeyHex).users.size > 1
-            } else {
-                true
+    val drawAuthorInfo by
+        remember(note) {
+            derivedStateOf {
+                val noteEvent = note.event
+                if (accountViewModel.isLoggedUser(note.author)) {
+                    false // never shows the user's pictures
+                } else if (noteEvent is PrivateDmEvent) {
+                    false // one-on-one, never shows it.
+                } else if (noteEvent is ChatMessageEvent) {
+                    // only shows in a group chat.
+                    noteEvent.chatroomKey(accountViewModel.userProfile().pubkeyHex).users.size > 1
+                } else {
+                    true
+                }
             }
         }
-    }
 
     val loggedInColors = MaterialTheme.colorScheme.mediumImportanceLink
     val otherColors = MaterialTheme.colorScheme.subtleBorder
     val defaultBackground = MaterialTheme.colorScheme.background
 
-    val backgroundBubbleColor = remember {
-        if (accountViewModel.isLoggedUser(note.author)) {
-            mutableStateOf(loggedInColors.compositeOver(parentBackgroundColor?.value ?: defaultBackground))
-        } else {
-            mutableStateOf(otherColors.compositeOver(parentBackgroundColor?.value ?: defaultBackground))
-        }
-    }
-    val alignment: Arrangement.Horizontal = remember {
-        if (accountViewModel.isLoggedUser(note.author)) {
-            Arrangement.End
-        } else {
-            Arrangement.Start
-        }
-    }
-    val shape: Shape = remember {
-        if (accountViewModel.isLoggedUser(note.author)) {
-            ChatBubbleShapeMe
-        } else {
-            ChatBubbleShapeThem
-        }
-    }
-
-    if (routeForLastRead != null) {
-        LaunchedEffect(key1 = routeForLastRead) {
-            accountViewModel.loadAndMarkAsRead(routeForLastRead, note.createdAt()) { }
-        }
-    }
-
-    Column() {
-        val modif = remember {
-            if (innerQuote) {
-                Modifier.padding(top = 10.dp, end = 5.dp)
+    val backgroundBubbleColor =
+        remember {
+            if (accountViewModel.isLoggedUser(note.author)) {
+                mutableStateOf(
+                    loggedInColors.compositeOver(parentBackgroundColor?.value ?: defaultBackground),
+                )
             } else {
-                Modifier
-                    .fillMaxWidth(1f)
-                    .padding(
-                        start = 12.dp,
-                        end = 12.dp,
-                        top = 5.dp,
-                        bottom = 5.dp
-                    )
+                mutableStateOf(otherColors.compositeOver(parentBackgroundColor?.value ?: defaultBackground))
+            }
+        }
+    val alignment: Arrangement.Horizontal =
+        remember {
+            if (accountViewModel.isLoggedUser(note.author)) {
+                Arrangement.End
+            } else {
+                Arrangement.Start
+            }
+        }
+    val shape: Shape =
+        remember {
+            if (accountViewModel.isLoggedUser(note.author)) {
+                ChatBubbleShapeMe
+            } else {
+                ChatBubbleShapeThem
             }
         }
 
+    if (routeForLastRead != null) {
+        LaunchedEffect(key1 = routeForLastRead) {
+            accountViewModel.loadAndMarkAsRead(routeForLastRead, note.createdAt()) {}
+        }
+    }
+
+    Column {
         Row(
-            modifier = modif,
-            horizontalArrangement = alignment
+            modifier = if (innerQuote) ChatPaddingInnerQuoteModifier else ChatPaddingModifier,
+            horizontalArrangement = alignment,
         ) {
             val availableBubbleSize = remember { mutableIntStateOf(0) }
             var popupExpanded by remember { mutableStateOf(false) }
 
-            val modif2 = remember {
-                if (innerQuote) Modifier else ChatBubbleMaxSizeModifier
-            }
+            val modif2 = if (innerQuote) Modifier else ChatBubbleMaxSizeModifier
 
-            val clickableModifier = remember {
-                Modifier
-                    .combinedClickable(
+            val clickableModifier =
+                remember {
+                    Modifier.combinedClickable(
                         onClick = {
                             if (note.event is ChannelCreateEvent) {
                                 nav("Channel/${note.idHex}")
                             }
                         },
-                        onLongClick = { popupExpanded = true }
+                        onLongClick = { popupExpanded = true },
                     )
-            }
+                }
 
             Row(
                 horizontalArrangement = alignment,
-                modifier = modif2.onSizeChanged {
-                    if (availableBubbleSize.intValue != it.width) {
-                        availableBubbleSize.intValue = it.width
-                    }
-                }
+                modifier =
+                    modif2.onSizeChanged {
+                        if (availableBubbleSize.intValue != it.width) {
+                            availableBubbleSize.intValue = it.width
+                        }
+                    },
             ) {
                 Surface(
                     color = backgroundBubbleColor.value,
                     shape = shape,
-                    modifier = clickableModifier
+                    modifier = clickableModifier,
                 ) {
                     RenderBubble(
                         note,
@@ -328,7 +340,7 @@ fun NormalChatNote(
                         canPreview,
                         availableBubbleSize,
                         accountViewModel,
-                        nav
+                        nav,
                     )
                 }
             }
@@ -337,7 +349,7 @@ fun NormalChatNote(
                 note = note,
                 popupExpanded = popupExpanded,
                 onDismiss = { popupExpanded = false },
-                accountViewModel = accountViewModel
+                accountViewModel = accountViewModel,
             )
         }
     }
@@ -354,19 +366,18 @@ private fun RenderBubble(
     canPreview: Boolean,
     availableBubbleSize: MutableState<Int>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val bubbleSize = remember { mutableIntStateOf(0) }
 
-    val bubbleModifier = remember {
-        Modifier
-            .padding(start = 10.dp, end = 5.dp, bottom = 5.dp)
-            .onSizeChanged {
+    val bubbleModifier =
+        remember {
+            Modifier.padding(start = 10.dp, end = 5.dp, bottom = 5.dp).onSizeChanged {
                 if (bubbleSize.intValue != it.width) {
                     bubbleSize.intValue = it.width
                 }
             }
-    }
+        }
 
     Column(modifier = bubbleModifier) {
         MessageBubbleLines(
@@ -380,7 +391,7 @@ private fun RenderBubble(
             onWantsToReply,
             canPreview,
             bubbleSize,
-            availableBubbleSize
+            availableBubbleSize,
         )
     }
 }
@@ -397,18 +408,14 @@ private fun MessageBubbleLines(
     onWantsToReply: (Note) -> Unit,
     canPreview: Boolean,
     bubbleSize: MutableState<Int>,
-    availableBubbleSize: MutableState<Int>
+    availableBubbleSize: MutableState<Int>,
 ) {
-    val automaticallyShowProfilePicture = remember {
-        accountViewModel.settings.showProfilePictures.value
-    }
-
     if (drawAuthorInfo) {
         DrawAuthorInfo(
             baseNote,
             alignment,
-            automaticallyShowProfilePicture,
-            nav
+            accountViewModel.settings.showProfilePictures.value,
+            nav,
         )
     } else {
         Spacer(modifier = StdVertSpacer)
@@ -420,7 +427,7 @@ private fun MessageBubbleLines(
         backgroundBubbleColor = backgroundBubbleColor,
         accountViewModel = accountViewModel,
         nav = nav,
-        onWantsToReply = onWantsToReply
+        onWantsToReply = onWantsToReply,
     )
 
     NoteRow(
@@ -428,7 +435,7 @@ private fun MessageBubbleLines(
         canPreview = canPreview,
         backgroundBubbleColor = backgroundBubbleColor,
         accountViewModel = accountViewModel,
-        nav = nav
+        nav = nav,
     )
 
     ConstrainedStatusRow(
@@ -450,12 +457,12 @@ private fun MessageBubbleLines(
                 grayTint = MaterialTheme.colorScheme.placeholderText,
                 accountViewModel = accountViewModel,
                 showCounter = false,
-                iconSizeModifier = Size15Modifier
+                iconSizeModifier = Size15Modifier,
             ) {
                 onWantsToReply(baseNote)
             }
             Spacer(modifier = StdHorzSpacer)
-        }
+        },
     )
 }
 
@@ -466,13 +473,9 @@ private fun RenderReplyRow(
     backgroundBubbleColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    onWantsToReply: (Note) -> Unit
+    onWantsToReply: (Note) -> Unit,
 ) {
-    val hasReply by remember {
-        derivedStateOf {
-            !innerQuote && note.replyTo?.lastOrNull() != null
-        }
-    }
+    val hasReply by remember { derivedStateOf { !innerQuote && note.replyTo?.lastOrNull() != null } }
 
     if (hasReply) {
         RenderReply(note, backgroundBubbleColor, accountViewModel, nav, onWantsToReply)
@@ -485,14 +488,10 @@ private fun RenderReply(
     backgroundBubbleColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    onWantsToReply: (Note) -> Unit
+    onWantsToReply: (Note) -> Unit,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        val replyTo by remember {
-            derivedStateOf {
-                note.replyTo?.lastOrNull()
-            }
-        }
+        val replyTo by remember { derivedStateOf { note.replyTo?.lastOrNull() } }
         replyTo?.let { note ->
             ChatroomMessageCompose(
                 note,
@@ -501,7 +500,7 @@ private fun RenderReply(
                 parentBackgroundColor = backgroundBubbleColor,
                 accountViewModel = accountViewModel,
                 nav = nav,
-                onWantsToReply = onWantsToReply
+                onWantsToReply = onWantsToReply,
             )
         }
     }
@@ -513,25 +512,23 @@ private fun NoteRow(
     canPreview: Boolean,
     backgroundBubbleColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         when (remember(note) { note.event }) {
             is ChannelCreateEvent -> {
                 RenderCreateChannelNote(note)
             }
-
             is ChannelMetadataEvent -> {
                 RenderChangeChannelMetadataNote(note)
             }
-
             else -> {
                 RenderRegularTextNote(
                     note,
                     canPreview,
                     backgroundBubbleColor,
                     accountViewModel,
-                    nav
+                    nav,
                 )
             }
         }
@@ -543,25 +540,25 @@ private fun ConstrainedStatusRow(
     bubbleSize: MutableState<Int>,
     availableBubbleSize: MutableState<Int>,
     firstColumn: @Composable () -> Unit,
-    secondColumn: @Composable () -> Unit
+    secondColumn: @Composable () -> Unit,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = with(LocalDensity.current) {
-            Modifier
-                .padding(top = Size5dp)
-                .height(Size20dp)
-                .widthIn(
-                    bubbleSize.value.toDp(),
-                    availableBubbleSize.value.toDp()
-                )
-        }
+        modifier =
+            with(LocalDensity.current) {
+                Modifier.padding(top = Size5dp)
+                    .height(Size20dp)
+                    .widthIn(
+                        bubbleSize.value.toDp(),
+                        availableBubbleSize.value.toDp(),
+                    )
+            },
     ) {
         Column(modifier = ReactionRowHeightChat) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = ReactionRowHeightChat
+                modifier = ReactionRowHeightChat,
             ) {
                 firstColumn()
             }
@@ -570,7 +567,7 @@ private fun ConstrainedStatusRow(
         Column(modifier = ReactionRowHeightChat) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = ReactionRowHeightChat
+                modifier = ReactionRowHeightChat,
             ) {
                 secondColumn()
             }
@@ -584,20 +581,16 @@ fun IncognitoBadge(baseNote: Note) {
         Icon(
             painter = painterResource(id = R.drawable.incognito),
             null,
-            modifier = Modifier
-                .padding(top = 1.dp)
-                .size(14.dp),
-            tint = MaterialTheme.colorScheme.placeholderText
+            modifier = Modifier.padding(top = 1.dp).size(14.dp),
+            tint = MaterialTheme.colorScheme.placeholderText,
         )
         Spacer(modifier = StdHorzSpacer)
     } else if (baseNote.event is PrivateDmEvent) {
         Icon(
             painter = painterResource(id = R.drawable.incognito_off),
             null,
-            modifier = Modifier
-                .padding(top = 1.dp)
-                .size(14.dp),
-            tint = MaterialTheme.colorScheme.placeholderText
+            modifier = Modifier.padding(top = 1.dp).size(14.dp),
+            tint = MaterialTheme.colorScheme.placeholderText,
         )
         Spacer(modifier = StdHorzSpacer)
     }
@@ -607,17 +600,14 @@ fun IncognitoBadge(baseNote: Note) {
 fun ChatTimeAgo(baseNote: Note) {
     val nowStr = stringResource(id = R.string.now)
 
-    val time by remember(baseNote) {
-        derivedStateOf {
-            timeAgoShort(baseNote.createdAt() ?: 0, nowStr)
-        }
-    }
+    val time by
+        remember(baseNote) { derivedStateOf { timeAgoShort(baseNote.createdAt() ?: 0, nowStr) } }
 
     Text(
         text = time,
         color = MaterialTheme.colorScheme.placeholderText,
         fontSize = Font12SP,
-        maxLines = 1
+        maxLines = 1,
     )
 }
 
@@ -627,7 +617,7 @@ private fun RenderRegularTextNote(
     canPreview: Boolean,
     backgroundBubbleColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val tags = remember(note.event) { note.event?.tags()?.toImmutableListOfLists() ?: EmptyTagList }
     val modifier = remember { Modifier.padding(top = 5.dp) }
@@ -636,7 +626,7 @@ private fun RenderRegularTextNote(
         if (eventContent != null) {
             SensitivityWarning(
                 note = note,
-                accountViewModel = accountViewModel
+                accountViewModel = accountViewModel,
             ) {
                 TranslatableRichTextViewer(
                     content = eventContent!!,
@@ -645,7 +635,7 @@ private fun RenderRegularTextNote(
                     tags = tags,
                     backgroundColor = backgroundBubbleColor,
                     accountViewModel = accountViewModel,
-                    nav = nav
+                    nav = nav,
                 )
             }
         } else {
@@ -656,34 +646,30 @@ private fun RenderRegularTextNote(
                 tags = tags,
                 backgroundColor = backgroundBubbleColor,
                 accountViewModel = accountViewModel,
-                nav = nav
+                nav = nav,
             )
         }
     }
 }
 
 @Composable
-private fun RenderChangeChannelMetadataNote(
-    note: Note
-) {
+private fun RenderChangeChannelMetadataNote(note: Note) {
     val noteEvent = note.event as? ChannelMetadataEvent ?: return
 
     val channelInfo = noteEvent.channelInfo()
-    val text = note.author?.toBestDisplayName()
-        .toString() + " ${stringResource(R.string.changed_chat_name_to)} '" + (
-        channelInfo.name
-            ?: ""
-        ) + "', ${stringResource(R.string.description_to)} '" + (
-        channelInfo.about
-            ?: ""
-        ) + "', ${stringResource(R.string.and_picture_to)} '" + (
-        channelInfo.picture
-            ?: ""
-        ) + "'"
+    val text =
+        note.author?.toBestDisplayName().toString() +
+            " ${stringResource(R.string.changed_chat_name_to)} '" +
+            (channelInfo.name ?: "") +
+            "', ${stringResource(R.string.description_to)} '" +
+            (channelInfo.about ?: "") +
+            "', ${stringResource(R.string.and_picture_to)} '" +
+            (channelInfo.picture ?: "") +
+            "'"
 
     CreateTextWithEmoji(
         text = text,
-        tags = remember { note.author?.info?.latestMetadata?.tags?.toImmutableListOfLists() }
+        tags = remember { note.author?.info?.latestMetadata?.tags?.toImmutableListOfLists() },
     )
 }
 
@@ -692,21 +678,19 @@ private fun RenderCreateChannelNote(note: Note) {
     val noteEvent = note.event as? ChannelCreateEvent ?: return
     val channelInfo = remember { noteEvent.channelInfo() }
 
-    val text = note.author?.toBestDisplayName()
-        .toString() + " ${stringResource(R.string.created)} " + (
-        channelInfo.name
-            ?: ""
-        ) + " ${stringResource(R.string.with_description_of)} '" + (
-        channelInfo.about
-            ?: ""
-        ) + "', ${stringResource(R.string.and_picture)} '" + (
-        channelInfo.picture
-            ?: ""
-        ) + "'"
+    val text =
+        note.author?.toBestDisplayName().toString() +
+            " ${stringResource(R.string.created)} " +
+            (channelInfo.name ?: "") +
+            " ${stringResource(R.string.with_description_of)} '" +
+            (channelInfo.about ?: "") +
+            "', ${stringResource(R.string.and_picture)} '" +
+            (channelInfo.picture ?: "") +
+            "'"
 
     CreateTextWithEmoji(
         text = text,
-        tags = remember { note.author?.info?.latestMetadata?.tags?.toImmutableListOfLists() }
+        tags = remember { note.author?.info?.latestMetadata?.tags?.toImmutableListOfLists() },
     )
 }
 
@@ -715,12 +699,12 @@ private fun DrawAuthorInfo(
     baseNote: Note,
     alignment: Arrangement.Horizontal,
     loadProfilePicture: Boolean,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = alignment,
-        modifier = Modifier.padding(top = Size10dp)
+        modifier = Modifier.padding(top = Size10dp),
     ) {
         DisplayAndWatchNoteAuthor(baseNote, loadProfilePicture, nav)
     }
@@ -730,50 +714,37 @@ private fun DrawAuthorInfo(
 private fun DisplayAndWatchNoteAuthor(
     baseNote: Note,
     loadProfilePicture: Boolean,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    val author = remember {
-        baseNote.author
-    }
-    author?.let {
-        WatchAndDisplayUser(it, loadProfilePicture, nav)
-    }
+    val author = remember { baseNote.author }
+    author?.let { WatchAndDisplayUser(it, loadProfilePicture, nav) }
 }
 
 @Composable
 private fun WatchAndDisplayUser(
     author: User,
     loadProfilePicture: Boolean,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val pubkeyHex = remember { author.pubkeyHex }
     val route = remember { "User/${author.pubkeyHex}" }
 
     val userState by author.live().metadata.observeAsState()
 
-    val userDisplayName by remember(userState) {
-        derivedStateOf {
-            userState?.user?.toBestDisplayName()
-        }
-    }
+    val userDisplayName by
+        remember(userState) { derivedStateOf { userState?.user?.toBestDisplayName() } }
 
-    val userProfilePicture by remember(userState) {
-        derivedStateOf {
-            userState?.user?.profilePicture()
-        }
-    }
+    val userProfilePicture by
+        remember(userState) { derivedStateOf { userState?.user?.profilePicture() } }
 
-    val userTags by remember(userState) {
-        derivedStateOf {
-            userState?.user?.info?.latestMetadata?.tags?.toImmutableListOfLists()
+    val userTags by
+        remember(userState) {
+            derivedStateOf { userState?.user?.info?.latestMetadata?.tags?.toImmutableListOfLists() }
         }
-    }
 
     UserIcon(pubkeyHex, userProfilePicture, loadProfilePicture, nav, route)
 
-    userDisplayName?.let {
-        DisplayMessageUsername(it, userTags, route, nav)
-    }
+    userDisplayName?.let { DisplayMessageUsername(it, userTags, route, nav) }
 }
 
 @Composable
@@ -782,22 +753,20 @@ private fun UserIcon(
     userProfilePicture: String?,
     loadProfilePicture: Boolean,
     nav: (String) -> Unit,
-    route: String
+    route: String,
 ) {
     RobohashFallbackAsyncImage(
         robot = pubkeyHex,
         model = userProfilePicture,
         contentDescription = stringResource(id = R.string.profile_image),
         loadProfilePicture = loadProfilePicture,
-        modifier = remember {
-            Modifier
-                .width(Size25dp)
-                .height(Size25dp)
-                .clip(shape = CircleShape)
-                .clickable(onClick = {
-                    nav(route)
-                })
-        }
+        modifier =
+            remember {
+                Modifier.width(Size25dp)
+                    .height(Size25dp)
+                    .clip(shape = CircleShape)
+                    .clickable(onClick = { nav(route) })
+            },
     )
 }
 
@@ -806,7 +775,7 @@ private fun DisplayMessageUsername(
     userDisplayName: String,
     userTags: ImmutableListOfLists<String>?,
     route: String,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     Spacer(modifier = StdHorzSpacer)
     CreateClickableTextWithEmoji(
@@ -815,9 +784,9 @@ private fun DisplayMessageUsername(
         maxLines = 1,
         tags = userTags,
         fontWeight = FontWeight.Bold,
-        overrideColor = MaterialTheme.colorScheme.onBackground, // we do not want clickable names in purple here.
+        overrideColor = MaterialTheme.colorScheme.onBackground,
         route = route,
-        nav = nav
+        nav = nav,
     )
 
     Spacer(modifier = StdHorzSpacer)

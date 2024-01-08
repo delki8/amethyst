@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.theme
 
 import android.app.Activity
@@ -37,21 +57,23 @@ import com.patrykandpatrick.vico.core.DefaultColors
 import com.vitorpamplona.amethyst.model.ThemeType
 import com.vitorpamplona.amethyst.ui.screen.SharedPreferencesViewModel
 
-private val DarkColorPalette = darkColorScheme(
-    primary = Purple200,
-    secondary = Teal200,
-    tertiary = Teal200,
-    background = Color(0xFF000000),
-    surface = Color(0xFF000000),
-    surfaceVariant = Color(red = 29, green = 26, blue = 34)
-)
+private val DarkColorPalette =
+    darkColorScheme(
+        primary = Purple200,
+        secondary = Teal200,
+        tertiary = Teal200,
+        background = Color(0xFF000000),
+        surface = Color(0xFF000000),
+        surfaceVariant = Color(red = 29, green = 26, blue = 34),
+    )
 
-private val LightColorPalette = lightColorScheme(
-    primary = Purple500,
-    secondary = Teal200,
-    tertiary = Teal200,
-    surfaceVariant = Color(red = 250, green = 245, blue = 252)
-)
+private val LightColorPalette =
+    lightColorScheme(
+        primary = Purple500,
+        secondary = Teal200,
+        tertiary = Teal200,
+        surfaceVariant = Color(red = 250, green = 245, blue = 252),
+    )
 
 private val DarkNewItemBackground = DarkColorPalette.primary.copy(0.12f)
 private val LightNewItemBackground = LightColorPalette.primary.copy(0.12f)
@@ -59,8 +81,10 @@ private val LightNewItemBackground = LightColorPalette.primary.copy(0.12f)
 private val DarkSelectedNote = DarkNewItemBackground.compositeOver(DarkColorPalette.background)
 private val LightSelectedNote = LightNewItemBackground.compositeOver(LightColorPalette.background)
 
-private val DarkButtonBackground = DarkColorPalette.primary.copy(alpha = 0.32f).compositeOver(DarkColorPalette.background)
-private val LightButtonBackground = LightColorPalette.primary.copy(alpha = 0.32f).compositeOver(LightColorPalette.background)
+private val DarkButtonBackground =
+    DarkColorPalette.primary.copy(alpha = 0.32f).compositeOver(DarkColorPalette.background)
+private val LightButtonBackground =
+    LightColorPalette.primary.copy(alpha = 0.32f).compositeOver(LightColorPalette.background)
 
 private val DarkLessImportantLink = DarkColorPalette.primary.copy(alpha = 0.52f)
 private val LightLessImportantLink = LightColorPalette.primary.copy(alpha = 0.52f)
@@ -92,8 +116,10 @@ private val LightSubtleBorder = LightColorPalette.onSurface.copy(alpha = 0.12f)
 private val DarkReplyItemBackground = DarkColorPalette.onSurface.copy(alpha = 0.05f)
 private val LightReplyItemBackground = LightColorPalette.onSurface.copy(alpha = 0.05f)
 
-private val DarkZapraiserBackground = BitcoinOrange.copy(0.52f).compositeOver(DarkColorPalette.background)
-private val LightZapraiserBackground = BitcoinOrange.copy(0.52f).compositeOver(LightColorPalette.background)
+private val DarkZapraiserBackground =
+    BitcoinOrange.copy(0.52f).compositeOver(DarkColorPalette.background)
+private val LightZapraiserBackground =
+    BitcoinOrange.copy(0.52f).compositeOver(LightColorPalette.background)
 
 private val DarkOverPictureBackground = DarkColorPalette.background.copy(0.62f)
 private val LightOverPictureBackground = LightColorPalette.background.copy(0.62f)
@@ -101,141 +127,139 @@ private val LightOverPictureBackground = LightColorPalette.background.copy(0.62f
 val RepostPictureBorderDark = Modifier.border(2.dp, DarkColorPalette.background, CircleShape)
 val RepostPictureBorderLight = Modifier.border(2.dp, LightColorPalette.background, CircleShape)
 
-val DarkImageModifier = Modifier
-    .fillMaxWidth()
-    .clip(shape = QuoteBorder)
-    .border(1.dp, DarkSubtleBorder, QuoteBorder)
+val DarkImageModifier =
+    Modifier.fillMaxWidth().clip(shape = QuoteBorder).border(1.dp, DarkSubtleBorder, QuoteBorder)
 
-val LightImageModifier = Modifier
-    .fillMaxWidth()
-    .clip(shape = QuoteBorder)
-    .border(1.dp, LightSubtleBorder, QuoteBorder)
+val LightImageModifier =
+    Modifier.fillMaxWidth().clip(shape = QuoteBorder).border(1.dp, LightSubtleBorder, QuoteBorder)
 
-val DarkProfile35dpModifier = Modifier
-    .size(Size35dp)
-    .clip(shape = CircleShape)
+val DarkProfile35dpModifier = Modifier.size(Size35dp).clip(shape = CircleShape)
 
-val LightProfile35dpModifier = Modifier
-    .fillMaxWidth()
-    .clip(shape = CircleShape)
+val LightProfile35dpModifier = Modifier.fillMaxWidth().clip(shape = CircleShape)
 
-val DarkReplyBorderModifier = Modifier
-    .padding(top = 5.dp)
-    .fillMaxWidth()
-    .clip(shape = QuoteBorder)
-    .border(1.dp, DarkSubtleBorder, QuoteBorder)
+val DarkReplyBorderModifier =
+    Modifier.padding(top = 5.dp)
+        .fillMaxWidth()
+        .clip(shape = QuoteBorder)
+        .border(1.dp, DarkSubtleBorder, QuoteBorder)
 
-val LightReplyBorderModifier = Modifier
-    .padding(top = 2.dp, bottom = 0.dp, start = 0.dp, end = 0.dp)
-    .fillMaxWidth()
-    .clip(shape = QuoteBorder)
-    .border(1.dp, LightSubtleBorder, QuoteBorder)
+val LightReplyBorderModifier =
+    Modifier.padding(top = 2.dp, bottom = 0.dp, start = 0.dp, end = 0.dp)
+        .fillMaxWidth()
+        .clip(shape = QuoteBorder)
+        .border(1.dp, LightSubtleBorder, QuoteBorder)
 
-val DarkInnerPostBorderModifier = Modifier
-    .padding(top = 5.dp)
-    .fillMaxWidth()
-    .clip(shape = QuoteBorder)
-    .border(1.dp, DarkSubtleBorder, QuoteBorder)
+val DarkInnerPostBorderModifier =
+    Modifier.padding(top = 5.dp)
+        .fillMaxWidth()
+        .clip(shape = QuoteBorder)
+        .border(1.dp, DarkSubtleBorder, QuoteBorder)
 
-val LightInnerPostBorderModifier = Modifier
-    .padding(top = 5.dp)
-    .fillMaxWidth()
-    .clip(shape = QuoteBorder)
-    .border(1.dp, LightSubtleBorder, QuoteBorder)
+val LightInnerPostBorderModifier =
+    Modifier.padding(top = 5.dp)
+        .fillMaxWidth()
+        .clip(shape = QuoteBorder)
+        .border(1.dp, LightSubtleBorder, QuoteBorder)
 
-val DarkChannelNotePictureModifier = Modifier
-    .size(30.dp)
-    .clip(shape = CircleShape)
-    .background(DarkColorPalette.background)
-    .border(2.dp, DarkColorPalette.background, CircleShape)
+val DarkChannelNotePictureModifier =
+    Modifier.size(30.dp)
+        .clip(shape = CircleShape)
+        .background(DarkColorPalette.background)
+        .border(2.dp, DarkColorPalette.background, CircleShape)
 
-val LightChannelNotePictureModifier = Modifier
-    .size(30.dp)
-    .clip(shape = CircleShape)
-    .background(LightColorPalette.background)
-    .border(2.dp, LightColorPalette.background, CircleShape)
+val LightChannelNotePictureModifier =
+    Modifier.size(30.dp)
+        .clip(shape = CircleShape)
+        .background(LightColorPalette.background)
+        .border(2.dp, LightColorPalette.background, CircleShape)
 
-val LightRelayIconModifier = Modifier
-    .size(Size13dp)
-    .clip(shape = CircleShape)
-    .background(LightColorPalette.background)
+val LightRelayIconModifier =
+    Modifier.size(Size13dp).clip(shape = CircleShape).background(LightColorPalette.background)
 
-val DarkRelayIconModifier = Modifier
-    .size(Size13dp)
-    .clip(shape = CircleShape)
-    .background(DarkColorPalette.background)
+val DarkRelayIconModifier =
+    Modifier.size(Size13dp).clip(shape = CircleShape).background(DarkColorPalette.background)
 
-val LightLargeRelayIconModifier = Modifier
-    .size(Size55dp)
-    .clip(shape = CircleShape)
-    .background(LightColorPalette.background)
+val LightLargeRelayIconModifier =
+    Modifier.size(Size55dp).clip(shape = CircleShape).background(LightColorPalette.background)
 
-val DarkLargeRelayIconModifier = Modifier
-    .size(Size55dp)
-    .clip(shape = CircleShape)
-    .background(DarkColorPalette.background)
+val DarkLargeRelayIconModifier =
+    Modifier.size(Size55dp).clip(shape = CircleShape).background(DarkColorPalette.background)
 
 val RichTextDefaults = RichTextStyle().resolveDefaults()
 
-val MarkDownStyleOnDark = RichTextDefaults.copy(
-    paragraphSpacing = DefaultParagraphSpacing,
-    headingStyle = DefaultHeadingStyle,
-    listStyle = RichTextDefaults.listStyle?.copy(
-        itemSpacing = 10.sp
-    ),
-    codeBlockStyle = RichTextDefaults.codeBlockStyle?.copy(
-        textStyle = TextStyle(
-            fontFamily = FontFamily.Monospace,
-            fontSize = Font14SP
-        ),
-        modifier = Modifier
-            .padding(0.dp)
-            .fillMaxWidth()
-            .clip(shape = QuoteBorder)
-            .border(1.dp, DarkSubtleBorder, QuoteBorder)
-            .background(DarkColorPalette.onSurface.copy(alpha = 0.05f))
-    ),
-    stringStyle = RichTextDefaults.stringStyle?.copy(
-        linkStyle = SpanStyle(
-            color = DarkColorPalette.primary
-        ),
-        codeStyle = SpanStyle(
-            fontFamily = FontFamily.Monospace,
-            fontSize = Font14SP,
-            background = DarkColorPalette.onSurface.copy(alpha = 0.22f)
-        )
+val MarkDownStyleOnDark =
+    RichTextDefaults.copy(
+        paragraphSpacing = DefaultParagraphSpacing,
+        headingStyle = DefaultHeadingStyle,
+        listStyle =
+            RichTextDefaults.listStyle?.copy(
+                itemSpacing = 10.sp,
+            ),
+        codeBlockStyle =
+            RichTextDefaults.codeBlockStyle?.copy(
+                textStyle =
+                    TextStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = Font14SP,
+                    ),
+                modifier =
+                    Modifier.padding(0.dp)
+                        .fillMaxWidth()
+                        .clip(shape = QuoteBorder)
+                        .border(1.dp, DarkSubtleBorder, QuoteBorder)
+                        .background(DarkColorPalette.onSurface.copy(alpha = 0.05f)),
+            ),
+        stringStyle =
+            RichTextDefaults.stringStyle?.copy(
+                linkStyle =
+                    SpanStyle(
+                        color = DarkColorPalette.primary,
+                    ),
+                codeStyle =
+                    SpanStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = Font14SP,
+                        background = DarkColorPalette.onSurface.copy(alpha = 0.22f),
+                    ),
+            ),
     )
-)
 
-val MarkDownStyleOnLight = RichTextDefaults.copy(
-    paragraphSpacing = DefaultParagraphSpacing,
-    headingStyle = DefaultHeadingStyle,
-    listStyle = RichTextDefaults.listStyle?.copy(
-        itemSpacing = 10.sp
-    ),
-    codeBlockStyle = RichTextDefaults.codeBlockStyle?.copy(
-        textStyle = TextStyle(
-            fontFamily = FontFamily.Monospace,
-            fontSize = Font14SP
-        ),
-        modifier = Modifier
-            .padding(0.dp)
-            .fillMaxWidth()
-            .clip(shape = QuoteBorder)
-            .border(1.dp, LightSubtleBorder, QuoteBorder)
-            .background(DarkColorPalette.onSurface.copy(alpha = 0.05f))
-    ),
-    stringStyle = RichTextDefaults.stringStyle?.copy(
-        linkStyle = SpanStyle(
-            color = LightColorPalette.primary
-        ),
-        codeStyle = SpanStyle(
-            fontFamily = FontFamily.Monospace,
-            fontSize = Font14SP,
-            background = LightColorPalette.onSurface.copy(alpha = 0.22f)
-        )
+val MarkDownStyleOnLight =
+    RichTextDefaults.copy(
+        paragraphSpacing = DefaultParagraphSpacing,
+        headingStyle = DefaultHeadingStyle,
+        listStyle =
+            RichTextDefaults.listStyle?.copy(
+                itemSpacing = 10.sp,
+            ),
+        codeBlockStyle =
+            RichTextDefaults.codeBlockStyle?.copy(
+                textStyle =
+                    TextStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = Font14SP,
+                    ),
+                modifier =
+                    Modifier.padding(0.dp)
+                        .fillMaxWidth()
+                        .clip(shape = QuoteBorder)
+                        .border(1.dp, LightSubtleBorder, QuoteBorder)
+                        .background(DarkColorPalette.onSurface.copy(alpha = 0.05f)),
+            ),
+        stringStyle =
+            RichTextDefaults.stringStyle?.copy(
+                linkStyle =
+                    SpanStyle(
+                        color = LightColorPalette.primary,
+                    ),
+                codeStyle =
+                    SpanStyle(
+                        fontFamily = FontFamily.Monospace,
+                        fontSize = Font14SP,
+                        background = LightColorPalette.onSurface.copy(alpha = 0.22f),
+                    ),
+            ),
     )
-)
 
 val ColorScheme.isLight: Boolean
     get() = primary == Purple500
@@ -330,29 +354,35 @@ val ColorScheme.chartStyle: ChartStyle
             axisLabelColor = Color(defaultColors.axisLabelColor),
             axisGuidelineColor = Color(defaultColors.axisGuidelineColor),
             axisLineColor = Color(defaultColors.axisLineColor),
-            entityColors = listOf(
-                defaultColors.entity1Color,
-                defaultColors.entity2Color,
-                defaultColors.entity3Color
-            ).map(::Color),
-            elevationOverlayColor = Color(defaultColors.elevationOverlayColor)
+            entityColors =
+                listOf(
+                    defaultColors.entity1Color,
+                    defaultColors.entity2Color,
+                    defaultColors.entity3Color,
+                )
+                    .map(::Color),
+            elevationOverlayColor = Color(defaultColors.elevationOverlayColor),
         )
     }
 
 @Composable
-fun AmethystTheme(sharedPrefsViewModel: SharedPreferencesViewModel, content: @Composable () -> Unit) {
-    val darkTheme = when (sharedPrefsViewModel.sharedPrefs.theme) {
-        ThemeType.DARK -> true
-        ThemeType.LIGHT -> false
-        else -> isSystemInDarkTheme()
-    }
+fun AmethystTheme(
+    sharedPrefsViewModel: SharedPreferencesViewModel,
+    content: @Composable () -> Unit,
+) {
+    val darkTheme =
+        when (sharedPrefsViewModel.sharedPrefs.theme) {
+            ThemeType.DARK -> true
+            ThemeType.LIGHT -> false
+            else -> isSystemInDarkTheme()
+        }
     val colors = if (darkTheme) DarkColorPalette else LightColorPalette
 
     MaterialTheme(
         colorScheme = colors,
         typography = Typography,
         shapes = Shapes,
-        content = content
+        content = content,
     )
 
     val view = LocalView.current
@@ -374,23 +404,17 @@ fun AmethystTheme(sharedPrefsViewModel: SharedPreferencesViewModel, content: @Co
 @Composable
 fun ThemeComparison(
     onDark: @Composable () -> Unit,
-    onLight: @Composable () -> Unit
+    onLight: @Composable () -> Unit,
 ) {
-    Column() {
+    Column {
         val darkTheme: SharedPreferencesViewModel = viewModel()
         darkTheme.updateTheme(ThemeType.DARK)
-        AmethystTheme(darkTheme) {
-            Surface(color = MaterialTheme.colorScheme.background) {
-                onDark()
-            }
-        }
+        AmethystTheme(darkTheme) { Surface(color = MaterialTheme.colorScheme.background) { onDark() } }
 
         val lightTheme: SharedPreferencesViewModel = viewModel()
         lightTheme.updateTheme(ThemeType.LIGHT)
         AmethystTheme(lightTheme) {
-            Surface(color = MaterialTheme.colorScheme.background) {
-                onLight()
-            }
+            Surface(color = MaterialTheme.colorScheme.background) { onLight() }
         }
     }
 }

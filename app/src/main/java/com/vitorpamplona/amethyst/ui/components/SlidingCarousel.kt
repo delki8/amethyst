@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.components
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -31,31 +51,27 @@ import com.vitorpamplona.amethyst.ui.theme.placeholderText
 fun SlidingCarousel(
     pagerState: PagerState,
     modifier: Modifier = Modifier,
-    itemContent: @Composable (index: Int) -> Unit
+    itemContent: @Composable (index: Int) -> Unit,
 ) {
     val isDragged by pagerState.interactionSource.collectIsDraggedAsState()
 
     Box(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth(),
     ) {
-        HorizontalPager(state = pagerState) { page ->
-            itemContent(page)
-        }
+        HorizontalPager(state = pagerState) { page -> itemContent(page) }
 
         // you can remove the surface in case you don't want
-        // the transparant bacground
+        // the transparent bacground
         Surface(
-            modifier = Modifier
-                .padding(bottom = 8.dp)
-                .align(Alignment.BottomCenter),
+            modifier = Modifier.padding(bottom = 8.dp).align(Alignment.BottomCenter),
             shape = CircleShape,
-            color = Color.Black.copy(alpha = 0.5f)
+            color = Color.Black.copy(alpha = 0.5f),
         ) {
             DotsIndicator(
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
                 totalDots = pagerState.pageCount,
                 selectedIndex = if (isDragged) pagerState.currentPage else pagerState.targetPage,
-                dotSize = 8.dp
+                dotSize = 8.dp,
             )
         }
     }
@@ -66,19 +82,17 @@ fun DotsIndicator(
     modifier: Modifier = Modifier,
     totalDots: Int,
     selectedIndex: Int,
-    selectedColor: Color = MaterialTheme.colorScheme.primary /* Color.Yellow */,
-    unSelectedColor: Color = MaterialTheme.colorScheme.placeholderText /* Color.Gray */,
-    dotSize: Dp
+    selectedColor: Color = MaterialTheme.colorScheme.primary,
+    unSelectedColor: Color = MaterialTheme.colorScheme.placeholderText,
+    dotSize: Dp,
 ) {
     LazyRow(
-        modifier = modifier
-            .wrapContentWidth()
-            .wrapContentHeight()
+        modifier = modifier.wrapContentWidth().wrapContentHeight(),
     ) {
         items(totalDots) { index ->
             IndicatorDot(
                 color = if (index == selectedIndex) selectedColor else unSelectedColor,
-                size = dotSize
+                size = dotSize,
             )
 
             if (index != totalDots - 1) {
@@ -92,12 +106,9 @@ fun DotsIndicator(
 fun IndicatorDot(
     modifier: Modifier = Modifier,
     size: Dp,
-    color: Color
+    color: Color,
 ) {
     Box(
-        modifier = modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(color)
+        modifier = modifier.size(size).clip(CircleShape).background(color),
     )
 }

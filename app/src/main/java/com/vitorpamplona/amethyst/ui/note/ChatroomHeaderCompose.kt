@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.note
 
 import androidx.compose.animation.Crossfade
@@ -64,7 +84,7 @@ import kotlinx.coroutines.launch
 fun ChatroomHeaderCompose(
     baseNote: Note,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val hasEvent by baseNote.live().hasEvent.observeAsState(baseNote.event != null)
 
@@ -79,13 +99,9 @@ fun ChatroomHeaderCompose(
 fun ChatroomComposeChannelOrUser(
     baseNote: Note,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    val channelHex by remember(baseNote) {
-        derivedStateOf {
-            baseNote.channelHex()
-        }
-    }
+    val channelHex by remember(baseNote) { derivedStateOf { baseNote.channelHex() } }
 
     if (channelHex != null) {
         ChatroomChannel(channelHex!!, baseNote, accountViewModel, nav)
@@ -98,13 +114,14 @@ fun ChatroomComposeChannelOrUser(
 private fun ChatroomPrivateMessages(
     baseNote: Note,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    val userRoom by remember(baseNote) {
-        derivedStateOf {
-            (baseNote.event as? ChatroomKeyable)?.chatroomKey(accountViewModel.userProfile().pubkeyHex)
+    val userRoom by
+        remember(baseNote) {
+            derivedStateOf {
+                (baseNote.event as? ChatroomKeyable)?.chatroomKey(accountViewModel.userProfile().pubkeyHex)
+            }
         }
-    }
 
     Crossfade(userRoom, label = "ChatroomPrivateMessages") { room ->
         if (room != null) {
@@ -122,7 +139,7 @@ private fun ChatroomChannel(
     channelHex: HexKey,
     baseNote: Note,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     LoadChannel(baseChannelHex = channelHex, accountViewModel) { channel ->
         ChannelRoomCompose(baseNote, channel, accountViewModel, nav)
@@ -134,46 +151,36 @@ private fun ChannelRoomCompose(
     note: Note,
     channel: Channel,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val authorState by note.author!!.live().metadata.observeAsState()
-    val authorName = remember(note, authorState) {
-        authorState?.user?.toBestDisplayName()
-    }
+    val authorName = remember(note, authorState) { authorState?.user?.toBestDisplayName() }
 
     val chanHex = remember { channel.idHex }
 
     val channelState by channel.live.observeAsState()
-    val channelPicture by remember(note, channelState) {
-        derivedStateOf {
-            channel.profilePicture()
-        }
-    }
-    val channelName by remember(note, channelState) {
-        derivedStateOf {
-            channel.toBestDisplayName()
-        }
-    }
+    val channelPicture by remember(note, channelState) { derivedStateOf { channel.profilePicture() } }
+    val channelName by remember(note, channelState) { derivedStateOf { channel.toBestDisplayName() } }
 
     val noteEvent = note.event
 
-    val route = remember(note) {
-        "Channel/$chanHex"
-    }
+    val route = remember(note) { "Channel/$chanHex" }
 
-    val description = if (noteEvent is ChannelCreateEvent) {
-        stringResource(R.string.channel_created)
-    } else if (noteEvent is ChannelMetadataEvent) {
-        "${stringResource(R.string.channel_information_changed_to)} "
-    } else {
-        noteEvent?.content()
-    }
+    val description =
+        if (noteEvent is ChannelCreateEvent) {
+            stringResource(R.string.channel_created)
+        } else if (noteEvent is ChannelMetadataEvent) {
+            "${stringResource(R.string.channel_information_changed_to)} "
+        } else {
+            noteEvent?.content()
+        }
 
     val hasNewMessages = remember { mutableStateOf<Boolean>(false) }
 
-    val automaticallyShowProfilePicture = remember {
-        accountViewModel.settings.showProfilePictures.value
-    }
+    val automaticallyShowProfilePicture =
+        remember {
+            accountViewModel.settings.showProfilePictures.value
+        }
 
     WatchNotificationChanges(note, route, accountViewModel) { newHasNewMessages ->
         if (hasNewMessages.value != newHasNewMessages) {
@@ -184,41 +191,43 @@ private fun ChannelRoomCompose(
     ChannelName(
         channelIdHex = chanHex,
         channelPicture = channelPicture,
-        channelTitle = { modifier ->
-            ChannelTitleWithLabelInfo(channelName, modifier)
-        },
+        channelTitle = { modifier -> ChannelTitleWithLabelInfo(channelName, modifier) },
         channelLastTime = remember(note) { note.createdAt() },
         channelLastContent = remember(note, authorState) { "$authorName: $description" },
         hasNewMessages = hasNewMessages,
         loadProfilePicture = automaticallyShowProfilePicture,
-        onClick = { nav(route) }
+        onClick = { nav(route) },
     )
 }
 
 @Composable
-private fun ChannelTitleWithLabelInfo(channelName: String, modifier: Modifier) {
+private fun ChannelTitleWithLabelInfo(
+    channelName: String,
+    modifier: Modifier,
+) {
     val label = stringResource(id = R.string.public_chat)
     val placeHolderColor = MaterialTheme.colorScheme.placeholderText
-    val channelNameAndBoostInfo = remember(channelName) {
-        buildAnnotatedString {
-            withStyle(
-                SpanStyle(
-                    fontWeight = FontWeight.Bold
-                )
-            ) {
-                append(channelName)
-            }
+    val channelNameAndBoostInfo =
+        remember(channelName) {
+            buildAnnotatedString {
+                withStyle(
+                    SpanStyle(
+                        fontWeight = FontWeight.Bold,
+                    ),
+                ) {
+                    append(channelName)
+                }
 
-            withStyle(
-                SpanStyle(
-                    color = placeHolderColor,
-                    fontWeight = FontWeight.Normal
-                )
-            ) {
-                append(" $label")
+                withStyle(
+                    SpanStyle(
+                        color = placeHolderColor,
+                        fontWeight = FontWeight.Normal,
+                    ),
+                ) {
+                    append(" $label")
+                }
             }
         }
-    }
 
     Text(
         text = channelNameAndBoostInfo,
@@ -226,7 +235,7 @@ private fun ChannelTitleWithLabelInfo(channelName: String, modifier: Modifier) {
         modifier = modifier,
         style = LocalTextStyle.current.copy(textDirection = TextDirection.Content),
         maxLines = 1,
-        overflow = TextOverflow.Ellipsis
+        overflow = TextOverflow.Ellipsis,
     )
 }
 
@@ -235,19 +244,13 @@ private fun UserRoomCompose(
     note: Note,
     room: ChatroomKey,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val hasNewMessages = remember { mutableStateOf<Boolean>(false) }
 
-    val route = remember(room) {
-        "Room/${room.hashCode()}"
-    }
+    val route = remember(room) { "Room/${room.hashCode()}" }
 
-    val createAt by remember(note) {
-        derivedStateOf {
-            note.createdAt()
-        }
-    }
+    val createAt by remember(note) { derivedStateOf { note.createdAt() } }
 
     WatchNotificationChanges(note, route, accountViewModel) { newHasNewMessages ->
         if (hasNewMessages.value != newHasNewMessages) {
@@ -261,25 +264,32 @@ private fun UserRoomCompose(
                 NonClickableUserPictures(
                     users = room.users,
                     accountViewModel = accountViewModel,
-                    size = Size55dp
+                    size = Size55dp,
                 )
             },
-            channelTitle = {
-                RoomNameDisplay(room, it, accountViewModel)
-            },
+            channelTitle = { RoomNameDisplay(room, it, accountViewModel) },
             channelLastTime = createAt,
             channelLastContent = content,
             hasNewMessages = hasNewMessages,
-            onClick = { nav(route) }
+            onClick = { nav(route) },
         )
     }
 }
 
 @Composable
-fun RoomNameDisplay(room: ChatroomKey, modifier: Modifier, accountViewModel: AccountViewModel) {
-    val roomSubject by accountViewModel.userProfile().live().messages.map {
-        it.user.privateChatrooms[room]?.subject
-    }.distinctUntilChanged().observeAsState(accountViewModel.userProfile().privateChatrooms[room]?.subject)
+fun RoomNameDisplay(
+    room: ChatroomKey,
+    modifier: Modifier,
+    accountViewModel: AccountViewModel,
+) {
+    val roomSubject by
+        accountViewModel
+            .userProfile()
+            .live()
+            .messages
+            .map { it.user.privateChatrooms[room]?.subject }
+            .distinctUntilChanged()
+            .observeAsState(accountViewModel.userProfile().privateChatrooms[room]?.subject)
 
     Crossfade(targetState = roomSubject, modifier, label = "RoomNameDisplay") {
         if (!it.isNullOrBlank()) {
@@ -298,24 +308,22 @@ fun RoomNameDisplay(room: ChatroomKey, modifier: Modifier, accountViewModel: Acc
 private fun DisplayUserAndSubject(
     user: HexKey,
     subject: String,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
-    Row() {
+    Row {
         Text(
             text = subject,
             fontWeight = FontWeight.Bold,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
         Text(
             text = " - ",
             fontWeight = FontWeight.Bold,
-            maxLines = 1
+            maxLines = 1,
         )
         LoadUser(baseUserHex = user, accountViewModel = accountViewModel) {
-            it?.let {
-                UsernameDisplay(it, Modifier.weight(1f))
-            }
+            it?.let { UsernameDisplay(it, Modifier.weight(1f)) }
         }
     }
 }
@@ -324,35 +332,29 @@ private fun DisplayUserAndSubject(
 fun DisplayUserSetAsSubject(
     room: ChatroomKey,
     accountViewModel: AccountViewModel,
-    fontWeight: FontWeight = FontWeight.Bold
+    fontWeight: FontWeight = FontWeight.Bold,
 ) {
-    val userList = remember(room) {
-        room.users.toList()
-    }
+    val userList = remember(room) { room.users.toList() }
 
     if (userList.size == 1) {
         // Regular Design
-        Row() {
+        Row {
             LoadUser(baseUserHex = userList[0], accountViewModel) {
-                it?.let {
-                    UsernameDisplay(it, Modifier.weight(1f), fontWeight = fontWeight)
-                }
+                it?.let { UsernameDisplay(it, Modifier.weight(1f), fontWeight = fontWeight) }
             }
         }
     } else {
-        Row() {
+        Row {
             userList.take(4).forEachIndexedExtended { index, isFirst, isLast, value ->
                 LoadUser(baseUserHex = value, accountViewModel) {
-                    it?.let {
-                        ShortUsernameDisplay(baseUser = it, fontWeight = fontWeight)
-                    }
+                    it?.let { ShortUsernameDisplay(baseUser = it, fontWeight = fontWeight) }
                 }
 
                 if (!isLast) {
                     Text(
                         text = ", ",
                         fontWeight = fontWeight,
-                        maxLines = 1
+                        maxLines = 1,
                     )
                 }
             }
@@ -361,28 +363,39 @@ fun DisplayUserSetAsSubject(
 }
 
 @Composable
-fun DisplayRoomSubject(roomSubject: String, fontWeight: FontWeight = FontWeight.Bold) {
-    Row() {
+fun DisplayRoomSubject(
+    roomSubject: String,
+    fontWeight: FontWeight = FontWeight.Bold,
+) {
+    Row {
         Text(
             text = roomSubject,
             fontWeight = fontWeight,
-            maxLines = 1
+            maxLines = 1,
         )
     }
 }
 
 @Composable
-fun ShortUsernameDisplay(baseUser: User, weight: Modifier = Modifier, fontWeight: FontWeight = FontWeight.Bold) {
-    val userName by baseUser.live().metadata.map {
-        it.user.toBestShortFirstName()
-    }.distinctUntilChanged().observeAsState(baseUser.toBestShortFirstName())
+fun ShortUsernameDisplay(
+    baseUser: User,
+    weight: Modifier = Modifier,
+    fontWeight: FontWeight = FontWeight.Bold,
+) {
+    val userName by
+        baseUser
+            .live()
+            .metadata
+            .map { it.user.toBestShortFirstName() }
+            .distinctUntilChanged()
+            .observeAsState(baseUser.toBestShortFirstName())
 
     Crossfade(targetState = userName, modifier = weight) {
         CreateTextWithEmoji(
             text = it,
             tags = baseUser.info?.tags,
             fontWeight = fontWeight,
-            maxLines = 1
+            maxLines = 1,
         )
     }
 }
@@ -392,7 +405,7 @@ private fun WatchNotificationChanges(
     note: Note,
     route: String,
     accountViewModel: AccountViewModel,
-    onNewStatus: (Boolean) -> Unit
+    onNewStatus: (Boolean) -> Unit,
 ) {
     LaunchedEffect(key1 = note, accountViewModel.accountMarkAsReadUpdates.intValue) {
         launch(Dispatchers.IO) {
@@ -405,10 +418,13 @@ private fun WatchNotificationChanges(
 }
 
 @Composable
-fun LoadUser(baseUserHex: String, accountViewModel: AccountViewModel, content: @Composable (User?) -> Unit) {
-    var user by remember(baseUserHex) {
-        mutableStateOf(accountViewModel.getUserIfExists(baseUserHex))
-    }
+fun LoadUser(
+    baseUserHex: String,
+    accountViewModel: AccountViewModel,
+    content: @Composable (User?) -> Unit,
+) {
+    var user by
+        remember(baseUserHex) { mutableStateOf(accountViewModel.getUserIfExists(baseUserHex)) }
 
     if (user == null) {
         LaunchedEffect(key1 = baseUserHex) {
@@ -432,7 +448,7 @@ fun ChannelName(
     channelLastContent: String?,
     hasNewMessages: MutableState<Boolean>,
     loadProfilePicture: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ChannelName(
         channelPicture = {
@@ -441,14 +457,14 @@ fun ChannelName(
                 model = channelPicture,
                 contentDescription = stringResource(R.string.channel_image),
                 modifier = AccountPictureModifier,
-                loadProfilePicture = loadProfilePicture
+                loadProfilePicture = loadProfilePicture,
             )
         },
         channelTitle,
         channelLastTime,
         channelLastContent,
         hasNewMessages,
-        onClick
+        onClick,
     )
 }
 
@@ -459,7 +475,7 @@ fun ChannelName(
     channelLastTime: Long?,
     channelLastContent: String?,
     hasNewMessages: MutableState<Boolean>,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     ChatHeaderLayout(
         channelPicture = channelPicture,
@@ -475,7 +491,7 @@ fun ChannelName(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = LocalTextStyle.current.copy(textDirection = TextDirection.Content),
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             } else {
                 Text(
@@ -483,7 +499,7 @@ fun ChannelName(
                     color = MaterialTheme.colorScheme.grayText,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 )
             }
 
@@ -491,7 +507,7 @@ fun ChannelName(
                 NewItemsBubble()
             }
         },
-        onClick = onClick
+        onClick = onClick,
     )
 }
 
@@ -500,26 +516,24 @@ private fun TimeAgo(channelLastTime: Long?) {
     if (channelLastTime == null) return
 
     val context = LocalContext.current
-    val timeAgo = remember(channelLastTime) {
-        timeAgo(channelLastTime, context)
-    }
+    val timeAgo = remember(channelLastTime) { timeAgo(channelLastTime, context) }
     Text(
         text = timeAgo,
         color = MaterialTheme.colorScheme.grayText,
-        maxLines = 1
+        maxLines = 1,
     )
 }
 
 @Composable
 fun NewItemsBubble() {
     Box(
-        modifier = Modifier
-            .padding(start = 3.dp)
-            .width(10.dp)
-            .height(10.dp)
-            .clip(shape = CircleShape)
-            .background(MaterialTheme.colorScheme.primary),
-        contentAlignment = Alignment.Center
+        modifier =
+            Modifier.padding(start = 3.dp)
+                .width(10.dp)
+                .height(10.dp)
+                .clip(shape = CircleShape)
+                .background(MaterialTheme.colorScheme.primary),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             "",
@@ -527,9 +541,7 @@ fun NewItemsBubble() {
             textAlign = TextAlign.Center,
             fontSize = 12.sp,
             maxLines = 1,
-            modifier = Modifier
-                .wrapContentHeight()
-                .align(Alignment.Center)
+            modifier = Modifier.wrapContentHeight().align(Alignment.Center),
         )
     }
 }

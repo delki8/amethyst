@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui
 
 import android.annotation.SuppressLint
@@ -28,7 +48,7 @@ import com.vitorpamplona.amethyst.ServiceManager
 import com.vitorpamplona.amethyst.service.HttpClient
 import com.vitorpamplona.amethyst.service.lang.LanguageTranslatorService
 import com.vitorpamplona.amethyst.service.notifications.PushNotificationUtils
-import com.vitorpamplona.amethyst.ui.components.DefaultMutedSetting
+import com.vitorpamplona.amethyst.ui.components.DEFAULT_MUTED_SETTING
 import com.vitorpamplona.amethyst.ui.components.keepPlayingMutex
 import com.vitorpamplona.amethyst.ui.navigation.Route
 import com.vitorpamplona.amethyst.ui.navigation.debugState
@@ -87,14 +107,12 @@ class MainActivity : AppCompatActivity() {
                 // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    color = MaterialTheme.colorScheme.background,
                 ) {
                     val accountStateViewModel: AccountStateViewModel = viewModel()
                     accountStateViewModel.serviceManager = serviceManager
 
-                    LaunchedEffect(key1 = Unit) {
-                        accountStateViewModel.tryLoginExistingAccountAsync()
-                    }
+                    LaunchedEffect(key1 = Unit) { accountStateViewModel.tryLoginExistingAccountAsync() }
 
                     AccountScreen(accountStateViewModel, sharedPreferencesViewModel)
                 }
@@ -113,29 +131,27 @@ class MainActivity : AppCompatActivity() {
         Log.d("Lifetime Event", "MainActivity.onResume")
 
         // starts muted every time
-        DefaultMutedSetting.value = true
+        DEFAULT_MUTED_SETTING.value = true
 
         // Keep connection alive if it's calling the signer app
         Log.d("shouldPauseService", "shouldPauseService onResume: $shouldPauseService")
         if (shouldPauseService) {
-            GlobalScope.launch(Dispatchers.IO) {
-                serviceManager.justStart()
-            }
+            GlobalScope.launch(Dispatchers.IO) { serviceManager.justStart() }
         }
 
         GlobalScope.launch(Dispatchers.IO) {
             PushNotificationUtils.init(LocalPreferences.allSavedAccounts())
         }
 
-        val connectivityManager = (getSystemService(ConnectivityManager::class.java) as ConnectivityManager)
+        val connectivityManager =
+            (getSystemService(ConnectivityManager::class.java) as ConnectivityManager)
         connectivityManager.registerDefaultNetworkCallback(networkCallback)
-        connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-            ?.let { updateNetworkCapabilities(it) }
+        connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)?.let {
+            updateNetworkCapabilities(it)
+        }
 
         // resets state until next External Signer Call
-        Timer().schedule(350) {
-            shouldPauseService = true
-        }
+        Timer().schedule(350) { shouldPauseService = true }
     }
 
     override fun onPause() {
@@ -145,16 +161,12 @@ class MainActivity : AppCompatActivity() {
         serviceManager.cleanObservers()
 
         // if (BuildConfig.DEBUG) {
-        GlobalScope.launch(Dispatchers.IO) {
-            debugState(this@MainActivity)
-        }
+        GlobalScope.launch(Dispatchers.IO) { debugState(this@MainActivity) }
         // }
 
         Log.d("shouldPauseService", "shouldPauseService onPause: $shouldPauseService")
         if (shouldPauseService) {
-            GlobalScope.launch(Dispatchers.IO) {
-                serviceManager.pauseForGood()
-            }
+            GlobalScope.launch(Dispatchers.IO) { serviceManager.pauseForGood() }
         }
 
         (getSystemService(ConnectivityManager::class.java) as ConnectivityManager)
@@ -194,15 +206,14 @@ class MainActivity : AppCompatActivity() {
 
     /**
      * Release memory when the UI becomes hidden or when system resources become low.
+     *
      * @param level the memory-related event that was raised.
      */
     @OptIn(DelicateCoroutinesApi::class)
     override fun onTrimMemory(level: Int) {
         super.onTrimMemory(level)
         println("Trim Memory $level")
-        GlobalScope.launch(Dispatchers.Default) {
-            serviceManager.trimMemory()
-        }
+        GlobalScope.launch(Dispatchers.Default) { serviceManager.trimMemory() }
     }
 
     fun updateNetworkCapabilities(networkCapabilities: NetworkCapabilities): Boolean {
@@ -235,43 +246,47 @@ class MainActivity : AppCompatActivity() {
     }
 
     @OptIn(DelicateCoroutinesApi::class)
-    private val networkCallback = object : ConnectivityManager.NetworkCallback() {
-        var lastNetwork: Network? = null
+    private val networkCallback =
+        object : ConnectivityManager.NetworkCallback() {
+            var lastNetwork: Network? = null
 
-        override fun onAvailable(network: Network) {
-            super.onAvailable(network)
+            override fun onAvailable(network: Network) {
+                super.onAvailable(network)
 
-            Log.d("ServiceManager NetworkCallback", "onAvailable: $shouldPauseService")
-            if (shouldPauseService && lastNetwork != null && lastNetwork != network) {
+                Log.d("ServiceManager NetworkCallback", "onAvailable: $shouldPauseService")
+                if (shouldPauseService && lastNetwork != null && lastNetwork != network) {
+                    GlobalScope.launch(Dispatchers.IO) { serviceManager.forceRestart() }
+                }
+
+                lastNetwork = network
+            }
+
+            // Network capabilities have changed for the network
+            override fun onCapabilitiesChanged(
+                network: Network,
+                networkCapabilities: NetworkCapabilities,
+            ) {
+                super.onCapabilitiesChanged(network, networkCapabilities)
+
                 GlobalScope.launch(Dispatchers.IO) {
-                    serviceManager.forceRestart()
-                }
-            }
-
-            lastNetwork = network
-        }
-
-        // Network capabilities have changed for the network
-        override fun onCapabilitiesChanged(
-            network: Network,
-            networkCapabilities: NetworkCapabilities
-        ) {
-            super.onCapabilitiesChanged(network, networkCapabilities)
-
-            GlobalScope.launch(Dispatchers.IO) {
-                Log.d("ServiceManager NetworkCallback", "onCapabilitiesChanged: ${network.networkHandle} hasMobileData ${isOnMobileDataState.value} hasWifi ${isOnWifiDataState.value}")
-                if (updateNetworkCapabilities(networkCapabilities) && shouldPauseService) {
-                    serviceManager.forceRestart()
+                    Log.d(
+                        "ServiceManager NetworkCallback",
+                        "onCapabilitiesChanged: ${network.networkHandle} hasMobileData ${isOnMobileDataState.value} hasWifi ${isOnWifiDataState.value}",
+                    )
+                    if (updateNetworkCapabilities(networkCapabilities) && shouldPauseService) {
+                        serviceManager.forceRestart()
+                    }
                 }
             }
         }
-    }
 }
 
 class GetMediaActivityResultContract : ActivityResultContracts.GetContent() {
-
     @SuppressLint("MissingSuperCall")
-    override fun createIntent(context: Context, input: String): Intent {
+    override fun createIntent(
+        context: Context,
+        input: String,
+    ): Intent {
         // Force only images and videos to be selectable
         // Force OPEN Document because of the resulting URI must be passed to the
         // Playback service and the picker's permissions only allow the activity to read the URI
@@ -296,35 +311,37 @@ fun uriToRoute(uri: String?): String? {
                 Nip19.Type.USER -> "User/${nip19.hex}"
                 Nip19.Type.NOTE -> "Note/${nip19.hex}"
                 Nip19.Type.EVENT -> {
-                    if (nip19.kind == PrivateDmEvent.kind) {
-                        nip19.author?.let {
-                            "RoomByAuthor/$it"
-                        }
-                    } else if (nip19.kind == ChannelMessageEvent.kind || nip19.kind == ChannelCreateEvent.kind || nip19.kind == ChannelMetadataEvent.kind) {
+                    if (nip19.kind == PrivateDmEvent.KIND) {
+                        nip19.author?.let { "RoomByAuthor/$it" }
+                    } else if (
+                        nip19.kind == ChannelMessageEvent.KIND ||
+                        nip19.kind == ChannelCreateEvent.KIND ||
+                        nip19.kind == ChannelMetadataEvent.KIND
+                    ) {
                         "Channel/${nip19.hex}"
                     } else {
                         "Event/${nip19.hex}"
                     }
                 }
-
                 Nip19.Type.ADDRESS ->
-                    if (nip19.kind == CommunityDefinitionEvent.kind) {
+                    if (nip19.kind == CommunityDefinitionEvent.KIND) {
                         "Community/${nip19.hex}"
-                    } else if (nip19.kind == LiveActivitiesEvent.kind) {
+                    } else if (nip19.kind == LiveActivitiesEvent.KIND) {
                         "Channel/${nip19.hex}"
                     } else {
                         "Event/${nip19.hex}"
                     }
                 else -> null
             }
-        } ?: try {
-            uri?.let {
-                Nip47WalletConnectParser.parse(it)
-                val encodedUri = URLEncoder.encode(it, StandardCharsets.UTF_8.toString())
-                Route.Home.base + "?nip47=" + encodedUri
-            }
-        } catch (e: Exception) {
-            null
         }
+            ?: try {
+                uri?.let {
+                    Nip47WalletConnectParser.parse(it)
+                    val encodedUri = URLEncoder.encode(it, StandardCharsets.UTF_8.toString())
+                    Route.Home.base + "?nip47=" + encodedUri
+                }
+            } catch (e: Exception) {
+                null
+            }
     }
 }

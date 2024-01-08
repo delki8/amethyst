@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.actions
 
 import android.widget.Toast
@@ -34,7 +54,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun NewUserMetadataView(onClose: () -> Unit, account: Account) {
+fun NewUserMetadataView(
+    onClose: () -> Unit,
+    account: Account,
+) {
     val postViewModel: NewUserMetadataViewModel = viewModel()
     val context = LocalContext.current
 
@@ -43,48 +66,46 @@ fun NewUserMetadataView(onClose: () -> Unit, account: Account) {
 
         launch(Dispatchers.IO) {
             postViewModel.imageUploadingError.collect { error ->
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-                }
+                withContext(Dispatchers.Main) { Toast.makeText(context, error, Toast.LENGTH_SHORT).show() }
             }
         }
     }
 
     Dialog(
         onDismissRequest = { onClose() },
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            dismissOnClickOutside = false
-        )
+        properties =
+            DialogProperties(
+                usePlatformDefaultWidth = false,
+                dismissOnClickOutside = false,
+            ),
     ) {
-        Surface() {
+        Surface {
             Column(
-                modifier = Modifier.padding(10.dp)
+                modifier = Modifier.padding(10.dp),
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    CloseButton(onPress = {
-                        postViewModel.clear()
-                        onClose()
-                    })
+                    CloseButton(
+                        onPress = {
+                            postViewModel.clear()
+                            onClose()
+                        },
+                    )
 
                     SaveButton(
                         onPost = {
                             postViewModel.create()
                             onClose()
                         },
-                        true
+                        true,
                     )
                 }
 
                 Column(
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .verticalScroll(rememberScrollState())
+                    modifier = Modifier.padding(10.dp).verticalScroll(rememberScrollState()),
                 ) {
                     OutlinedTextField(
                         label = { Text(text = stringResource(R.string.display_name)) },
@@ -94,34 +115,34 @@ fun NewUserMetadataView(onClose: () -> Unit, account: Account) {
                         placeholder = {
                             Text(
                                 text = stringResource(R.string.my_display_name),
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
                         },
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            capitalization = KeyboardCapitalization.Sentences
-                        ),
-                        singleLine = true
+                        keyboardOptions =
+                            KeyboardOptions.Default.copy(
+                                capitalization = KeyboardCapitalization.Sentences,
+                            ),
+                        singleLine = true,
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
 
                     OutlinedTextField(
                         label = { Text(text = stringResource(R.string.about_me)) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(100.dp),
+                        modifier = Modifier.fillMaxWidth().height(100.dp),
                         value = postViewModel.about.value,
                         onValueChange = { postViewModel.about.value = it },
                         placeholder = {
                             Text(
                                 text = stringResource(id = R.string.about_me),
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
                         },
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            capitalization = KeyboardCapitalization.Sentences
-                        ),
-                        maxLines = 10
+                        keyboardOptions =
+                            KeyboardOptions.Default.copy(
+                                capitalization = KeyboardCapitalization.Sentences,
+                            ),
+                        maxLines = 10,
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -134,19 +155,19 @@ fun NewUserMetadataView(onClose: () -> Unit, account: Account) {
                         placeholder = {
                             Text(
                                 text = "https://mywebsite.com/me.jpg",
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
                         },
                         leadingIcon = {
                             UploadFromGallery(
                                 isUploading = postViewModel.isUploadingImageForPicture,
                                 tint = MaterialTheme.colorScheme.placeholderText,
-                                modifier = Modifier.padding(start = 5.dp)
+                                modifier = Modifier.padding(start = 5.dp),
                             ) {
                                 postViewModel.uploadForPicture(it, context)
                             }
                         },
-                        singleLine = true
+                        singleLine = true,
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -159,19 +180,19 @@ fun NewUserMetadataView(onClose: () -> Unit, account: Account) {
                         placeholder = {
                             Text(
                                 text = "https://mywebsite.com/mybanner.jpg",
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
                         },
                         leadingIcon = {
                             UploadFromGallery(
                                 isUploading = postViewModel.isUploadingImageForBanner,
                                 tint = MaterialTheme.colorScheme.placeholderText,
-                                modifier = Modifier.padding(start = 5.dp)
+                                modifier = Modifier.padding(start = 5.dp),
                             ) {
                                 postViewModel.uploadForBanner(it, context)
                             }
                         },
-                        singleLine = true
+                        singleLine = true,
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -184,10 +205,10 @@ fun NewUserMetadataView(onClose: () -> Unit, account: Account) {
                         placeholder = {
                             Text(
                                 text = "https://mywebsite.com",
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
                         },
-                        singleLine = true
+                        singleLine = true,
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -200,10 +221,10 @@ fun NewUserMetadataView(onClose: () -> Unit, account: Account) {
                         placeholder = {
                             Text(
                                 text = "_@mywebsite.com",
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
                         },
-                        singleLine = true
+                        singleLine = true,
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -215,10 +236,10 @@ fun NewUserMetadataView(onClose: () -> Unit, account: Account) {
                         placeholder = {
                             Text(
                                 text = "me@mylightiningnode.com",
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
                         },
-                        singleLine = true
+                        singleLine = true,
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -231,9 +252,9 @@ fun NewUserMetadataView(onClose: () -> Unit, account: Account) {
                         placeholder = {
                             Text(
                                 text = stringResource(R.string.lnurl),
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
-                        }
+                        },
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -246,9 +267,9 @@ fun NewUserMetadataView(onClose: () -> Unit, account: Account) {
                         placeholder = {
                             Text(
                                 text = stringResource(R.string.twitter_proof_url_template),
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
-                        }
+                        },
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -261,9 +282,9 @@ fun NewUserMetadataView(onClose: () -> Unit, account: Account) {
                         placeholder = {
                             Text(
                                 text = stringResource(R.string.mastodon_proof_url_template),
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
-                        }
+                        },
                     )
 
                     Spacer(modifier = Modifier.height(10.dp))
@@ -276,9 +297,9 @@ fun NewUserMetadataView(onClose: () -> Unit, account: Account) {
                         placeholder = {
                             Text(
                                 text = stringResource(R.string.github_proof_url_template),
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
-                        }
+                        },
                     )
                 }
             }

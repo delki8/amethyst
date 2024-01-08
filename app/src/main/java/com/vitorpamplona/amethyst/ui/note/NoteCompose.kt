@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.note
 
 import android.graphics.Bitmap
@@ -230,7 +250,7 @@ fun NoteCompose(
     showHidden: Boolean = false,
     parentBackgroundColor: MutableState<Color>? = null,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val hasEvent by baseNote.live().hasEvent.observeAsState(baseNote.event != null)
 
@@ -248,18 +268,19 @@ fun NoteCompose(
                 showHidden = showHidden,
                 parentBackgroundColor = parentBackgroundColor,
                 accountViewModel = accountViewModel,
-                nav = nav
+                nav = nav,
             )
         } else {
-            LongPressToQuickAction(baseNote = baseNote, accountViewModel = accountViewModel) { showPopup ->
+            LongPressToQuickAction(baseNote = baseNote, accountViewModel = accountViewModel) { showPopup,
+                ->
                 BlankNote(
                     remember {
                         modifier.combinedClickable(
-                            onClick = { },
-                            onLongClick = showPopup
+                            onClick = {},
+                            onLongClick = showPopup,
                         )
                     },
-                    isBoostedNote || isQuotedNote
+                    isBoostedNote || isQuotedNote,
                 )
             }
         }
@@ -279,15 +300,16 @@ fun CheckHiddenNoteCompose(
     showHidden: Boolean = false,
     parentBackgroundColor: MutableState<Color>? = null,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     if (showHidden) {
         // Ignores reports as well
-        val state by remember(note) {
-            mutableStateOf(
-                AccountViewModel.NoteComposeReportState()
-            )
-        }
+        val state by
+            remember(note) {
+                mutableStateOf(
+                    AccountViewModel.NoteComposeReportState(),
+                )
+            }
 
         RenderReportState(
             state = state,
@@ -301,14 +323,16 @@ fun CheckHiddenNoteCompose(
             addMarginTop = addMarginTop,
             parentBackgroundColor = parentBackgroundColor,
             accountViewModel = accountViewModel,
-            nav = nav
+            nav = nav,
         )
     } else {
-        val isHidden by remember(note) {
-            accountViewModel.account.liveHiddenUsers.map {
-                note.isHiddenFor(it)
-            }.distinctUntilChanged()
-        }.observeAsState(accountViewModel.isNoteHidden(note))
+        val isHidden by
+            remember(note) {
+                accountViewModel.account.liveHiddenUsers
+                    .map { note.isHiddenFor(it) }
+                    .distinctUntilChanged()
+            }
+                .observeAsState(accountViewModel.isNoteHidden(note))
 
         Crossfade(targetState = isHidden, label = "CheckHiddenNoteCompose") {
             if (!it) {
@@ -323,7 +347,7 @@ fun CheckHiddenNoteCompose(
                     addMarginTop = addMarginTop,
                     parentBackgroundColor = parentBackgroundColor,
                     accountViewModel = accountViewModel,
-                    nav = nav
+                    nav = nav,
                 )
             }
         }
@@ -342,13 +366,14 @@ fun LoadedNoteCompose(
     addMarginTop: Boolean = true,
     parentBackgroundColor: MutableState<Color>? = null,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    var state by remember(note) {
-        mutableStateOf(
-            AccountViewModel.NoteComposeReportState()
-        )
-    }
+    var state by
+        remember(note) {
+            mutableStateOf(
+                AccountViewModel.NoteComposeReportState(),
+            )
+        }
 
     WatchForReports(note, accountViewModel) { newState ->
         if (state != newState) {
@@ -369,7 +394,7 @@ fun LoadedNoteCompose(
             addMarginTop,
             parentBackgroundColor,
             accountViewModel,
-            nav
+            nav,
         )
     }
 }
@@ -387,11 +412,12 @@ fun RenderReportState(
     addMarginTop: Boolean = true,
     parentBackgroundColor: MutableState<Color>? = null,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     var showReportedNote by remember(note) { mutableStateOf(false) }
 
-    Crossfade(targetState = !state.isAcceptable && !showReportedNote, label = "RenderReportState") { showHiddenNote ->
+    Crossfade(targetState = !state.isAcceptable && !showReportedNote, label = "RenderReportState") {
+            showHiddenNote ->
         if (showHiddenNote) {
             HiddenNote(
                 state.relevantReports,
@@ -400,7 +426,7 @@ fun RenderReportState(
                 modifier,
                 isBoostedNote,
                 nav,
-                onClick = { showReportedNote = true }
+                onClick = { showReportedNote = true },
             )
         } else {
             val canPreview = (!state.isAcceptable && showReportedNote) || state.canPreview
@@ -417,7 +443,7 @@ fun RenderReportState(
                 canPreview = canPreview,
                 parentBackgroundColor = parentBackgroundColor,
                 accountViewModel = accountViewModel,
-                nav = nav
+                nav = nav,
             )
         }
     }
@@ -427,7 +453,7 @@ fun RenderReportState(
 fun WatchForReports(
     note: Note,
     accountViewModel: AccountViewModel,
-    onChange: (AccountViewModel.NoteComposeReportState) -> Unit
+    onChange: (AccountViewModel.NoteComposeReportState) -> Unit,
 ) {
     val userFollowsState by accountViewModel.userFollows.observeAsState()
     val noteReportsState by note.live().reports.observeAsState()
@@ -451,30 +477,36 @@ fun NormalNote(
     canPreview: Boolean = true,
     parentBackgroundColor: MutableState<Color>? = null,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     if (isQuotedNote || isBoostedNote) {
         when (baseNote.event) {
-            is ChannelCreateEvent, is ChannelMetadataEvent -> ChannelHeader(
-                channelNote = baseNote,
-                showVideo = !makeItShort,
-                showBottomDiviser = true,
-                sendToChannel = true,
-                accountViewModel = accountViewModel,
-                nav = nav
-            )
-            is CommunityDefinitionEvent -> (baseNote as? AddressableNote)?.let {
-                CommunityHeader(
-                    baseNote = it,
+            is ChannelCreateEvent,
+            is ChannelMetadataEvent,
+            ->
+                ChannelHeader(
+                    channelNote = baseNote,
+                    showVideo = !makeItShort,
                     showBottomDiviser = true,
-                    sendToCommunity = true,
+                    sendToChannel = true,
                     accountViewModel = accountViewModel,
-                    nav = nav
+                    nav = nav,
                 )
-            }
+            is CommunityDefinitionEvent ->
+                (baseNote as? AddressableNote)?.let {
+                    CommunityHeader(
+                        baseNote = it,
+                        showBottomDiviser = true,
+                        sendToCommunity = true,
+                        accountViewModel = accountViewModel,
+                        nav = nav,
+                    )
+                }
             is BadgeDefinitionEvent -> BadgeDisplay(baseNote = baseNote)
             else ->
-                LongPressToQuickAction(baseNote = baseNote, accountViewModel = accountViewModel) { showPopup ->
+                LongPressToQuickAction(baseNote = baseNote, accountViewModel = accountViewModel) {
+                        showPopup,
+                    ->
                     CheckNewAndRenderNote(
                         baseNote,
                         routeForLastRead,
@@ -488,34 +520,40 @@ fun NormalNote(
                         parentBackgroundColor,
                         accountViewModel,
                         showPopup,
-                        nav
+                        nav,
                     )
                 }
         }
     } else {
         when (baseNote.event) {
-            is ChannelCreateEvent, is ChannelMetadataEvent -> ChannelHeader(
-                channelNote = baseNote,
-                showVideo = !makeItShort,
-                showBottomDiviser = true,
-                sendToChannel = true,
-                accountViewModel = accountViewModel,
-                nav = nav
-            )
-            is CommunityDefinitionEvent -> (baseNote as? AddressableNote)?.let {
-                CommunityHeader(
-                    baseNote = it,
+            is ChannelCreateEvent,
+            is ChannelMetadataEvent,
+            ->
+                ChannelHeader(
+                    channelNote = baseNote,
+                    showVideo = !makeItShort,
                     showBottomDiviser = true,
-                    sendToCommunity = true,
+                    sendToChannel = true,
                     accountViewModel = accountViewModel,
-                    nav = nav
+                    nav = nav,
                 )
-            }
+            is CommunityDefinitionEvent ->
+                (baseNote as? AddressableNote)?.let {
+                    CommunityHeader(
+                        baseNote = it,
+                        showBottomDiviser = true,
+                        sendToCommunity = true,
+                        accountViewModel = accountViewModel,
+                        nav = nav,
+                    )
+                }
             is BadgeDefinitionEvent -> BadgeDisplay(baseNote = baseNote)
             is FileHeaderEvent -> FileHeaderDisplay(baseNote, false, accountViewModel)
             is FileStorageHeaderEvent -> FileStorageHeaderDisplay(baseNote, false, accountViewModel)
             else ->
-                LongPressToQuickAction(baseNote = baseNote, accountViewModel = accountViewModel) { showPopup ->
+                LongPressToQuickAction(baseNote = baseNote, accountViewModel = accountViewModel) {
+                        showPopup,
+                    ->
                     CheckNewAndRenderNote(
                         baseNote = baseNote,
                         routeForLastRead = routeForLastRead,
@@ -529,7 +567,7 @@ fun NormalNote(
                         parentBackgroundColor = parentBackgroundColor,
                         accountViewModel = accountViewModel,
                         showPopup = showPopup,
-                        nav = nav
+                        nav = nav,
                     )
                 }
         }
@@ -543,27 +581,26 @@ fun CommunityHeader(
     sendToCommunity: Boolean,
     modifier: Modifier = StdPadding,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val expanded = remember { mutableStateOf(false) }
 
     Column(Modifier.fillMaxWidth()) {
         Column(
             verticalArrangement = Arrangement.Center,
-            modifier = Modifier.clickable {
-                if (sendToCommunity) {
-                    routeFor(baseNote, accountViewModel.userProfile())?.let {
-                        nav(it)
+            modifier =
+                Modifier.clickable {
+                    if (sendToCommunity) {
+                        routeFor(baseNote, accountViewModel.userProfile())?.let { nav(it) }
+                    } else {
+                        expanded.value = !expanded.value
                     }
-                } else {
-                    expanded.value = !expanded.value
-                }
-            }
+                },
         ) {
             ShortCommunityHeader(
                 baseNote = baseNote,
                 accountViewModel = accountViewModel,
-                nav = nav
+                nav = nav,
             )
 
             if (expanded.value) {
@@ -572,7 +609,7 @@ fun CommunityHeader(
                         baseNote = baseNote,
                         lineModifier = modifier,
                         accountViewModel = accountViewModel,
-                        nav = nav
+                        nav = nav,
                     )
                 }
             }
@@ -580,7 +617,7 @@ fun CommunityHeader(
 
         if (showBottomDiviser) {
             Divider(
-                thickness = DividerThickness
+                thickness = DividerThickness,
             )
         }
     }
@@ -591,43 +628,43 @@ fun LongCommunityHeader(
     baseNote: AddressableNote,
     lineModifier: Modifier = Modifier.padding(horizontal = Size10dp, vertical = Size5dp),
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteState by baseNote.live().metadata.observeAsState()
-    val noteEvent = remember(noteState) { noteState?.note?.event as? CommunityDefinitionEvent } ?: return
+    val noteEvent =
+        remember(noteState) { noteState?.note?.event as? CommunityDefinitionEvent } ?: return
 
     Row(
-        lineModifier
+        lineModifier,
     ) {
         val rulesLabel = stringResource(id = R.string.rules)
-        val summary = remember(noteState) {
-            val subject = noteEvent.subject()?.ifEmpty { null }
-            val body = noteEvent.description()?.ifBlank { null }
-            val rules = noteEvent.rules()?.ifBlank { null }
+        val summary =
+            remember(noteState) {
+                val subject = noteEvent.subject()?.ifEmpty { null }
+                val body = noteEvent.description()?.ifBlank { null }
+                val rules = noteEvent.rules()?.ifBlank { null }
 
-            if (!subject.isNullOrBlank() && body?.split("\n")?.get(0)?.contains(subject) == false) {
-                if (rules == null) {
-                    "### $subject\n$body"
+                if (!subject.isNullOrBlank() && body?.split("\n")?.get(0)?.contains(subject) == false) {
+                    if (rules == null) {
+                        "### $subject\n$body"
+                    } else {
+                        "### $subject\n$body\n\n### $rulesLabel\n\n$rules"
+                    }
                 } else {
-                    "### $subject\n$body\n\n### $rulesLabel\n\n$rules"
-                }
-            } else {
-                if (rules == null) {
-                    body
-                } else {
-                    "$body\n\n$rulesLabel\n$rules"
+                    if (rules == null) {
+                        body
+                    } else {
+                        "$body\n\n$rulesLabel\n$rules"
+                    }
                 }
             }
-        }
 
         Column(
-            Modifier.weight(1f)
+            Modifier.weight(1f),
         ) {
             Row(verticalAlignment = CenterVertically) {
                 val defaultBackground = MaterialTheme.colorScheme.background
-                val background = remember {
-                    mutableStateOf(defaultBackground)
-                }
+                val background = remember { mutableStateOf(defaultBackground) }
 
                 TranslatableRichTextViewer(
                     content = summary ?: stringResource(id = R.string.community_no_descriptor),
@@ -635,7 +672,7 @@ fun LongCommunityHeader(
                     tags = EmptyTagList,
                     backgroundColor = background,
                     accountViewModel = accountViewModel,
-                    nav = nav
+                    nav = nav,
                 )
             }
 
@@ -643,13 +680,13 @@ fun LongCommunityHeader(
                 DisplayUncitedHashtags(
                     remember(noteEvent) { noteEvent.hashtags().toImmutableList() },
                     summary ?: "",
-                    nav
+                    nav,
                 )
             }
         }
 
-        Column() {
-            Row() {
+        Column {
+            Row {
                 Spacer(DoubleHorzSpacer)
                 LongCommunityActionOptions(baseNote, accountViewModel, nav)
             }
@@ -658,13 +695,13 @@ fun LongCommunityHeader(
 
     Row(
         lineModifier,
-        verticalAlignment = CenterVertically
+        verticalAlignment = CenterVertically,
     ) {
         Text(
             text = stringResource(id = R.string.owner),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.width(75.dp)
+            modifier = Modifier.width(75.dp),
         )
         Spacer(DoubleHorzSpacer)
         NoteAuthorPicture(baseNote, nav, accountViewModel, Size25dp)
@@ -672,18 +709,21 @@ fun LongCommunityHeader(
         NoteUsernameDisplay(baseNote, remember { Modifier.weight(1f) })
     }
 
-    var participantUsers by remember(baseNote) {
-        mutableStateOf<ImmutableList<Pair<Participant, User>>>(
-            persistentListOf()
-        )
-    }
+    var participantUsers by
+        remember(baseNote) {
+            mutableStateOf<ImmutableList<Pair<Participant, User>>>(
+                persistentListOf(),
+            )
+        }
 
     LaunchedEffect(key1 = noteState) {
         val participants = (noteState?.note?.event as? CommunityDefinitionEvent)?.moderators()
 
         if (participants != null) {
             accountViewModel.loadParticipants(participants) { newParticipantUsers ->
-                if (newParticipantUsers != null && !equalImmutableLists(newParticipantUsers, participantUsers)) {
+                if (
+                    newParticipantUsers != null && !equalImmutableLists(newParticipantUsers, participantUsers)
+                ) {
                     participantUsers = newParticipantUsers
                 }
             }
@@ -692,17 +732,15 @@ fun LongCommunityHeader(
 
     participantUsers.forEach {
         Row(
-            lineModifier.clickable {
-                nav("User/${it.second.pubkeyHex}")
-            },
-            verticalAlignment = CenterVertically
+            lineModifier.clickable { nav("User/${it.second.pubkeyHex}") },
+            verticalAlignment = CenterVertically,
         ) {
             it.first.role?.let { it1 ->
                 Text(
                     text = it1.capitalize(Locale.ROOT),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.width(75.dp)
+                    modifier = Modifier.width(75.dp),
                 )
             }
             Spacer(DoubleHorzSpacer)
@@ -714,13 +752,13 @@ fun LongCommunityHeader(
 
     Row(
         lineModifier,
-        verticalAlignment = CenterVertically
+        verticalAlignment = CenterVertically,
     ) {
         Text(
             text = stringResource(id = R.string.created_at),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.width(75.dp)
+            modifier = Modifier.width(75.dp),
         )
         Spacer(DoubleHorzSpacer)
         NormalTimeAgo(baseNote = baseNote, Modifier.weight(1f))
@@ -729,13 +767,19 @@ fun LongCommunityHeader(
 }
 
 @Composable
-fun ShortCommunityHeader(baseNote: AddressableNote, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+fun ShortCommunityHeader(
+    baseNote: AddressableNote,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     val noteState by baseNote.live().metadata.observeAsState()
-    val noteEvent = remember(noteState) { noteState?.note?.event as? CommunityDefinitionEvent } ?: return
+    val noteEvent =
+        remember(noteState) { noteState?.note?.event as? CommunityDefinitionEvent } ?: return
 
-    val automaticallyShowProfilePicture = remember {
-        accountViewModel.settings.showProfilePictures.value
-    }
+    val automaticallyShowProfilePicture =
+        remember {
+            accountViewModel.settings.showProfilePictures.value
+        }
 
     Row(verticalAlignment = CenterVertically) {
         noteEvent.image()?.let {
@@ -745,31 +789,26 @@ fun ShortCommunityHeader(baseNote: AddressableNote, accountViewModel: AccountVie
                 contentDescription = stringResource(R.string.profile_image),
                 contentScale = ContentScale.Crop,
                 modifier = HeaderPictureModifier,
-                loadProfilePicture = automaticallyShowProfilePicture
+                loadProfilePicture = automaticallyShowProfilePicture,
             )
         }
 
         Column(
-            modifier = Modifier
-                .padding(start = 10.dp)
-                .height(Size35dp)
-                .weight(1f),
-            verticalArrangement = Arrangement.Center
+            modifier = Modifier.padding(start = 10.dp).height(Size35dp).weight(1f),
+            verticalArrangement = Arrangement.Center,
         ) {
             Row(verticalAlignment = CenterVertically) {
                 Text(
                     text = remember(noteState) { noteEvent.dTag() },
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
 
         Row(
-            modifier = Modifier
-                .height(Size35dp)
-                .padding(start = 5.dp),
-            verticalAlignment = CenterVertically
+            modifier = Modifier.height(Size35dp).padding(start = 5.dp),
+            verticalAlignment = CenterVertically,
         ) {
             ShortCommunityActionOptions(baseNote, accountViewModel, nav)
         }
@@ -780,12 +819,22 @@ fun ShortCommunityHeader(baseNote: AddressableNote, accountViewModel: AccountVie
 private fun ShortCommunityActionOptions(
     note: AddressableNote,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     Spacer(modifier = StdHorzSpacer)
-    LikeReaction(baseNote = note, grayTint = MaterialTheme.colorScheme.onSurface, accountViewModel = accountViewModel, nav = nav)
+    LikeReaction(
+        baseNote = note,
+        grayTint = MaterialTheme.colorScheme.onSurface,
+        accountViewModel = accountViewModel,
+        nav = nav,
+    )
     Spacer(modifier = StdHorzSpacer)
-    ZapReaction(baseNote = note, grayTint = MaterialTheme.colorScheme.onSurface, accountViewModel = accountViewModel, nav = nav)
+    ZapReaction(
+        baseNote = note,
+        grayTint = MaterialTheme.colorScheme.onSurface,
+        accountViewModel = accountViewModel,
+        nav = nav,
+    )
 
     WatchAddressableNoteFollows(note, accountViewModel) { isFollowing ->
         if (!isFollowing) {
@@ -796,12 +845,18 @@ private fun ShortCommunityActionOptions(
 }
 
 @Composable
-fun WatchAddressableNoteFollows(note: AddressableNote, accountViewModel: AccountViewModel, onFollowChanges: @Composable (Boolean) -> Unit) {
-    val showFollowingMark by remember {
-        accountViewModel.userFollows.map {
-            it.user.latestContactList?.isTaggedAddressableNote(note.idHex) ?: false
-        }.distinctUntilChanged()
-    }.observeAsState(false)
+fun WatchAddressableNoteFollows(
+    note: AddressableNote,
+    accountViewModel: AccountViewModel,
+    onFollowChanges: @Composable (Boolean) -> Unit,
+) {
+    val showFollowingMark by
+        remember {
+            accountViewModel.userFollows
+                .map { it.user.latestContactList?.isTaggedAddressableNote(note.idHex) ?: false }
+                .distinctUntilChanged()
+        }
+            .observeAsState(false)
 
     onFollowChanges(showFollowingMark)
 }
@@ -810,7 +865,7 @@ fun WatchAddressableNoteFollows(note: AddressableNote, accountViewModel: Account
 private fun LongCommunityActionOptions(
     note: AddressableNote,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     WatchAddressableNoteFollows(note, accountViewModel) { isFollowing ->
         if (isFollowing) {
@@ -833,40 +888,41 @@ private fun CheckNewAndRenderNote(
     parentBackgroundColor: MutableState<Color>? = null,
     accountViewModel: AccountViewModel,
     showPopup: () -> Unit,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val newItemColor = MaterialTheme.colorScheme.newItemBackgroundColor
     val defaultBackgroundColor = MaterialTheme.colorScheme.background
-    val backgroundColor = remember(baseNote) { mutableStateOf<Color>(parentBackgroundColor?.value ?: defaultBackgroundColor) }
+    val backgroundColor =
+        remember(baseNote) {
+            mutableStateOf<Color>(parentBackgroundColor?.value ?: defaultBackgroundColor)
+        }
 
     LaunchedEffect(key1 = routeForLastRead, key2 = parentBackgroundColor?.value) {
         routeForLastRead?.let {
             accountViewModel.loadAndMarkAsRead(it, baseNote.createdAt()) { isNew ->
-                val newBackgroundColor = if (isNew) {
-                    if (parentBackgroundColor != null) {
-                        newItemColor.compositeOver(parentBackgroundColor.value)
+                val newBackgroundColor =
+                    if (isNew) {
+                        if (parentBackgroundColor != null) {
+                            newItemColor.compositeOver(parentBackgroundColor.value)
+                        } else {
+                            newItemColor.compositeOver(defaultBackgroundColor)
+                        }
                     } else {
-                        newItemColor.compositeOver(defaultBackgroundColor)
+                        parentBackgroundColor?.value ?: defaultBackgroundColor
                     }
-                } else {
-                    parentBackgroundColor?.value ?: defaultBackgroundColor
-                }
 
                 if (newBackgroundColor != backgroundColor.value) {
-                    launch(Dispatchers.Main) {
-                        backgroundColor.value = newBackgroundColor
-                    }
-                }
-            }
-        } ?: run {
-            val newBackgroundColor = parentBackgroundColor?.value ?: defaultBackgroundColor
-
-            if (newBackgroundColor != backgroundColor.value) {
-                launch(Dispatchers.Main) {
-                    backgroundColor.value = newBackgroundColor
+                    launch(Dispatchers.Main) { backgroundColor.value = newBackgroundColor }
                 }
             }
         }
+            ?: run {
+                val newBackgroundColor = parentBackgroundColor?.value ?: defaultBackgroundColor
+
+                if (newBackgroundColor != backgroundColor.value) {
+                    launch(Dispatchers.Main) { backgroundColor.value = newBackgroundColor }
+                }
+            }
     }
 
     ClickableNote(
@@ -875,7 +931,7 @@ private fun CheckNewAndRenderNote(
         modifier = modifier,
         accountViewModel = accountViewModel,
         showPopup = showPopup,
-        nav = nav
+        nav = nav,
     ) {
         InnerNoteWithReactions(
             baseNote = baseNote,
@@ -887,7 +943,7 @@ private fun CheckNewAndRenderNote(
             makeItShort = makeItShort,
             canPreview = canPreview,
             accountViewModel = accountViewModel,
-            nav = nav
+            nav = nav,
         )
     }
 }
@@ -901,34 +957,31 @@ fun ClickableNote(
     accountViewModel: AccountViewModel,
     showPopup: () -> Unit,
     nav: (String) -> Unit,
-    content: @Composable () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
 
-    val updatedModifier = remember(baseNote, backgroundColor.value) {
-        modifier
-            .combinedClickable(
-                onClick = {
-                    scope.launch {
-                        val redirectToNote =
-                            if (baseNote.event is RepostEvent || baseNote.event is GenericRepostEvent) {
-                                baseNote.replyTo?.lastOrNull() ?: baseNote
-                            } else {
-                                baseNote
-                            }
-                        routeFor(redirectToNote, accountViewModel.userProfile())?.let {
-                            nav(it)
+    val updatedModifier =
+        remember(baseNote, backgroundColor.value) {
+            modifier
+                .combinedClickable(
+                    onClick = {
+                        scope.launch {
+                            val redirectToNote =
+                                if (baseNote.event is RepostEvent || baseNote.event is GenericRepostEvent) {
+                                    baseNote.replyTo?.lastOrNull() ?: baseNote
+                                } else {
+                                    baseNote
+                                }
+                            routeFor(redirectToNote, accountViewModel.userProfile())?.let { nav(it) }
                         }
-                    }
-                },
-                onLongClick = showPopup
-            )
-            .background(backgroundColor.value)
-    }
+                    },
+                    onLongClick = showPopup,
+                )
+                .background(backgroundColor.value)
+        }
 
-    Column(modifier = updatedModifier) {
-        content()
-    }
+    Column(modifier = updatedModifier) { content() }
 }
 
 @Composable
@@ -942,18 +995,19 @@ fun InnerNoteWithReactions(
     makeItShort: Boolean,
     canPreview: Boolean,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val notBoostedNorQuote = !isBoostedNote && !isQuotedNote
 
     Row(
-        modifier = if (!isBoostedNote && addMarginTop) {
-            normalWithTopMarginNoteModifier
-        } else if (!isBoostedNote) {
-            normalNoteModifier
-        } else {
-            boostedNoteModifier
-        }
+        modifier =
+            if (!isBoostedNote && addMarginTop) {
+                normalWithTopMarginNoteModifier
+            } else if (!isBoostedNote) {
+                normalNoteModifier
+            } else {
+                boostedNoteModifier
+            },
     ) {
 //        if (notBoostedNorQuote) {
 //            Column(WidthAuthorPictureModifier) {
@@ -963,7 +1017,11 @@ fun InnerNoteWithReactions(
 //        }
 
         Column(Modifier.fillMaxWidth()) {
-            val showSecondRow = baseNote.event !is RepostEvent && baseNote.event !is GenericRepostEvent && !isBoostedNote && !isQuotedNote
+            val showSecondRow =
+                baseNote.event !is RepostEvent &&
+                    baseNote.event !is GenericRepostEvent &&
+                    !isBoostedNote &&
+                    !isQuotedNote
             NoteBody(
                 baseNote = baseNote,
                 showAuthorPicture = isQuotedNote,
@@ -973,7 +1031,7 @@ fun InnerNoteWithReactions(
                 showSecondRow = showSecondRow,
                 backgroundColor = backgroundColor,
                 accountViewModel = accountViewModel,
-                nav = nav
+                nav = nav,
             )
         }
     }
@@ -987,18 +1045,19 @@ fun InnerNoteWithReactions(
                 Spacer(modifier = DoubleVertSpacer)
             }
         } else {
-            ReactionsRow(
-                baseNote = baseNote,
-                showReactionDetail = notBoostedNorQuote,
-                accountViewModel = accountViewModel,
-                nav = nav
-            )
+//            ReactionsRow(
+//                baseNote = baseNote,
+//                showReactionDetail = notBoostedNorQuote,
+//                accountViewModel = accountViewModel,
+//                nav = nav,
+//            )
+            Spacer(modifier = DoubleVertSpacer)
         }
     }
 
     if (notBoostedNorQuote) {
         Divider(
-            thickness = DividerThickness
+            thickness = DividerThickness,
         )
     }
 }
@@ -1013,20 +1072,20 @@ private fun NoteBody(
     showSecondRow: Boolean,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     FirstUserInfoRow(
         baseNote = baseNote,
         showAuthorPicture = showAuthorPicture,
         accountViewModel = accountViewModel,
-        nav = nav
+        nav = nav,
     )
 
 //    if (showSecondRow) {
 //        SecondUserInfoRow(
 //            baseNote,
 //            accountViewModel,
-//            nav
+//            nav,
 //        )
 //    }
 
@@ -1040,7 +1099,7 @@ private fun NoteBody(
             unPackReply,
             backgroundColor,
             accountViewModel,
-            nav
+            nav,
         )
     }
 
@@ -1050,7 +1109,7 @@ private fun NoteBody(
         makeItShort,
         canPreview,
         accountViewModel,
-        nav
+        nav,
     )
 
     val noteEvent = baseNote.event
@@ -1068,66 +1127,52 @@ private fun RenderNoteRow(
     makeItShort: Boolean,
     canPreview: Boolean,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteEvent = baseNote.event
     when (noteEvent) {
         is AppDefinitionEvent -> {
             RenderAppDefinition(baseNote, accountViewModel, nav)
         }
-
         is AudioTrackEvent -> {
             RenderAudioTrack(baseNote, accountViewModel, nav)
         }
-
         is AudioHeaderEvent -> {
             RenderAudioHeader(baseNote, accountViewModel, nav)
         }
-
         is ReactionEvent -> {
             RenderReaction(baseNote, backgroundColor, accountViewModel, nav)
         }
-
         is RepostEvent -> {
             RenderRepost(baseNote, backgroundColor, accountViewModel, nav)
         }
-
         is GenericRepostEvent -> {
             RenderRepost(baseNote, backgroundColor, accountViewModel, nav)
         }
-
         is ReportEvent -> {
             RenderReport(baseNote, backgroundColor, accountViewModel, nav)
         }
-
         is LongTextNoteEvent -> {
             RenderLongFormContent(baseNote, accountViewModel, nav)
         }
-
         is BadgeAwardEvent -> {
             RenderBadgeAward(baseNote, backgroundColor, accountViewModel, nav)
         }
-
         is PeopleListEvent -> {
             DisplayPeopleList(baseNote, backgroundColor, accountViewModel, nav)
         }
-
         is RelaySetEvent -> {
             DisplayRelaySet(baseNote, backgroundColor, accountViewModel, nav)
         }
-
         is PinListEvent -> {
             RenderPinListEvent(baseNote, backgroundColor, accountViewModel, nav)
         }
-
         is EmojiPackEvent -> {
             RenderEmojiPack(baseNote, true, backgroundColor, accountViewModel)
         }
-
         is LiveActivitiesEvent -> {
             RenderLiveActivityEvent(baseNote, accountViewModel, nav)
         }
-
         is PrivateDmEvent -> {
             RenderPrivateMessage(
                 baseNote,
@@ -1135,19 +1180,17 @@ private fun RenderNoteRow(
                 canPreview,
                 backgroundColor,
                 accountViewModel,
-                nav
+                nav,
             )
         }
-
         is ClassifiedsEvent -> {
             RenderClassifieds(
                 noteEvent,
                 baseNote,
                 accountViewModel,
-                nav
+                nav,
             )
         }
-
         is HighlightEvent -> {
             RenderHighlight(
                 baseNote,
@@ -1155,10 +1198,9 @@ private fun RenderNoteRow(
                 canPreview,
                 backgroundColor,
                 accountViewModel,
-                nav
+                nav,
             )
         }
-
         is PollNoteEvent -> {
             RenderPoll(
                 baseNote,
@@ -1166,26 +1208,21 @@ private fun RenderNoteRow(
                 canPreview,
                 backgroundColor,
                 accountViewModel,
-                nav
+                nav,
             )
         }
-
         is FileHeaderEvent -> {
             FileHeaderDisplay(baseNote, true, accountViewModel)
         }
-
         is VideoHorizontalEvent -> {
             VideoDisplay(baseNote, makeItShort, canPreview, backgroundColor, accountViewModel, nav)
         }
-
         is VideoVerticalEvent -> {
             VideoDisplay(baseNote, makeItShort, canPreview, backgroundColor, accountViewModel, nav)
         }
-
         is FileStorageHeaderEvent -> {
             FileStorageHeaderDisplay(baseNote, true, accountViewModel)
         }
-
         is CommunityPostApprovalEvent -> {
             RenderPostApproval(
                 baseNote,
@@ -1193,10 +1230,9 @@ private fun RenderNoteRow(
                 canPreview,
                 backgroundColor,
                 accountViewModel,
-                nav
+                nav,
             )
         }
-
         else -> {
             RenderTextEvent(
                 baseNote,
@@ -1204,7 +1240,7 @@ private fun RenderNoteRow(
                 canPreview,
                 backgroundColor,
                 accountViewModel,
-                nav
+                nav,
             )
         }
     }
@@ -1214,42 +1250,39 @@ private fun RenderNoteRow(
 fun LoadDecryptedContent(
     note: Note,
     accountViewModel: AccountViewModel,
-    inner: @Composable (String) -> Unit
+    inner: @Composable (String) -> Unit,
 ) {
-    var decryptedContent by remember(note.event) {
-        mutableStateOf(
-            accountViewModel.cachedDecrypt(note)
-        )
-    }
+    var decryptedContent by
+        remember(note.event) {
+            mutableStateOf(
+                accountViewModel.cachedDecrypt(note),
+            )
+        }
 
-    decryptedContent?.let {
-        inner(it)
-    } ?: run {
-        LaunchedEffect(key1 = decryptedContent) {
-            accountViewModel.decrypt(note) {
-                decryptedContent = it
+    decryptedContent?.let { inner(it) }
+        ?: run {
+            LaunchedEffect(key1 = decryptedContent) {
+                accountViewModel.decrypt(note) { decryptedContent = it }
             }
         }
-    }
 }
 
 @Composable
 fun LoadDecryptedContentOrNull(
     note: Note,
     accountViewModel: AccountViewModel,
-    inner: @Composable (String?) -> Unit
+    inner: @Composable (String?) -> Unit,
 ) {
-    var decryptedContent by remember(note.event) {
-        mutableStateOf(
-            accountViewModel.cachedDecrypt(note)
-        )
-    }
+    var decryptedContent by
+        remember(note.event) {
+            mutableStateOf(
+                accountViewModel.cachedDecrypt(note),
+            )
+        }
 
     if (decryptedContent == null) {
         LaunchedEffect(key1 = decryptedContent) {
-            accountViewModel.decrypt(note) {
-                decryptedContent = it
-            }
+            accountViewModel.decrypt(note) { decryptedContent = it }
         }
     }
 
@@ -1263,20 +1296,21 @@ fun RenderTextEvent(
     canPreview: Boolean,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     LoadDecryptedContent(note, accountViewModel) { body ->
-        val eventContent by remember(note.event) {
-            derivedStateOf {
-                val subject = (note.event as? TextNoteEvent)?.subject()?.ifEmpty { null }
+        val eventContent by
+            remember(note.event) {
+                derivedStateOf {
+                    val subject = (note.event as? TextNoteEvent)?.subject()?.ifEmpty { null }
 
-                if (!subject.isNullOrBlank() && !body.split("\n")[0].contains(subject)) {
-                    "### $subject\n$body"
-                } else {
-                    body
+                    if (!subject.isNullOrBlank() && !body.split("\n")[0].contains(subject)) {
+                        "### $subject\n$body"
+                    } else {
+                        body
+                    }
                 }
             }
-        }
 
         val isAuthorTheLoggedUser = remember(note.event) { accountViewModel.isLoggedUser(note.author) }
 
@@ -1285,12 +1319,13 @@ fun RenderTextEvent(
                 text = eventContent,
                 color = MaterialTheme.colorScheme.placeholderText,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         } else {
+            // This SensitivityWarning is somehow responsible for rendering ALL notes
             SensitivityWarning(
                 note = note,
-                accountViewModel = accountViewModel
+                accountViewModel = accountViewModel,
             ) {
                 val modifier = remember(note) { Modifier.fillMaxWidth() }
                 val tags = remember(note) { note.event?.tags()?.toImmutableListOfLists() ?: EmptyTagList }
@@ -1302,12 +1337,13 @@ fun RenderTextEvent(
                     tags = tags,
                     backgroundColor = backgroundColor,
                     accountViewModel = accountViewModel,
-                    nav = nav
+                    nav = nav,
                 )
             }
 
             if (note.event?.hasHashtags() == true) {
-                val hashtags = remember(note.event) { note.event?.hashtags()?.toImmutableList() ?: persistentListOf() }
+                val hashtags =
+                    remember(note.event) { note.event?.hashtags()?.toImmutableList() ?: persistentListOf() }
                 DisplayUncitedHashtags(hashtags, eventContent, nav)
             }
         }
@@ -1321,7 +1357,7 @@ fun RenderPoll(
     canPreview: Boolean,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteEvent = note.event as? PollNoteEvent ?: return
     val eventContent = remember(note) { noteEvent.content() }
@@ -1331,14 +1367,14 @@ fun RenderPoll(
             text = eventContent,
             color = MaterialTheme.colorScheme.placeholderText,
             maxLines = 2,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
         )
     } else {
         val tags = remember(note) { note.event?.tags()?.toImmutableListOfLists() ?: EmptyTagList }
 
         SensitivityWarning(
             note = note,
-            accountViewModel = accountViewModel
+            accountViewModel = accountViewModel,
         ) {
             TranslatableRichTextViewer(
                 content = eventContent,
@@ -1347,7 +1383,7 @@ fun RenderPoll(
                 tags = tags,
                 backgroundColor = backgroundColor,
                 accountViewModel = accountViewModel,
-                nav = nav
+                nav = nav,
             )
 
             PollNote(
@@ -1355,7 +1391,7 @@ fun RenderPoll(
                 canPreview = canPreview && !makeItShort,
                 backgroundColor,
                 accountViewModel,
-                nav
+                nav,
             )
         }
 
@@ -1371,18 +1407,14 @@ fun RenderPoll(
 fun RenderAppDefinition(
     note: Note,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteEvent = note.event as? AppDefinitionEvent ?: return
 
-    var metadata by remember {
-        mutableStateOf<UserMetadata?>(null)
-    }
+    var metadata by remember { mutableStateOf<UserMetadata?>(null) }
 
     LaunchedEffect(key1 = noteEvent) {
-        launch(Dispatchers.Default) {
-            metadata = noteEvent.appMetaData()
-        }
+        launch(Dispatchers.Default) { metadata = noteEvent.appMetaData() }
     }
 
     metadata?.let {
@@ -1397,22 +1429,20 @@ fun RenderAppDefinition(
                     model = it.banner,
                     contentDescription = stringResource(id = R.string.profile_image),
                     contentScale = ContentScale.FillWidth,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(125.dp)
-                        .combinedClickable(
-                            onClick = {},
-                            onLongClick = {
-                                clipboardManager.setText(AnnotatedString(it.banner!!))
-                            }
-                        )
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .height(125.dp)
+                            .combinedClickable(
+                                onClick = {},
+                                onLongClick = { clipboardManager.setText(AnnotatedString(it.banner!!)) },
+                            ),
                 )
 
                 if (zoomImageDialogOpen) {
                     ZoomableImageDialog(
                         imageUrl = figureOutMimeType(it.banner!!),
                         onDismiss = { zoomImageDialogOpen = false },
-                        accountViewModel = accountViewModel
+                        accountViewModel = accountViewModel,
                     )
                 }
             } else {
@@ -1420,21 +1450,16 @@ fun RenderAppDefinition(
                     painter = painterResource(R.drawable.profile_banner),
                     contentDescription = stringResource(id = R.string.profile_banner),
                     contentScale = ContentScale.FillWidth,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(125.dp)
+                    modifier = Modifier.fillMaxWidth().height(125.dp),
                 )
             }
 
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp)
-                    .padding(top = 75.dp)
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp).padding(top = 75.dp),
             ) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
+                    verticalAlignment = Alignment.Bottom,
                 ) {
                     var zoomImageDialogOpen by remember { mutableStateOf(false) }
 
@@ -1444,21 +1469,19 @@ fun RenderAppDefinition(
                                 model = it,
                                 contentDescription = null,
                                 contentScale = ContentScale.FillWidth,
-                                modifier = Modifier
-                                    .border(
+                                modifier =
+                                    Modifier.border(
                                         3.dp,
                                         MaterialTheme.colorScheme.background,
-                                        CircleShape
+                                        CircleShape,
                                     )
-                                    .clip(shape = CircleShape)
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.background)
-                                    .combinedClickable(
-                                        onClick = { zoomImageDialogOpen = true },
-                                        onLongClick = {
-                                            clipboardManager.setText(AnnotatedString(it))
-                                        }
-                                    )
+                                        .clip(shape = CircleShape)
+                                        .fillMaxSize()
+                                        .background(MaterialTheme.colorScheme.background)
+                                        .combinedClickable(
+                                            onClick = { zoomImageDialogOpen = true },
+                                            onLongClick = { clipboardManager.setText(AnnotatedString(it)) },
+                                        ),
                             )
                         }
                     }
@@ -1467,18 +1490,15 @@ fun RenderAppDefinition(
                         ZoomableImageDialog(
                             imageUrl = figureOutMimeType(it.banner!!),
                             onDismiss = { zoomImageDialogOpen = false },
-                            accountViewModel = accountViewModel
+                            accountViewModel = accountViewModel,
                         )
                     }
 
                     Spacer(Modifier.weight(1f))
 
                     Row(
-                        modifier = Modifier
-                            .height(Size35dp)
-                            .padding(bottom = 3.dp)
-                    ) {
-                    }
+                        modifier = Modifier.height(Size35dp).padding(bottom = 3.dp),
+                    ) {}
                 }
 
                 val name = remember(it) { it.anyName() }
@@ -1488,7 +1508,7 @@ fun RenderAppDefinition(
                             text = it,
                             tags = remember { (note.event?.tags() ?: emptyArray()).toImmutableListOfLists() },
                             fontWeight = FontWeight.Bold,
-                            fontSize = 25.sp
+                            fontSize = 25.sp,
                         )
                     }
                 }
@@ -1502,27 +1522,26 @@ fun RenderAppDefinition(
                             text = AnnotatedString(website.removePrefix("https://")),
                             onClick = { website.let { runCatching { uri.openUri(it) } } },
                             style = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.primary),
-                            modifier = Modifier.padding(top = 1.dp, bottom = 1.dp, start = 5.dp)
+                            modifier = Modifier.padding(top = 1.dp, bottom = 1.dp, start = 5.dp),
                         )
                     }
                 }
 
                 it.about?.let {
                     Row(
-                        modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)
+                        modifier = Modifier.padding(top = 5.dp, bottom = 5.dp),
                     ) {
-                        val tags = remember(note) { note.event?.tags()?.toImmutableListOfLists() ?: EmptyTagList }
+                        val tags =
+                            remember(note) { note.event?.tags()?.toImmutableListOfLists() ?: EmptyTagList }
                         val bgColor = MaterialTheme.colorScheme.background
-                        val backgroundColor = remember {
-                            mutableStateOf(bgColor)
-                        }
+                        val backgroundColor = remember { mutableStateOf(bgColor) }
                         TranslatableRichTextViewer(
                             content = it,
                             canPreview = false,
                             tags = tags,
                             backgroundColor = backgroundColor,
                             accountViewModel = accountViewModel,
-                            nav = nav
+                            nav = nav,
                         )
                     }
                 }
@@ -1538,20 +1557,12 @@ private fun RenderHighlight(
     canPreview: Boolean,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    val quote = remember {
-        (note.event as? HighlightEvent)?.quote() ?: ""
-    }
-    val author = remember() {
-        (note.event as? HighlightEvent)?.author()
-    }
-    val url = remember() {
-        (note.event as? HighlightEvent)?.inUrl()
-    }
-    val postHex = remember() {
-        (note.event as? HighlightEvent)?.taggedAddresses()?.firstOrNull()
-    }
+    val quote = remember { (note.event as? HighlightEvent)?.quote() ?: "" }
+    val author = remember { (note.event as? HighlightEvent)?.author() }
+    val url = remember { (note.event as? HighlightEvent)?.inUrl() }
+    val postHex = remember { (note.event as? HighlightEvent)?.taggedAddresses()?.firstOrNull() }
 
     DisplayHighlight(
         highlight = quote,
@@ -1562,7 +1573,7 @@ private fun RenderHighlight(
         canPreview = canPreview,
         backgroundColor = backgroundColor,
         accountViewModel = accountViewModel,
-        nav = nav
+        nav = nav,
     )
 }
 
@@ -1573,7 +1584,7 @@ private fun RenderPrivateMessage(
     canPreview: Boolean,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteEvent = note.event as? PrivateDmEvent ?: return
 
@@ -1581,7 +1592,8 @@ private fun RenderPrivateMessage(
     if (withMe) {
         LoadDecryptedContent(note, accountViewModel) { eventContent ->
             val modifier = remember(note.event?.id()) { Modifier.fillMaxWidth() }
-            val isAuthorTheLoggedUser = remember(note.event?.id()) { accountViewModel.isLoggedUser(note.author) }
+            val isAuthorTheLoggedUser =
+                remember(note.event?.id()) { accountViewModel.isLoggedUser(note.author) }
 
             val tags = remember(note) { note.event?.tags()?.toImmutableListOfLists() ?: EmptyTagList }
 
@@ -1590,12 +1602,12 @@ private fun RenderPrivateMessage(
                     text = eventContent,
                     color = MaterialTheme.colorScheme.placeholderText,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             } else {
                 SensitivityWarning(
                     note = note,
-                    accountViewModel = accountViewModel
+                    accountViewModel = accountViewModel,
                 ) {
                     TranslatableRichTextViewer(
                         content = eventContent,
@@ -1604,12 +1616,15 @@ private fun RenderPrivateMessage(
                         tags = tags,
                         backgroundColor = backgroundColor,
                         accountViewModel = accountViewModel,
-                        nav = nav
+                        nav = nav,
                     )
                 }
 
                 if (noteEvent.hasHashtags()) {
-                    val hashtags = remember(note.event?.id()) { note.event?.hashtags()?.toImmutableList() ?: persistentListOf() }
+                    val hashtags =
+                        remember(note.event?.id()) {
+                            note.event?.hashtags()?.toImmutableList() ?: persistentListOf()
+                        }
                     DisplayUncitedHashtags(hashtags, eventContent, nav)
                 }
             }
@@ -1621,14 +1636,14 @@ private fun RenderPrivateMessage(
             stringResource(
                 id = R.string.private_conversation_notification,
                 "@${note.author?.pubkeyNpub()}",
-                "@$recipient"
+                "@$recipient",
             ),
             canPreview = !makeItShort,
             Modifier.fillMaxWidth(),
             EmptyTagList,
             backgroundColor,
             accountViewModel,
-            nav
+            nav,
         )
     }
 }
@@ -1638,47 +1653,37 @@ fun DisplayRelaySet(
     baseNote: Note,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteEvent = baseNote.event as? RelaySetEvent ?: return
 
-    val relays by remember(baseNote) {
-        mutableStateOf(
-            noteEvent.relays().map { RelayBriefInfoCache.RelayBriefInfo(it) }.toImmutableList()
-        )
-    }
-
-    var expanded by remember {
-        mutableStateOf(false)
-    }
-
-    val toMembersShow = if (expanded) {
-        relays
-    } else {
-        relays.take(3)
-    }
-
-    val relayListName by remember {
-        derivedStateOf {
-            "#${noteEvent.dTag()}"
+    val relays by
+        remember(baseNote) {
+            mutableStateOf(
+                noteEvent.relays().map { RelayBriefInfoCache.RelayBriefInfo(it) }.toImmutableList(),
+            )
         }
-    }
 
-    val relayDescription by remember {
-        derivedStateOf {
-            noteEvent.description()
+    var expanded by remember { mutableStateOf(false) }
+
+    val toMembersShow =
+        if (expanded) {
+            relays
+        } else {
+            relays.take(3)
         }
-    }
+
+    val relayListName by remember { derivedStateOf { "#${noteEvent.dTag()}" } }
+
+    val relayDescription by remember { derivedStateOf { noteEvent.description() } }
 
     Text(
         text = relayListName,
         fontWeight = FontWeight.Bold,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(5.dp),
-        textAlign = TextAlign.Center
+        modifier = Modifier.fillMaxWidth().padding(5.dp),
+        textAlign = TextAlign.Center,
     )
 
     relayDescription?.let {
@@ -1686,11 +1691,9 @@ fun DisplayRelaySet(
             text = it,
             maxLines = 3,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp),
+            modifier = Modifier.fillMaxWidth().padding(5.dp),
             textAlign = TextAlign.Center,
-            color = Color.Gray
+            color = Color.Gray,
         )
     }
 
@@ -1703,9 +1706,7 @@ fun DisplayRelaySet(
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .padding(start = 10.dp, bottom = 5.dp)
-                            .weight(1f)
+                        modifier = Modifier.padding(start = 10.dp, bottom = 5.dp).weight(1f),
                     )
 
                     Column(modifier = Modifier.padding(start = 10.dp)) {
@@ -1719,14 +1720,12 @@ fun DisplayRelaySet(
             Row(
                 verticalAlignment = CenterVertically,
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .background(getGradient(backgroundColor))
+                modifier =
+                    Modifier.align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .background(getGradient(backgroundColor)),
             ) {
-                ShowMoreButton {
-                    expanded = !expanded
-                }
+                ShowMoreButton { expanded = !expanded }
             }
         }
     }
@@ -1736,18 +1735,17 @@ fun DisplayRelaySet(
 private fun RelayOptionsAction(
     relay: String,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val userStateRelayInfo by accountViewModel.account.userProfile().live().relayInfo.observeAsState()
-    val isCurrentlyOnTheUsersList by remember(userStateRelayInfo) {
-        derivedStateOf {
-            userStateRelayInfo?.user?.latestContactList?.relays()?.none { it.key == relay } == true
+    val isCurrentlyOnTheUsersList by
+        remember(userStateRelayInfo) {
+            derivedStateOf {
+                userStateRelayInfo?.user?.latestContactList?.relays()?.none { it.key == relay } == true
+            }
         }
-    }
 
-    var wantsToAddRelay by remember {
-        mutableStateOf("")
-    }
+    var wantsToAddRelay by remember { mutableStateOf("") }
 
     if (wantsToAddRelay.isNotEmpty()) {
         NewRelayListView({ wantsToAddRelay = "" }, accountViewModel, wantsToAddRelay, nav = nav)
@@ -1766,44 +1764,33 @@ fun DisplayPeopleList(
     baseNote: Note,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteEvent = baseNote.event as? PeopleListEvent ?: return
 
     var members by remember { mutableStateOf<ImmutableList<User>>(persistentListOf()) }
 
-    var expanded by remember {
-        mutableStateOf(false)
-    }
+    var expanded by remember { mutableStateOf(false) }
 
-    val toMembersShow = if (expanded) {
-        members
-    } else {
-        members.take(3)
-    }
-
-    val name by remember {
-        derivedStateOf {
-            "#${noteEvent.dTag()}"
+    val toMembersShow =
+        if (expanded) {
+            members
+        } else {
+            members.take(3)
         }
-    }
+
+    val name by remember { derivedStateOf { "#${noteEvent.dTag()}" } }
 
     Text(
         text = name,
         fontWeight = FontWeight.Bold,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(5.dp),
-        textAlign = TextAlign.Center
+        modifier = Modifier.fillMaxWidth().padding(5.dp),
+        textAlign = TextAlign.Center,
     )
 
-    LaunchedEffect(Unit) {
-        accountViewModel.loadUsers(noteEvent.bookmarkedPeople()) {
-            members = it
-        }
-    }
+    LaunchedEffect(Unit) { accountViewModel.loadUsers(noteEvent.bookmarkedPeople()) { members = it } }
 
     Box {
         FlowRow(modifier = Modifier.padding(top = 5.dp)) {
@@ -1813,7 +1800,7 @@ fun DisplayPeopleList(
                         user,
                         overallModifier = Modifier,
                         accountViewModel = accountViewModel,
-                        nav = nav
+                        nav = nav,
                     )
                 }
             }
@@ -1823,14 +1810,12 @@ fun DisplayPeopleList(
             Row(
                 verticalAlignment = CenterVertically,
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .background(getGradient(backgroundColor))
+                modifier =
+                    Modifier.align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .background(getGradient(backgroundColor)),
             ) {
-                ShowMoreButton {
-                    expanded = !expanded
-                }
+                ShowMoreButton { expanded = !expanded }
             }
         }
     }
@@ -1842,7 +1827,7 @@ private fun RenderBadgeAward(
     note: Note,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     if (note.replyTo.isNullOrEmpty()) return
 
@@ -1851,26 +1836,18 @@ private fun RenderBadgeAward(
 
     Text(text = stringResource(R.string.award_granted_to))
 
-    LaunchedEffect(key1 = note) {
-        accountViewModel.loadUsers(noteEvent.awardees()) {
-            awardees = it
-        }
-    }
+    LaunchedEffect(key1 = note) { accountViewModel.loadUsers(noteEvent.awardees()) { awardees = it } }
 
     FlowRow(modifier = Modifier.padding(top = 5.dp)) {
         awardees.take(100).forEach { user ->
             Row(
-                modifier = Modifier
-                    .size(size = Size35dp)
-                    .clickable {
-                        nav("User/${user.pubkeyHex}")
-                    },
-                verticalAlignment = CenterVertically
+                modifier = Modifier.size(size = Size35dp).clickable { nav("User/${user.pubkeyHex}") },
+                verticalAlignment = CenterVertically,
             ) {
                 ClickableUserPicture(
                     baseUser = user,
                     accountViewModel = accountViewModel,
-                    size = Size35dp
+                    size = Size35dp,
                 )
             }
         }
@@ -1889,7 +1866,7 @@ private fun RenderBadgeAward(
             unPackReply = false,
             parentBackgroundColor = backgroundColor,
             accountViewModel = accountViewModel,
-            nav = nav
+            nav = nav,
         )
     }
 }
@@ -1899,7 +1876,7 @@ private fun RenderReaction(
     note: Note,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     note.replyTo?.lastOrNull()?.let {
         NoteCompose(
@@ -1909,17 +1886,16 @@ private fun RenderReaction(
             unPackReply = false,
             parentBackgroundColor = backgroundColor,
             accountViewModel = accountViewModel,
-            nav = nav
+            nav = nav,
         )
     }
 
     // Reposts have trash in their contents.
-    val refactorReactionText =
-        if (note.event?.content() == "+") "❤" else note.event?.content() ?: ""
+    val refactorReactionText = if (note.event?.content() == "+") "❤" else note.event?.content() ?: ""
 
     Text(
         text = refactorReactionText,
-        maxLines = 1
+        maxLines = 1,
     )
 }
 
@@ -1928,11 +1904,9 @@ fun RenderRepost(
     note: Note,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    val boostedNote = remember {
-        note.replyTo?.lastOrNull()
-    }
+    val boostedNote = remember { note.replyTo?.lastOrNull() }
 
     boostedNote?.let {
         NoteCompose(
@@ -1942,7 +1916,7 @@ fun RenderRepost(
             unPackReply = false,
             parentBackgroundColor = backgroundColor,
             accountViewModel = accountViewModel,
-            nav = nav
+            nav = nav,
         )
     }
 }
@@ -1954,7 +1928,7 @@ fun RenderPostApproval(
     canPreview: Boolean,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     if (note.replyTo.isNullOrEmpty()) return
 
@@ -1968,7 +1942,7 @@ fun RenderPostApproval(
                         it,
                         parentBackgroundColor = backgroundColor,
                         accountViewModel = accountViewModel,
-                        nav = nav
+                        nav = nav,
                     )
                 }
             }
@@ -1979,10 +1953,8 @@ fun RenderPostApproval(
             fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(5.dp),
-            textAlign = TextAlign.Center
+            modifier = Modifier.fillMaxWidth().padding(5.dp),
+            textAlign = TextAlign.Center,
         )
 
         note.replyTo?.forEach {
@@ -1994,17 +1966,22 @@ fun RenderPostApproval(
                 isQuotedNote = true,
                 parentBackgroundColor = backgroundColor,
                 accountViewModel = accountViewModel,
-                nav = nav
+                nav = nav,
             )
         }
     }
 }
 
 @Composable
-fun LoadAddressableNote(aTagHex: String, accountViewModel: AccountViewModel, content: @Composable (AddressableNote?) -> Unit) {
-    var note by remember(aTagHex) {
-        mutableStateOf<AddressableNote?>(accountViewModel.getAddressableNoteIfExists(aTagHex))
-    }
+fun LoadAddressableNote(
+    aTagHex: String,
+    accountViewModel: AccountViewModel,
+    content: @Composable (AddressableNote?) -> Unit,
+) {
+    var note by
+        remember(aTagHex) {
+            mutableStateOf<AddressableNote?>(accountViewModel.getAddressableNoteIfExists(aTagHex))
+        }
 
     if (note == null) {
         LaunchedEffect(key1 = aTagHex) {
@@ -2020,10 +1997,15 @@ fun LoadAddressableNote(aTagHex: String, accountViewModel: AccountViewModel, con
 }
 
 @Composable
-fun LoadAddressableNote(aTag: ATag, accountViewModel: AccountViewModel, content: @Composable (AddressableNote?) -> Unit) {
-    var note by remember(aTag) {
-        mutableStateOf<AddressableNote?>(accountViewModel.getAddressableNoteIfExists(aTag.toTag()))
-    }
+fun LoadAddressableNote(
+    aTag: ATag,
+    accountViewModel: AccountViewModel,
+    content: @Composable (AddressableNote?) -> Unit,
+) {
+    var note by
+        remember(aTag) {
+            mutableStateOf<AddressableNote?>(accountViewModel.getAddressableNoteIfExists(aTag.toTag()))
+        }
 
     if (note == null) {
         LaunchedEffect(key1 = aTag) {
@@ -2044,11 +2026,15 @@ public fun RenderEmojiPack(
     actionable: Boolean,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    onClick: ((EmojiUrl) -> Unit)? = null
+    onClick: ((EmojiUrl) -> Unit)? = null,
 ) {
-    val noteEvent by baseNote.live().metadata.map {
-        it.note.event
-    }.distinctUntilChanged().observeAsState(baseNote.event)
+    val noteEvent by
+        baseNote
+            .live()
+            .metadata
+            .map { it.note.event }
+            .distinctUntilChanged()
+            .observeAsState(baseNote.event)
 
     if (noteEvent == null || noteEvent !is EmojiPackEvent) return
 
@@ -2059,7 +2045,7 @@ public fun RenderEmojiPack(
             actionable = actionable,
             backgroundColor = backgroundColor,
             accountViewModel = accountViewModel,
-            onClick = onClick
+            onClick = onClick,
         )
     }
 }
@@ -2072,21 +2058,18 @@ public fun RenderEmojiPack(
     actionable: Boolean,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    onClick: ((EmojiUrl) -> Unit)? = null
+    onClick: ((EmojiUrl) -> Unit)? = null,
 ) {
-    var expanded by remember {
-        mutableStateOf(false)
-    }
+    var expanded by remember { mutableStateOf(false) }
 
-    val allEmojis = remember(noteEvent) {
-        noteEvent.taggedEmojis()
-    }
+    val allEmojis = remember(noteEvent) { noteEvent.taggedEmojis() }
 
-    val emojisToShow = if (expanded) {
-        allEmojis
-    } else {
-        allEmojis.take(60)
-    }
+    val emojisToShow =
+        if (expanded) {
+            allEmojis
+        } else {
+            allEmojis.take(60)
+        }
 
     Row(verticalAlignment = CenterVertically) {
         Text(
@@ -2094,10 +2077,8 @@ public fun RenderEmojiPack(
             fontWeight = FontWeight.Bold,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier
-                .weight(1F)
-                .padding(5.dp),
-            textAlign = TextAlign.Center
+            modifier = Modifier.weight(1F).padding(5.dp),
+            textAlign = TextAlign.Center,
         )
 
         if (actionable) {
@@ -2113,18 +2094,18 @@ public fun RenderEmojiPack(
                         AsyncImage(
                             model = emoji.url,
                             contentDescription = null,
-                            modifier = Size35Modifier
+                            modifier = Size35Modifier,
                         )
                     }
                 } else {
                     Box(
                         modifier = Size35Modifier,
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         AsyncImage(
                             model = emoji.url,
                             contentDescription = null,
-                            modifier = Size35Modifier
+                            modifier = Size35Modifier,
                         )
                     }
                 }
@@ -2135,14 +2116,12 @@ public fun RenderEmojiPack(
             Row(
                 verticalAlignment = CenterVertically,
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .background(getGradient(backgroundColor))
+                modifier =
+                    Modifier.align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .background(getGradient(backgroundColor)),
             ) {
-                ShowMoreButton {
-                    expanded = !expanded
-                }
+                ShowMoreButton { expanded = !expanded }
             }
         }
     }
@@ -2151,33 +2130,34 @@ public fun RenderEmojiPack(
 @Composable
 private fun EmojiListOptions(
     accountViewModel: AccountViewModel,
-    emojiPackNote: Note
+    emojiPackNote: Note,
 ) {
     LoadAddressableNote(
-        aTag = ATag(
-            EmojiPackSelectionEvent.kind,
-            accountViewModel.userProfile().pubkeyHex,
-            "",
-            null
-        ),
-        accountViewModel
+        aTag =
+            ATag(
+                EmojiPackSelectionEvent.KIND,
+                accountViewModel.userProfile().pubkeyHex,
+                "",
+                null,
+            ),
+        accountViewModel,
     ) {
         it?.let { usersEmojiList ->
-            val hasAddedThis by remember {
-                usersEmojiList.live().metadata.map {
-                    usersEmojiList.event?.isTaggedAddressableNote(emojiPackNote.idHex)
-                }.distinctUntilChanged()
-            }.observeAsState()
+            val hasAddedThis by
+                remember {
+                    usersEmojiList
+                        .live()
+                        .metadata
+                        .map { usersEmojiList.event?.isTaggedAddressableNote(emojiPackNote.idHex) }
+                        .distinctUntilChanged()
+                }
+                    .observeAsState()
 
             Crossfade(targetState = hasAddedThis, label = "EmojiListOptions") {
                 if (it != true) {
-                    AddButton() {
-                        accountViewModel.addEmojiPack(usersEmojiList, emojiPackNote)
-                    }
+                    AddButton { accountViewModel.addEmojiPack(usersEmojiList, emojiPackNote) }
                 } else {
-                    RemoveButton {
-                        accountViewModel.removeEmojiPack(usersEmojiList, emojiPackNote)
-                    }
+                    RemoveButton { accountViewModel.removeEmojiPack(usersEmojiList, emojiPackNote) }
                 }
             }
         }
@@ -2190,38 +2170,38 @@ fun RenderPinListEvent(
     baseNote: Note,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteEvent = baseNote.event as? PinListEvent ?: return
 
     val pins by remember { mutableStateOf(noteEvent.pins()) }
 
-    var expanded by remember {
-        mutableStateOf(false)
-    }
+    var expanded by remember { mutableStateOf(false) }
 
-    val pinsToShow = if (expanded) {
-        pins
-    } else {
-        pins.take(3)
-    }
+    val pinsToShow =
+        if (expanded) {
+            pins
+        } else {
+            pins.take(3)
+        }
 
     Text(
         text = "#${noteEvent.dTag()}",
         fontWeight = FontWeight.Bold,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(5.dp),
-        textAlign = TextAlign.Center
+        modifier = Modifier.fillMaxWidth().padding(5.dp),
+        textAlign = TextAlign.Center,
     )
 
     Box {
         FlowRow(modifier = Modifier.padding(top = 5.dp)) {
             pinsToShow.forEach { pin ->
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = CenterVertically) {
-                    PinIcon(modifier = Size15Modifier, tint = MaterialTheme.colorScheme.onBackground.copy(0.32f))
+                    PinIcon(
+                        modifier = Size15Modifier,
+                        tint = MaterialTheme.colorScheme.onBackground.copy(0.32f),
+                    )
 
                     Spacer(modifier = Modifier.width(5.dp))
 
@@ -2231,7 +2211,7 @@ fun RenderPinListEvent(
                         tags = EmptyTagList,
                         backgroundColor = backgroundColor,
                         accountViewModel = accountViewModel,
-                        nav = nav
+                        nav = nav,
                     )
                 }
             }
@@ -2241,14 +2221,12 @@ fun RenderPinListEvent(
             Row(
                 verticalAlignment = CenterVertically,
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .background(getGradient(backgroundColor))
+                modifier =
+                    Modifier.align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .background(getGradient(backgroundColor)),
             ) {
-                ShowMoreButton {
-                    expanded = !expanded
-                }
+                ShowMoreButton { expanded = !expanded }
             }
         }
     }
@@ -2256,10 +2234,11 @@ fun RenderPinListEvent(
 
 fun getGradient(backgroundColor: MutableState<Color>): Brush {
     return Brush.verticalGradient(
-        colors = listOf(
-            backgroundColor.value.copy(alpha = 0f),
-            backgroundColor.value
-        )
+        colors =
+            listOf(
+                backgroundColor.value.copy(alpha = 0f),
+                backgroundColor.value,
+            ),
     )
 }
 
@@ -2267,7 +2246,7 @@ fun getGradient(backgroundColor: MutableState<Color>): Brush {
 private fun RenderAudioTrack(
     note: Note,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteEvent = note.event as? AudioTrackEvent ?: return
 
@@ -2278,7 +2257,7 @@ private fun RenderAudioTrack(
 private fun RenderAudioHeader(
     note: Note,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteEvent = note.event as? AudioHeaderEvent ?: return
 
@@ -2289,7 +2268,7 @@ private fun RenderAudioHeader(
 private fun RenderLongFormContent(
     note: Note,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteEvent = note.event as? LongTextNoteEvent ?: return
 
@@ -2301,28 +2280,31 @@ private fun RenderReport(
     note: Note,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteEvent = note.event as? ReportEvent ?: return
 
-    val base = remember {
-        (noteEvent.reportedPost() + noteEvent.reportedAuthor())
-    }
+    val base = remember { (noteEvent.reportedPost() + noteEvent.reportedAuthor()) }
 
-    val reportType = base.map {
-        when (it.reportType) {
-            ReportEvent.ReportType.EXPLICIT -> stringResource(R.string.explicit_content)
-            ReportEvent.ReportType.NUDITY -> stringResource(R.string.nudity)
-            ReportEvent.ReportType.PROFANITY -> stringResource(R.string.profanity_hateful_speech)
-            ReportEvent.ReportType.SPAM -> stringResource(R.string.spam)
-            ReportEvent.ReportType.IMPERSONATION -> stringResource(R.string.impersonation)
-            ReportEvent.ReportType.ILLEGAL -> stringResource(R.string.illegal_behavior)
+    val reportType =
+        base
+            .map {
+                when (it.reportType) {
+                    ReportEvent.ReportType.EXPLICIT -> stringResource(R.string.explicit_content)
+                    ReportEvent.ReportType.NUDITY -> stringResource(R.string.nudity)
+                    ReportEvent.ReportType.PROFANITY -> stringResource(R.string.profanity_hateful_speech)
+                    ReportEvent.ReportType.SPAM -> stringResource(R.string.spam)
+                    ReportEvent.ReportType.IMPERSONATION -> stringResource(R.string.impersonation)
+                    ReportEvent.ReportType.ILLEGAL -> stringResource(R.string.illegal_behavior)
+                }
+            }
+            .toSet()
+            .joinToString(", ")
+
+    val content =
+        remember {
+            reportType + (note.event?.content()?.ifBlank { null }?.let { ": $it" } ?: "")
         }
-    }.toSet().joinToString(", ")
-
-    val content = remember {
-        reportType + (note.event?.content()?.ifBlank { null }?.let { ": $it" } ?: "")
-    }
 
     TranslatableRichTextViewer(
         content = content,
@@ -2331,27 +2313,27 @@ private fun RenderReport(
         tags = EmptyTagList,
         backgroundColor = backgroundColor,
         accountViewModel = accountViewModel,
-        nav = nav
+        nav = nav,
     )
 
     note.replyTo?.lastOrNull()?.let {
         NoteCompose(
             baseNote = it,
             isQuotedNote = true,
-            modifier = Modifier
-                .padding(top = 5.dp)
-                .fillMaxWidth()
-                .clip(shape = QuoteBorder)
-                .border(
-                    1.dp,
-                    MaterialTheme.colorScheme.subtleBorder,
-                    QuoteBorder
-                ),
+            modifier =
+                Modifier.padding(top = 5.dp)
+                    .fillMaxWidth()
+                    .clip(shape = QuoteBorder)
+                    .border(
+                        1.dp,
+                        MaterialTheme.colorScheme.subtleBorder,
+                        QuoteBorder,
+                    ),
             unPackReply = false,
             makeItShort = true,
             parentBackgroundColor = backgroundColor,
             accountViewModel = accountViewModel,
-            nav = nav
+            nav = nav,
         )
     }
 }
@@ -2362,25 +2344,27 @@ private fun ReplyRow(
     unPackReply: Boolean,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteEvent = note.event
 
-    val showReply by remember(note) {
-        derivedStateOf {
-            noteEvent is BaseTextNoteEvent && (note.replyTo != null || noteEvent.hasAnyTaggedUser())
-        }
-    }
-
-    val showChannelInfo by remember(note) {
-        derivedStateOf {
-            if (noteEvent is ChannelMessageEvent || noteEvent is LiveActivitiesChatMessageEvent) {
-                note.channelHex()
-            } else {
-                null
+    val showReply by
+        remember(note) {
+            derivedStateOf {
+                noteEvent is BaseTextNoteEvent && (note.replyTo != null || noteEvent.hasAnyTaggedUser())
             }
         }
-    }
+
+    val showChannelInfo by
+        remember(note) {
+            derivedStateOf {
+                if (noteEvent is ChannelMessageEvent || noteEvent is LiveActivitiesChatMessageEvent) {
+                    note.channelHex()
+                } else {
+                    null
+                }
+            }
+        }
 
     showChannelInfo?.let {
         ChannelHeader(
@@ -2390,35 +2374,36 @@ private fun ReplyRow(
             sendToChannel = true,
             modifier = MaterialTheme.colorScheme.replyModifier.padding(10.dp),
             accountViewModel = accountViewModel,
-            nav = nav
+            nav = nav,
         )
     }
 
     if (showReply) {
-        val replyingDirectlyTo = remember(note) {
-            if (noteEvent is BaseTextNoteEvent) {
-                val replyingTo = noteEvent.replyingTo()
-                if (replyingTo != null) {
-                    note.replyTo?.firstOrNull() {
-                        // important to test both ids in case it's a replaceable event.
-                        it.idHex == replyingTo || it.event?.id() == replyingTo
+        val replyingDirectlyTo =
+            remember(note) {
+                if (noteEvent is BaseTextNoteEvent) {
+                    val replyingTo = noteEvent.replyingTo()
+                    if (replyingTo != null) {
+                        note.replyTo?.firstOrNull {
+                            // important to test both ids in case it's a replaceable event.
+                            it.idHex == replyingTo || it.event?.id() == replyingTo
+                        }
+                    } else {
+                        note.replyTo?.lastOrNull { it.event?.kind() != CommunityDefinitionEvent.KIND }
                     }
                 } else {
-                    note.replyTo?.lastOrNull { it.event?.kind() != CommunityDefinitionEvent.kind }
+                    note.replyTo?.lastOrNull { it.event?.kind() != CommunityDefinitionEvent.KIND }
                 }
-            } else {
-                note.replyTo?.lastOrNull { it.event?.kind() != CommunityDefinitionEvent.kind }
             }
-        }
         if (replyingDirectlyTo != null && unPackReply) {
             ReplyNoteComposition(replyingDirectlyTo, backgroundColor, accountViewModel, nav)
             Spacer(modifier = StdVertSpacer)
         } else if (showChannelInfo != null) {
             val replies = remember { note.replyTo?.toImmutableList() }
-            val mentions = remember {
-                (note.event as? BaseTextNoteEvent)?.mentions()?.toImmutableList()
-                    ?: persistentListOf()
-            }
+            val mentions =
+                remember {
+                    (note.event as? BaseTextNoteEvent)?.mentions()?.toImmutableList() ?: persistentListOf()
+                }
 
             ReplyInformationChannel(replies, mentions, accountViewModel, nav)
         }
@@ -2430,17 +2415,14 @@ private fun ReplyNoteComposition(
     replyingDirectlyTo: Note,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    val replyBackgroundColor = remember {
-        mutableStateOf(backgroundColor.value)
-    }
+    val replyBackgroundColor = remember { mutableStateOf(backgroundColor.value) }
     val defaultReplyBackground = MaterialTheme.colorScheme.replyBackground
 
     LaunchedEffect(key1 = backgroundColor.value, key2 = defaultReplyBackground) {
         launch(Dispatchers.Default) {
-            val newReplyBackgroundColor =
-                defaultReplyBackground.compositeOver(backgroundColor.value)
+            val newReplyBackgroundColor = defaultReplyBackground.compositeOver(backgroundColor.value)
             if (replyBackgroundColor.value != newReplyBackgroundColor) {
                 replyBackgroundColor.value = newReplyBackgroundColor
             }
@@ -2455,7 +2437,7 @@ private fun ReplyNoteComposition(
         makeItShort = true,
         parentBackgroundColor = replyBackgroundColor,
         accountViewModel = accountViewModel,
-        nav = nav
+        nav = nav,
     )
 }
 
@@ -2463,14 +2445,14 @@ private fun ReplyNoteComposition(
 fun SecondUserInfoRow(
     note: Note,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteEvent = remember { note.event } ?: return
     val noteAuthor = remember { note.author } ?: return
 
     Row(
         verticalAlignment = CenterVertically,
-        modifier = UserNameMaxRowHeight
+        modifier = UserNameMaxRowHeight,
     ) {
         ObserveDisplayNip05Status(noteAuthor, remember { Modifier.weight(1f) }, accountViewModel, nav)
 
@@ -2498,11 +2480,9 @@ fun SecondUserInfoRow(
 fun LoadStatuses(
     user: User,
     accountViewModel: AccountViewModel,
-    content: @Composable (ImmutableList<AddressableNote>) -> Unit
+    content: @Composable (ImmutableList<AddressableNote>) -> Unit,
 ) {
-    var statuses: ImmutableList<AddressableNote> by remember {
-        mutableStateOf(persistentListOf())
-    }
+    var statuses: ImmutableList<AddressableNote> by remember { mutableStateOf(persistentListOf()) }
 
     val userStatus by user.live().statuses.observeAsState()
 
@@ -2518,15 +2498,17 @@ fun LoadStatuses(
 }
 
 @Composable
-fun LoadCityName(geohash: GeoHash, content: @Composable (String) -> Unit) {
+fun LoadCityName(
+    geohash: GeoHash,
+    content: @Composable (String) -> Unit,
+) {
     val context = LocalContext.current
-    var cityName by remember(geohash) {
-        mutableStateOf<String>(geohash.toString())
-    }
+    var cityName by remember(geohash) { mutableStateOf<String>(geohash.toString()) }
 
     LaunchedEffect(key1 = geohash) {
         launch(Dispatchers.IO) {
-            val newCityName = ReverseGeoLocationUtil().execute(geohash.toLocation(), context)?.ifBlank { null }
+            val newCityName =
+                ReverseGeoLocationUtil().execute(geohash.toLocation(), context)?.ifBlank { null }
             if (newCityName != null && newCityName != cityName) {
                 cityName = newCityName
             }
@@ -2537,21 +2519,26 @@ fun LoadCityName(geohash: GeoHash, content: @Composable (String) -> Unit) {
 }
 
 @Composable
-fun DisplayLocation(geohashStr: String, nav: (String) -> Unit) {
+fun DisplayLocation(
+    geohashStr: String,
+    nav: (String) -> Unit,
+) {
     val geoHash = runCatching { geohashStr.toGeoHash() }.getOrNull()
     if (geoHash != null) {
         LoadCityName(geoHash) { cityName ->
             ClickableText(
                 text = AnnotatedString(cityName),
                 onClick = { nav("Geohash/$geoHash") },
-                style = LocalTextStyle.current.copy(
-                    color = MaterialTheme.colorScheme.primary.copy(
-                        alpha = 0.52f
+                style =
+                    LocalTextStyle.current.copy(
+                        color =
+                            MaterialTheme.colorScheme.primary.copy(
+                                alpha = 0.52f,
+                            ),
+                        fontSize = Font14SP,
+                        fontWeight = FontWeight.Bold,
                     ),
-                    fontSize = Font14SP,
-                    fontWeight = FontWeight.Bold
-                ),
-                maxLines = 1
+                maxLines = 1,
             )
         }
     }
@@ -2562,20 +2549,20 @@ fun FirstUserInfoRow(
     baseNote: Note,
     showAuthorPicture: Boolean,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     Row(verticalAlignment = CenterVertically, modifier = remember { UserNameRowHeight }) {
-        val isRepost by remember(baseNote) {
-            derivedStateOf {
-                baseNote.event is RepostEvent || baseNote.event is GenericRepostEvent
+        val isRepost by
+            remember(baseNote) {
+                derivedStateOf { baseNote.event is RepostEvent || baseNote.event is GenericRepostEvent }
             }
-        }
 
-        val isCommunityPost by remember(baseNote) {
-            derivedStateOf {
-                baseNote.event?.isTaggedAddressableKind(CommunityDefinitionEvent.kind) == true
+        val isCommunityPost by
+            remember(baseNote) {
+                derivedStateOf {
+                    baseNote.event?.isTaggedAddressableKind(CommunityDefinitionEvent.KIND) == true
+                }
             }
-        }
 
         val textColor = if (isRepost) MaterialTheme.colorScheme.grayText else Color.Unspecified
 
@@ -2606,30 +2593,28 @@ private fun BoostedMark() {
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.placeholderText,
         maxLines = 1,
-        modifier = HalfStartPadding
+        modifier = HalfStartPadding,
     )
 }
 
 @Composable
 fun MoreOptionsButton(
     baseNote: Note,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
     val popupExpanded = remember { mutableStateOf(false) }
-    val enablePopup = remember {
-        { popupExpanded.value = true }
-    }
+    val enablePopup = remember { { popupExpanded.value = true } }
 
     IconButton(
         modifier = Size24Modifier,
-        onClick = enablePopup
+        onClick = enablePopup,
     ) {
         VerticalDotsIcon()
 
         NoteDropDownMenu(
             baseNote,
             popupExpanded,
-            accountViewModel
+            accountViewModel,
         )
     }
 }
@@ -2648,12 +2633,16 @@ fun TimeAgo(time: Long) {
     Text(
         text = timeStr,
         color = MaterialTheme.colorScheme.placeholderText,
-        maxLines = 1
+        maxLines = 1,
     )
 }
 
 @Composable
-private fun AuthorAndRelayInformation(baseNote: Note, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+private fun AuthorAndRelayInformation(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     // Draws the boosted picture outside the boosted card.
     Box(modifier = Size55Modifier, contentAlignment = Alignment.BottomEnd) {
         RenderAuthorImages(baseNote, nav, accountViewModel)
@@ -2666,12 +2655,10 @@ private fun AuthorAndRelayInformation(baseNote: Note, accountViewModel: AccountV
 private fun BadgeBox(
     baseNote: Note,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     if (baseNote.event is RepostEvent || baseNote.event is GenericRepostEvent) {
-        baseNote.replyTo?.lastOrNull()?.let {
-            RelayBadges(it, accountViewModel, nav)
-        }
+        baseNote.replyTo?.lastOrNull()?.let { RelayBadges(it, accountViewModel, nav) }
     } else {
         RelayBadges(baseNote, accountViewModel, nav)
     }
@@ -2681,7 +2668,7 @@ private fun BadgeBox(
 private fun RenderAuthorImages(
     baseNote: Note,
     nav: (String) -> Unit,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
     val isRepost = baseNote.event is RepostEvent || baseNote.event is GenericRepostEvent
 
@@ -2700,38 +2687,44 @@ private fun RenderAuthorImages(
         val baseChannelHex = remember(baseNote) { baseNote.channelHex() }
         if (baseChannelHex != null) {
             LoadChannel(baseChannelHex, accountViewModel) { channel ->
-                ChannelNotePicture(channel, loadProfilePicture = accountViewModel.settings.showProfilePictures.value)
+                ChannelNotePicture(
+                    channel,
+                    loadProfilePicture = accountViewModel.settings.showProfilePictures.value,
+                )
             }
         }
     }
 }
 
 @Composable
-fun LoadChannel(baseChannelHex: String, accountViewModel: AccountViewModel, content: @Composable (Channel) -> Unit) {
-    var channel by remember(baseChannelHex) {
-        mutableStateOf<Channel?>(accountViewModel.getChannelIfExists(baseChannelHex))
-    }
+fun LoadChannel(
+    baseChannelHex: String,
+    accountViewModel: AccountViewModel,
+    content: @Composable (Channel) -> Unit,
+) {
+    var channel by
+        remember(baseChannelHex) {
+            mutableStateOf<Channel?>(accountViewModel.getChannelIfExists(baseChannelHex))
+        }
 
     if (channel == null) {
         LaunchedEffect(key1 = baseChannelHex) {
             accountViewModel.checkGetOrCreateChannel(baseChannelHex) { newChannel ->
-                launch(Dispatchers.Main) {
-                    channel = newChannel
-                }
+                launch(Dispatchers.Main) { channel = newChannel }
             }
         }
     }
 
-    channel?.let {
-        content(it)
-    }
+    channel?.let { content(it) }
 }
 
 @Composable
-private fun ChannelNotePicture(baseChannel: Channel, loadProfilePicture: Boolean) {
-    val model by baseChannel.live.map {
-        it.channel.profilePicture()
-    }.distinctUntilChanged().observeAsState()
+private fun ChannelNotePicture(
+    baseChannel: Channel,
+    loadProfilePicture: Boolean,
+) {
+    val model by
+        baseChannel.live.map { it.channel.profilePicture() }.distinctUntilChanged().observeAsState()
 
     Box(Size30Modifier) {
         RobohashFallbackAsyncImage(
@@ -2739,7 +2732,7 @@ private fun ChannelNotePicture(baseChannel: Channel, loadProfilePicture: Boolean
             model = model,
             contentDescription = stringResource(R.string.group_picture),
             modifier = MaterialTheme.colorScheme.channelNotePictureModifier,
-            loadProfilePicture = loadProfilePicture
+            loadProfilePicture = loadProfilePicture,
         )
     }
 }
@@ -2749,7 +2742,7 @@ private fun RepostNoteAuthorPicture(
     baseNote: Note,
     baseRepost: Note,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     GenericRepostLayout(
         baseAuthorPicture = {
@@ -2757,7 +2750,7 @@ private fun RepostNoteAuthorPicture(
                 baseNote = baseNote,
                 nav = nav,
                 accountViewModel = accountViewModel,
-                size = Size34dp
+                size = Size34dp,
             )
         },
         repostAuthorPicture = {
@@ -2765,9 +2758,9 @@ private fun RepostNoteAuthorPicture(
                 baseNote = baseRepost,
                 nav = nav,
                 accountViewModel = accountViewModel,
-                size = Size34dp
+                size = Size34dp,
             )
-        }
+        },
     )
 }
 
@@ -2781,12 +2774,11 @@ fun DisplayHighlight(
     canPreview: Boolean,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val quote =
         remember {
-            highlight
-                .split("\n").joinToString("\n") { "> *${it.removeSuffix(" ")}*" }
+            highlight.split("\n").joinToString("\n") { "> *${it.removeSuffix(" ")}*" }
         }
 
     TranslatableRichTextViewer(
@@ -2796,7 +2788,7 @@ fun DisplayHighlight(
         EmptyTagList,
         backgroundColor,
         accountViewModel,
-        nav
+        nav,
     )
 
     DisplayQuoteAuthor(authorHex ?: "", url, postAddress, accountViewModel, nav)
@@ -2809,57 +2801,49 @@ private fun DisplayQuoteAuthor(
     url: String?,
     postAddress: ATag?,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     var userBase by remember { mutableStateOf<User?>(accountViewModel.getUserIfExists(authorHex)) }
 
     if (userBase == null) {
         LaunchedEffect(Unit) {
-            accountViewModel.checkGetOrCreateUser(authorHex) { newUserBase ->
-                userBase = newUserBase
-            }
+            accountViewModel.checkGetOrCreateUser(authorHex) { newUserBase -> userBase = newUserBase }
         }
     }
 
     val spaceWidth = measureSpaceWidth(textStyle = LocalTextStyle.current)
 
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(spaceWidth), verticalArrangement = Arrangement.Center) {
-        userBase?.let { userBase ->
-            LoadAndDisplayUser(userBase, nav)
-        }
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(spaceWidth),
+        verticalArrangement = Arrangement.Center,
+    ) {
+        userBase?.let { userBase -> LoadAndDisplayUser(userBase, nav) }
 
-        url?.let { url ->
-            LoadAndDisplayUrl(url)
-        }
+        url?.let { url -> LoadAndDisplayUrl(url) }
 
-        postAddress?.let { address ->
-            LoadAndDisplayPost(address, accountViewModel, nav)
-        }
+        postAddress?.let { address -> LoadAndDisplayPost(address, accountViewModel, nav) }
     }
 }
 
 @Composable
-private fun LoadAndDisplayPost(postAddress: ATag, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+private fun LoadAndDisplayPost(
+    postAddress: ATag,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     LoadAddressableNote(aTag = postAddress, accountViewModel) {
         it?.let { note ->
-            val noteEvent by note.live().metadata.map {
-                it.note.event
-            }.distinctUntilChanged().observeAsState(note.event)
+            val noteEvent by
+                note.live().metadata.map { it.note.event }.distinctUntilChanged().observeAsState(note.event)
 
-            val title = remember(noteEvent) {
-                (noteEvent as? LongTextNoteEvent)?.title()
-            }
+            val title = remember(noteEvent) { (noteEvent as? LongTextNoteEvent)?.title() }
 
             title?.let {
                 Text(remember { "-" }, maxLines = 1)
                 ClickableText(
                     text = AnnotatedString(title),
-                    onClick = {
-                        routeFor(note, accountViewModel.userProfile())?.let {
-                            nav(it)
-                        }
-                    },
-                    style = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.primary)
+                    onClick = { routeFor(note, accountViewModel.userProfile())?.let { nav(it) } },
+                    style = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.primary),
                 )
             }
         }
@@ -2868,14 +2852,15 @@ private fun LoadAndDisplayPost(postAddress: ATag, accountViewModel: AccountViewM
 
 @Composable
 private fun LoadAndDisplayUrl(url: String) {
-    val validatedUrl = remember {
-        try {
-            URL(url)
-        } catch (e: Exception) {
-            Log.w("Note Compose", "Invalid URI: $url")
-            null
+    val validatedUrl =
+        remember {
+            try {
+                URL(url)
+            } catch (e: Exception) {
+                Log.w("Note Compose", "Invalid URI: $url")
+                null
+            }
         }
-    }
 
     validatedUrl?.host?.let { host ->
         Text(remember { "-" }, maxLines = 1)
@@ -2886,13 +2871,14 @@ private fun LoadAndDisplayUrl(url: String) {
 @Composable
 private fun LoadAndDisplayUser(
     userBase: User,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val route = remember { "User/${userBase.pubkeyHex}" }
 
     val userState by userBase.live().metadata.observeAsState()
     val userDisplayName = remember(userState) { userState?.user?.toBestDisplayName() }
-    val userTags = remember(userState) { userState?.user?.info?.latestMetadata?.tags?.toImmutableListOfLists() }
+    val userTags =
+        remember(userState) { userState?.user?.info?.latestMetadata?.tags?.toImmutableListOfLists() }
 
     if (userDisplayName != null) {
         CreateClickableTextWithEmoji(
@@ -2901,7 +2887,7 @@ private fun LoadAndDisplayUser(
             maxLines = 1,
             route = route,
             nav = nav,
-            tags = userTags
+            tags = userTags,
         )
     }
 }
@@ -2921,37 +2907,37 @@ fun BadgeDisplay(baseNote: Note) {
     LaunchedEffect(key1 = imageResult) {
         launch(Dispatchers.IO) {
             imageResult?.let {
-                val backgroundColor = it.drawable.toBitmap(200, 200).copy(Bitmap.Config.ARGB_8888, false).get(0, 199)
+                val backgroundColor =
+                    it.drawable.toBitmap(200, 200).copy(Bitmap.Config.ARGB_8888, false).get(0, 199)
                 val colorFromImage = Color(backgroundColor)
-                val textBackground = if (colorFromImage.luminance() > 0.5) {
-                    lightColorScheme().onBackground
-                } else {
-                    darkColorScheme().onBackground
-                }
+                val textBackground =
+                    if (colorFromImage.luminance() > 0.5) {
+                        lightColorScheme().onBackground
+                    } else {
+                        darkColorScheme().onBackground
+                    }
 
-                launch(Dispatchers.Main) {
-                    backgroundFromImage = Pair(colorFromImage, textBackground)
-                }
+                launch(Dispatchers.Main) { backgroundFromImage = Pair(colorFromImage, textBackground) }
             }
         }
     }
 
     Row(
-        modifier = Modifier
-            .padding(10.dp)
-            .clip(shape = CutCornerShape(20, 20, 20, 20))
-            .border(
-                5.dp,
-                MaterialTheme.colorScheme.mediumImportanceLink,
-                CutCornerShape(20)
-            )
-            .background(backgroundFromImage.first)
+        modifier =
+            Modifier.padding(10.dp)
+                .clip(shape = CutCornerShape(20, 20, 20, 20))
+                .border(
+                    5.dp,
+                    MaterialTheme.colorScheme.mediumImportanceLink,
+                    CutCornerShape(20),
+                )
+                .background(backgroundFromImage.first),
     ) {
         RenderBadge(
             image,
             name,
             backgroundFromImage.second,
-            description
+            description,
         ) {
             if (imageResult == null) {
                 imageResult = it.result
@@ -2966,19 +2952,20 @@ private fun RenderBadge(
     name: String?,
     backgroundFromImage: Color,
     description: String?,
-    onSuccess: (AsyncImagePainter.State.Success) -> Unit
+    onSuccess: (AsyncImagePainter.State.Success) -> Unit,
 ) {
     Column {
         image.let {
             AsyncImage(
                 model = it,
-                contentDescription = stringResource(
-                    R.string.badge_award_image_for,
-                    name ?: ""
-                ),
+                contentDescription =
+                    stringResource(
+                        R.string.badge_award_image_for,
+                        name ?: "",
+                    ),
                 contentScale = ContentScale.FillWidth,
                 modifier = Modifier.fillMaxWidth(),
-                onSuccess = onSuccess
+                onSuccess = onSuccess,
             )
         }
 
@@ -2987,10 +2974,8 @@ private fun RenderBadge(
                 text = it,
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 10.dp, end = 10.dp),
-                color = backgroundFromImage
+                modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp),
+                color = backgroundFromImage,
             )
         }
 
@@ -2999,55 +2984,65 @@ private fun RenderBadge(
                 text = it,
                 style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
                 color = Color.Gray,
                 maxLines = 3,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
 }
 
 @Composable
-fun FileHeaderDisplay(note: Note, roundedCorner: Boolean, accountViewModel: AccountViewModel) {
+fun FileHeaderDisplay(
+    note: Note,
+    roundedCorner: Boolean,
+    accountViewModel: AccountViewModel,
+) {
     val event = (note.event as? FileHeaderEvent) ?: return
     val fullUrl = event.url() ?: return
 
-    val content by remember(note) {
-        val blurHash = event.blurhash()
-        val hash = event.hash()
-        val dimensions = event.dimensions()
-        val description = event.alt() ?: event.content
-        val isImage = imageExtensions.any { removeQueryParamsForExtensionComparison(fullUrl).lowercase().endsWith(it) }
-        val uri = note.toNostrUri()
+    val content by
+        remember(note) {
+            val blurHash = event.blurhash()
+            val hash = event.hash()
+            val dimensions = event.dimensions()
+            val description = event.alt() ?: event.content
+            val isImage =
+                imageExtensions.any {
+                    removeQueryParamsForExtensionComparison(fullUrl).lowercase().endsWith(it)
+                }
+            val uri = note.toNostrUri()
 
-        mutableStateOf<ZoomableContent>(
-            if (isImage) {
-                ZoomableUrlImage(
-                    url = fullUrl,
-                    description = description,
-                    hash = hash,
-                    blurhash = blurHash,
-                    dim = dimensions,
-                    uri = uri
-                )
-            } else {
-                ZoomableUrlVideo(
-                    url = fullUrl,
-                    description = description,
-                    hash = hash,
-                    dim = dimensions,
-                    uri = uri,
-                    authorName = note.author?.toBestDisplayName()
-                )
-            }
-        )
-    }
+            mutableStateOf<ZoomableContent>(
+                if (isImage) {
+                    ZoomableUrlImage(
+                        url = fullUrl,
+                        description = description,
+                        hash = hash,
+                        blurhash = blurHash,
+                        dim = dimensions,
+                        uri = uri,
+                    )
+                } else {
+                    ZoomableUrlVideo(
+                        url = fullUrl,
+                        description = description,
+                        hash = hash,
+                        dim = dimensions,
+                        uri = uri,
+                        authorName = note.author?.toBestDisplayName(),
+                    )
+                },
+            )
+        }
 
     SensitivityWarning(note = note, accountViewModel = accountViewModel) {
-        ZoomableContentView(content = content, roundedCorner = roundedCorner, accountViewModel = accountViewModel)
+        ZoomableContentView(
+            content = content,
+            roundedCorner = roundedCorner,
+            accountViewModel = accountViewModel,
+        )
     }
 }
 
@@ -3058,7 +3053,7 @@ fun VideoDisplay(
     canPreview: Boolean,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val event = (note.event as? VideoEvent) ?: return
     val fullUrl = event.url() ?: return
@@ -3069,69 +3064,71 @@ fun VideoDisplay(
     val isYouTube = fullUrl.contains("youtube.com") || fullUrl.contains("youtu.be")
     val tags = remember(note) { note.event?.tags()?.toImmutableListOfLists() ?: EmptyTagList }
 
-    val content by remember(note) {
-        val blurHash = event.blurhash()
-        val hash = event.hash()
-        val dimensions = event.dimensions()
-        val description = event.alt() ?: event.content
-        val isImage = imageExtensions.any {
-            removeQueryParamsForExtensionComparison(fullUrl).lowercase().endsWith(it)
-        }
-        val uri = note.toNostrUri()
+    val content by
+        remember(note) {
+            val blurHash = event.blurhash()
+            val hash = event.hash()
+            val dimensions = event.dimensions()
+            val description = event.alt() ?: event.content
+            val isImage =
+                imageExtensions.any {
+                    removeQueryParamsForExtensionComparison(fullUrl).lowercase().endsWith(it)
+                }
+            val uri = note.toNostrUri()
 
-        mutableStateOf<ZoomableContent>(
-            if (isImage) {
-                ZoomableUrlImage(
-                    url = fullUrl,
-                    description = description,
-                    hash = hash,
-                    blurhash = blurHash,
-                    dim = dimensions,
-                    uri = uri
-                )
-            } else {
-                ZoomableUrlVideo(
-                    url = fullUrl,
-                    description = description,
-                    hash = hash,
-                    dim = dimensions,
-                    uri = uri,
-                    authorName = note.author?.toBestDisplayName(),
-                    artworkUri = event.thumb() ?: event.image()
-                )
-            }
-        )
-    }
+            mutableStateOf<ZoomableContent>(
+                if (isImage) {
+                    ZoomableUrlImage(
+                        url = fullUrl,
+                        description = description,
+                        hash = hash,
+                        blurhash = blurHash,
+                        dim = dimensions,
+                        uri = uri,
+                    )
+                } else {
+                    ZoomableUrlVideo(
+                        url = fullUrl,
+                        description = description,
+                        hash = hash,
+                        dim = dimensions,
+                        uri = uri,
+                        authorName = note.author?.toBestDisplayName(),
+                        artworkUri = event.thumb() ?: event.image(),
+                    )
+                },
+            )
+        }
 
     SensitivityWarning(note = note, accountViewModel = accountViewModel) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 5.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier.fillMaxWidth().padding(top = 5.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (isYouTube) {
                 val uri = LocalUriHandler.current
                 Row(
-                    modifier = Modifier.clickable { runCatching { uri.openUri(fullUrl) } }
+                    modifier = Modifier.clickable { runCatching { uri.openUri(fullUrl) } },
                 ) {
                     image?.let {
                         AsyncImage(
                             model = it,
-                            contentDescription = stringResource(
-                                R.string.preview_card_image_for,
-                                it
-                            ),
+                            contentDescription =
+                                stringResource(
+                                    R.string.preview_card_image_for,
+                                    it,
+                                ),
                             contentScale = ContentScale.FillWidth,
-                            modifier = MaterialTheme.colorScheme.imageModifier
+                            modifier = MaterialTheme.colorScheme.imageModifier,
                         )
-                    } ?: CreateImageHeader(note, accountViewModel)
+                    }
+                        ?: CreateImageHeader(note, accountViewModel)
                 }
             } else {
                 ZoomableContentView(
                     content = content,
                     roundedCorner = true,
-                    accountViewModel = accountViewModel
+                    accountViewModel = accountViewModel,
                 )
             }
 
@@ -3141,9 +3138,7 @@ fun VideoDisplay(
                     fontWeight = FontWeight.Bold,
                     maxLines = 3,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 5.dp)
+                    modifier = Modifier.fillMaxWidth().padding(top = 5.dp),
                 )
             }
 
@@ -3155,18 +3150,18 @@ fun VideoDisplay(
                     tags = tags,
                     backgroundColor = backgroundColor,
                     accountViewModel = accountViewModel,
-                    nav = nav
+                    nav = nav,
                 )
             }
 
             if (event.hasHashtags()) {
                 Row(
-                    Modifier.fillMaxWidth()
+                    Modifier.fillMaxWidth(),
                 ) {
                     DisplayUncitedHashtags(
                         remember(event) { event.hashtags().toImmutableList() },
                         summary ?: "",
-                        nav
+                        nav,
                     )
                 }
             }
@@ -3175,7 +3170,11 @@ fun VideoDisplay(
 }
 
 @Composable
-fun FileStorageHeaderDisplay(baseNote: Note, roundedCorner: Boolean, accountViewModel: AccountViewModel) {
+fun FileStorageHeaderDisplay(
+    baseNote: Note,
+    roundedCorner: Boolean,
+    accountViewModel: AccountViewModel,
+) {
     val eventHeader = (baseNote.event as? FileStorageHeaderEvent) ?: return
     val dataEventId = eventHeader.dataEventId() ?: return
 
@@ -3191,7 +3190,7 @@ private fun ObserverAndRenderNIP95(
     header: Note,
     content: Note,
     roundedCorner: Boolean,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
     val eventHeader = (header.event as? FileStorageHeaderEvent) ?: return
 
@@ -3199,52 +3198,63 @@ private fun ObserverAndRenderNIP95(
 
     val noteState by content.live().metadata.observeAsState()
 
-    val content by remember(noteState) {
-        // Creates a new object when the event arrives to force an update of the image.
-        val note = noteState?.note
-        val uri = header.toNostrUri()
-        val localDir = note?.idHex?.let { File(File(appContext.cacheDir, "NIP95"), it) }
-        val blurHash = eventHeader.blurhash()
-        val dimensions = eventHeader.dimensions()
-        val description = eventHeader.alt() ?: eventHeader.content
-        val mimeType = eventHeader.mimeType()
+    val content by
+        remember(noteState) {
+            // Creates a new object when the event arrives to force an update of the image.
+            val note = noteState?.note
+            val uri = header.toNostrUri()
+            val localDir = note?.idHex?.let { File(File(appContext.cacheDir, "NIP95"), it) }
+            val blurHash = eventHeader.blurhash()
+            val dimensions = eventHeader.dimensions()
+            val description = eventHeader.alt() ?: eventHeader.content
+            val mimeType = eventHeader.mimeType()
 
-        val newContent = if (mimeType?.startsWith("image") == true) {
-            ZoomableLocalImage(
-                localFile = localDir,
-                mimeType = mimeType,
-                description = description,
-                blurhash = blurHash,
-                dim = dimensions,
-                isVerified = true,
-                uri = uri
-            )
-        } else {
-            ZoomableLocalVideo(
-                localFile = localDir,
-                mimeType = mimeType,
-                description = description,
-                dim = dimensions,
-                isVerified = true,
-                uri = uri,
-                authorName = header.author?.toBestDisplayName()
-            )
+            val newContent =
+                if (mimeType?.startsWith("image") == true) {
+                    ZoomableLocalImage(
+                        localFile = localDir,
+                        mimeType = mimeType,
+                        description = description,
+                        blurhash = blurHash,
+                        dim = dimensions,
+                        isVerified = true,
+                        uri = uri,
+                    )
+                } else {
+                    ZoomableLocalVideo(
+                        localFile = localDir,
+                        mimeType = mimeType,
+                        description = description,
+                        dim = dimensions,
+                        isVerified = true,
+                        uri = uri,
+                        authorName = header.author?.toBestDisplayName(),
+                    )
+                }
+
+            mutableStateOf<ZoomableContent?>(newContent)
         }
-
-        mutableStateOf<ZoomableContent?>(newContent)
-    }
 
     Crossfade(targetState = content) {
         if (it != null) {
             SensitivityWarning(note = header, accountViewModel = accountViewModel) {
-                ZoomableContentView(content = it, roundedCorner = roundedCorner, accountViewModel = accountViewModel)
+                ZoomableContentView(
+                    content = it,
+                    roundedCorner = roundedCorner,
+                    accountViewModel = accountViewModel,
+                )
             }
         }
     }
 }
 
 @Composable
-fun AudioTrackHeader(noteEvent: AudioTrackEvent, note: Note, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+fun AudioTrackHeader(
+    noteEvent: AudioTrackEvent,
+    note: Note,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     val media = remember { noteEvent.media() }
     val cover = remember { noteEvent.cover() }
     val subject = remember { noteEvent.subject() }
@@ -3254,22 +3264,23 @@ fun AudioTrackHeader(noteEvent: AudioTrackEvent, note: Note, accountViewModel: A
     var participantUsers by remember { mutableStateOf<List<Pair<Participant, User>>>(emptyList()) }
 
     LaunchedEffect(key1 = participants) {
-        accountViewModel.loadParticipants(participants) {
-            participantUsers = it
-        }
+        accountViewModel.loadParticipants(participants) { participantUsers = it }
     }
 
     Row(modifier = Modifier.padding(top = 5.dp)) {
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            Row() {
+            Row {
                 subject?.let {
-                    Row(verticalAlignment = CenterVertically, modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)) {
+                    Row(
+                        verticalAlignment = CenterVertically,
+                        modifier = Modifier.padding(top = 5.dp, bottom = 5.dp),
+                    ) {
                         Text(
                             text = it,
                             fontWeight = FontWeight.Bold,
                             maxLines = 3,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
                         )
                     }
                 }
@@ -3278,11 +3289,10 @@ fun AudioTrackHeader(noteEvent: AudioTrackEvent, note: Note, accountViewModel: A
             participantUsers.forEach {
                 Row(
                     verticalAlignment = CenterVertically,
-                    modifier = Modifier
-                        .padding(top = 5.dp, start = 10.dp, end = 10.dp)
-                        .clickable {
+                    modifier =
+                        Modifier.padding(top = 5.dp, start = 10.dp, end = 10.dp).clickable {
                             nav("User/${it.second.pubkeyHex}")
-                        }
+                        },
                 ) {
                     ClickableUserPicture(it.second, 25.dp, accountViewModel)
                     Spacer(Modifier.width(5.dp))
@@ -3292,7 +3302,7 @@ fun AudioTrackHeader(noteEvent: AudioTrackEvent, note: Note, accountViewModel: A
                         Text(
                             text = it.capitalize(Locale.ROOT),
                             color = MaterialTheme.colorScheme.placeholderText,
-                            maxLines = 1
+                            maxLines = 1,
                         )
                     }
                 }
@@ -3300,7 +3310,7 @@ fun AudioTrackHeader(noteEvent: AudioTrackEvent, note: Note, accountViewModel: A
 
             media?.let { media ->
                 Row(
-                    verticalAlignment = CenterVertically
+                    verticalAlignment = CenterVertically,
                 ) {
                     cover?.let { cover ->
                         LoadThumbAndThenVideoView(
@@ -3310,7 +3320,7 @@ fun AudioTrackHeader(noteEvent: AudioTrackEvent, note: Note, accountViewModel: A
                             authorName = note.author?.toBestDisplayName(),
                             roundedCorner = true,
                             nostrUriCallback = "nostr:${note.toNEvent()}",
-                            accountViewModel = accountViewModel
+                            accountViewModel = accountViewModel,
                         )
                     }
                         ?: VideoView(
@@ -3318,7 +3328,7 @@ fun AudioTrackHeader(noteEvent: AudioTrackEvent, note: Note, accountViewModel: A
                             title = noteEvent.subject(),
                             authorName = note.author?.toBestDisplayName(),
                             roundedCorner = true,
-                            accountViewModel = accountViewModel
+                            accountViewModel = accountViewModel,
                         )
                 }
             }
@@ -3327,7 +3337,12 @@ fun AudioTrackHeader(noteEvent: AudioTrackEvent, note: Note, accountViewModel: A
 }
 
 @Composable
-fun AudioHeader(noteEvent: AudioHeaderEvent, note: Note, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+fun AudioHeader(
+    noteEvent: AudioHeaderEvent,
+    note: Note,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     val media = remember { noteEvent.stream() ?: noteEvent.download() }
     val waveform = remember { noteEvent.wavefrom()?.toImmutableList()?.ifEmpty { null } }
     val content = remember { noteEvent.content().ifBlank { null } }
@@ -3340,7 +3355,7 @@ fun AudioHeader(noteEvent: AudioHeaderEvent, note: Note, accountViewModel: Accou
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             media?.let { media ->
                 Row(
-                    verticalAlignment = CenterVertically
+                    verticalAlignment = CenterVertically,
                 ) {
                     VideoView(
                         videoUri = media,
@@ -3349,7 +3364,7 @@ fun AudioHeader(noteEvent: AudioHeaderEvent, note: Note, accountViewModel: Accou
                         authorName = note.author?.toBestDisplayName(),
                         roundedCorner = true,
                         accountViewModel = accountViewModel,
-                        nostrUriCallback = note.toNostrUri()
+                        nostrUriCallback = note.toNostrUri(),
                     )
                 }
             }
@@ -3357,9 +3372,7 @@ fun AudioHeader(noteEvent: AudioHeaderEvent, note: Note, accountViewModel: Accou
             content?.let {
                 Row(
                     verticalAlignment = CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 5.dp)
+                    modifier = Modifier.fillMaxWidth().padding(top = 5.dp),
                 ) {
                     TranslatableRichTextViewer(
                         content = it,
@@ -3367,7 +3380,7 @@ fun AudioHeader(noteEvent: AudioHeaderEvent, note: Note, accountViewModel: Accou
                         tags = tags,
                         backgroundColor = background,
                         accountViewModel = accountViewModel,
-                        nav = nav
+                        nav = nav,
                     )
                 }
             }
@@ -3383,11 +3396,15 @@ fun AudioHeader(noteEvent: AudioHeaderEvent, note: Note, accountViewModel: Accou
 }
 
 @Composable
-fun RenderLiveActivityEvent(baseNote: Note, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+fun RenderLiveActivityEvent(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     Row(modifier = Modifier.padding(top = 5.dp)) {
         Column(
             modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             RenderLiveActivityEventInner(baseNote = baseNote, accountViewModel, nav)
         }
@@ -3395,7 +3412,11 @@ fun RenderLiveActivityEvent(baseNote: Note, accountViewModel: AccountViewModel, 
 }
 
 @Composable
-fun RenderLiveActivityEventInner(baseNote: Note, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+fun RenderLiveActivityEventInner(
+    baseNote: Note,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     val noteEvent = baseNote.event as? LiveActivitiesEvent ?: return
 
     val eventUpdates by baseNote.live().metadata.observeAsState()
@@ -3410,9 +3431,7 @@ fun RenderLiveActivityEventInner(baseNote: Note, accountViewModel: AccountViewMo
 
     Row(
         verticalAlignment = CenterVertically,
-        modifier = Modifier
-            .padding(vertical = 5.dp)
-            .fillMaxWidth()
+        modifier = Modifier.padding(vertical = 5.dp).fillMaxWidth(),
     ) {
         subject?.let {
             Text(
@@ -3420,7 +3439,7 @@ fun RenderLiveActivityEventInner(baseNote: Note, accountViewModel: AccountViewMo
                 fontWeight = FontWeight.Bold,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
 
@@ -3429,11 +3448,7 @@ fun RenderLiveActivityEventInner(baseNote: Note, accountViewModel: AccountViewMo
         Crossfade(targetState = status, label = "RenderLiveActivityEventInner") {
             when (it) {
                 STATUS_LIVE -> {
-                    media?.let {
-                        CrossfadeCheckIfUrlIsOnline(it, accountViewModel) {
-                            LiveFlag()
-                        }
-                    }
+                    media?.let { CrossfadeCheckIfUrlIsOnline(it, accountViewModel) { LiveFlag() } }
                 }
                 STATUS_PLANNED -> {
                     ScheduledFlag(starts)
@@ -3444,7 +3459,7 @@ fun RenderLiveActivityEventInner(baseNote: Note, accountViewModel: AccountViewMo
 
     var participantUsers by remember {
         mutableStateOf<ImmutableList<Pair<Participant, User>>>(
-            persistentListOf()
+            persistentListOf(),
         )
     }
 
@@ -3456,14 +3471,54 @@ fun RenderLiveActivityEventInner(baseNote: Note, accountViewModel: AccountViewMo
         }
     }
 
+    media?.let { media ->
+        if (status == STATUS_LIVE) {
+            CheckIfUrlIsOnline(media, accountViewModel) { isOnline ->
+                if (isOnline) {
+                    Row(
+                        verticalAlignment = CenterVertically,
+                    ) {
+                        VideoView(
+                            videoUri = media,
+                            title = subject,
+                            artworkUri = cover,
+                            authorName = baseNote.author?.toBestDisplayName(),
+                            roundedCorner = true,
+                            accountViewModel = accountViewModel,
+                            nostrUriCallback = "nostr:${baseNote.toNEvent()}",
+                        )
+                    }
+                } else {
+                    Row(
+                        verticalAlignment = CenterVertically,
+                        modifier = Modifier.padding(10.dp).height(100.dp),
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.live_stream_is_offline),
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.Bold,
+                        )
+                    }
+                }
+            }
+        } else if (status == STATUS_ENDED) {
+            Row(
+                verticalAlignment = CenterVertically,
+                modifier = Modifier.padding(10.dp).height(100.dp),
+            ) {
+                Text(
+                    text = stringResource(id = R.string.live_stream_has_ended),
+                    color = MaterialTheme.colorScheme.onBackground,
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+        }
+    }
+
     participantUsers.forEach {
         Row(
             verticalAlignment = CenterVertically,
-            modifier = Modifier
-                .padding(top = 5.dp, start = 10.dp, end = 10.dp)
-                .clickable {
-                    nav("User/${it.second.pubkeyHex}")
-                }
+            modifier = Modifier.padding(vertical = 5.dp).clickable { nav("User/${it.second.pubkeyHex}") },
         ) {
             ClickableUserPicture(it.second, 25.dp, accountViewModel)
             Spacer(StdHorzSpacer)
@@ -3473,55 +3528,7 @@ fun RenderLiveActivityEventInner(baseNote: Note, accountViewModel: AccountViewMo
                 Text(
                     text = it.capitalize(Locale.ROOT),
                     color = MaterialTheme.colorScheme.placeholderText,
-                    maxLines = 1
-                )
-            }
-        }
-    }
-
-    media?.let { media ->
-        if (status == STATUS_LIVE) {
-            CheckIfUrlIsOnline(media, accountViewModel) { isOnline ->
-                if (isOnline) {
-                    Row(
-                        verticalAlignment = CenterVertically
-                    ) {
-                        VideoView(
-                            videoUri = media,
-                            title = subject,
-                            artworkUri = cover,
-                            authorName = baseNote.author?.toBestDisplayName(),
-                            roundedCorner = true,
-                            accountViewModel = accountViewModel,
-                            nostrUriCallback = "nostr:${baseNote.toNEvent()}"
-                        )
-                    }
-                } else {
-                    Row(
-                        verticalAlignment = CenterVertically,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .height(100.dp)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.live_stream_is_offline),
-                            color = MaterialTheme.colorScheme.onBackground,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            }
-        } else if (status == STATUS_ENDED) {
-            Row(
-                verticalAlignment = CenterVertically,
-                modifier = Modifier
-                    .padding(10.dp)
-                    .height(100.dp)
-            ) {
-                Text(
-                    text = stringResource(id = R.string.live_stream_has_ended),
-                    color = MaterialTheme.colorScheme.onBackground,
-                    fontWeight = FontWeight.Bold
+                    maxLines = 1,
                 )
             }
         }
@@ -3529,47 +3536,52 @@ fun RenderLiveActivityEventInner(baseNote: Note, accountViewModel: AccountViewMo
 }
 
 @Composable
-private fun LongFormHeader(noteEvent: LongTextNoteEvent, note: Note, accountViewModel: AccountViewModel) {
+private fun LongFormHeader(
+    noteEvent: LongTextNoteEvent,
+    note: Note,
+    accountViewModel: AccountViewModel,
+) {
     val image = remember(noteEvent) { noteEvent.image() }
     val title = remember(noteEvent) { noteEvent.title() }
-    val summary = remember(noteEvent) { noteEvent.summary()?.ifBlank { null } ?: noteEvent.content.take(200).ifBlank { null } }
+    val summary =
+        remember(noteEvent) {
+            noteEvent.summary()?.ifBlank { null } ?: noteEvent.content.take(200).ifBlank { null }
+        }
 
     Row(
-        modifier = Modifier
-            .padding(top = Size5dp)
-            .clip(shape = QuoteBorder)
-            .border(
-                1.dp,
-                MaterialTheme.colorScheme.subtleBorder,
-                QuoteBorder
-            )
+        modifier =
+            Modifier.padding(top = Size5dp)
+                .clip(shape = QuoteBorder)
+                .border(
+                    1.dp,
+                    MaterialTheme.colorScheme.subtleBorder,
+                    QuoteBorder,
+                ),
     ) {
         Column {
-            val automaticallyShowUrlPreview = remember {
-                accountViewModel.settings.showUrlPreview.value
-            }
+            val automaticallyShowUrlPreview = remember { accountViewModel.settings.showUrlPreview.value }
 
             if (automaticallyShowUrlPreview) {
                 image?.let {
                     AsyncImage(
                         model = it,
-                        contentDescription = stringResource(
-                            R.string.preview_card_image_for,
-                            it
-                        ),
+                        contentDescription =
+                            stringResource(
+                                R.string.preview_card_image_for,
+                                it,
+                            ),
                         contentScale = ContentScale.FillWidth,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
-                } ?: CreateImageHeader(note, accountViewModel)
+                }
+                    ?: CreateImageHeader(note, accountViewModel)
             }
 
             title?.let {
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 10.dp, end = 10.dp, top = 10.dp)
+                    modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, top = 10.dp),
                 )
             }
 
@@ -3577,12 +3589,10 @@ private fun LongFormHeader(noteEvent: LongTextNoteEvent, note: Note, accountView
                 Text(
                     text = it,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
+                    modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, bottom = 10.dp),
                     color = Color.Gray,
                     maxLines = 3,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -3590,131 +3600,140 @@ private fun LongFormHeader(noteEvent: LongTextNoteEvent, note: Note, accountView
 }
 
 @Composable
-private fun RenderClassifieds(noteEvent: ClassifiedsEvent, note: Note, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+private fun RenderClassifieds(
+    noteEvent: ClassifiedsEvent,
+    note: Note,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     val image = remember(noteEvent) { noteEvent.image() }
     val title = remember(noteEvent) { noteEvent.title() }
-    val summary = remember(noteEvent) { noteEvent.summary() ?: noteEvent.content.take(200).ifBlank { null } }
+    val summary =
+        remember(noteEvent) { noteEvent.summary() ?: noteEvent.content.take(200).ifBlank { null } }
     val price = remember(noteEvent) { noteEvent.price() }
     val location = remember(noteEvent) { noteEvent.location() }
 
     Row(
-        modifier = Modifier
-            .clip(shape = QuoteBorder)
-            .border(
-                1.dp,
-                MaterialTheme.colorScheme.subtleBorder,
-                QuoteBorder
-            )
+        modifier =
+            Modifier.clip(shape = QuoteBorder)
+                .border(
+                    1.dp,
+                    MaterialTheme.colorScheme.subtleBorder,
+                    QuoteBorder,
+                ),
     ) {
         Column {
-            Row() {
+            Row {
                 image?.let {
                     AsyncImage(
                         model = it,
-                        contentDescription = stringResource(
-                            R.string.preview_card_image_for,
-                            it
-                        ),
+                        contentDescription =
+                            stringResource(
+                                R.string.preview_card_image_for,
+                                it,
+                            ),
                         contentScale = ContentScale.FillWidth,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     )
-                } ?: CreateImageHeader(note, accountViewModel)
+                }
+                    ?: CreateImageHeader(note, accountViewModel)
             }
 
-            Row(Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp), verticalAlignment = CenterVertically) {
+            Row(
+                Modifier.padding(start = 10.dp, end = 10.dp, top = 10.dp),
+                verticalAlignment = CenterVertically,
+            ) {
                 title?.let {
                     Text(
                         text = it,
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                 }
 
                 price?.let {
-                    val priceTag = remember(noteEvent) {
-                        val newAmount = price.amount.toBigDecimalOrNull()?.let {
-                            showAmount(it)
-                        } ?: price.amount
+                    val priceTag =
+                        remember(noteEvent) {
+                            val newAmount =
+                                price.amount.toBigDecimalOrNull()?.let { showAmount(it) } ?: price.amount
 
-                        if (price.frequency != null && price.currency != null) {
-                            "$newAmount ${price.currency}/${price.frequency}"
-                        } else if (price.currency != null) {
-                            "$newAmount ${price.currency}"
-                        } else {
-                            newAmount
+                            if (price.frequency != null && price.currency != null) {
+                                "$newAmount ${price.currency}/${price.frequency}"
+                            } else if (price.currency != null) {
+                                "$newAmount ${price.currency}"
+                            } else {
+                                newAmount
+                            }
                         }
-                    }
 
                     Text(
                         text = priceTag,
                         maxLines = 1,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
-                        modifier = remember {
-                            Modifier
-                                .clip(SmallBorder)
-                                .padding(start = 5.dp)
-                        }
+                        modifier = remember { Modifier.clip(SmallBorder).padding(start = 5.dp) },
                     )
                 }
             }
 
             if (summary != null || location != null) {
-                Row(Modifier.padding(start = 10.dp, end = 10.dp, top = 5.dp), verticalAlignment = CenterVertically) {
+                Row(
+                    Modifier.padding(start = 10.dp, end = 10.dp, top = 5.dp),
+                    verticalAlignment = CenterVertically,
+                ) {
                     summary?.let {
                         Text(
                             text = it,
                             style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier
-                                .weight(1f),
+                            modifier = Modifier.weight(1f),
                             color = Color.Gray,
                             maxLines = 3,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
 
-                    /*
-                    Column {
-                        location?.let {
-                            Text(
-                                text = it,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = Color.Gray,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.padding(start = 5.dp)
-                            )
-                        }
+          /*
+          Column {
+              location?.let {
+                  Text(
+                      text = it,
+                      style = MaterialTheme.typography.bodySmall,
+                      color = Color.Gray,
+                      maxLines = 1,
+                      overflow = TextOverflow.Ellipsis,
+                      modifier = Modifier.padding(start = 5.dp)
+                  )
+              }
 
-                        Button(
-                            modifier = Modifier
-                                .padding(horizontal = 3.dp)
-                                .width(50.dp),
-                            onClick = {
-                                note.author?.let {
-                                    accountViewModel.createChatRoomFor(it) {
-                                        nav("Room/$it")
-                                    }
-                                }
-                            },
-                            contentPadding = ZeroPadding,
-                            colors = ButtonDefaults
-                                .buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary
-                                )
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.ic_dm),
-                                stringResource(R.string.send_a_direct_message),
-                                modifier = Modifier.size(20.dp),
-                                tint = Color.White
-                            )
-                        }
-                    }
+              Button(
+                  modifier = Modifier
+                      .padding(horizontal = 3.dp)
+                      .width(50.dp),
+                  onClick = {
+                      note.author?.let {
+                          accountViewModel.createChatRoomFor(it) {
+                              nav("Room/$it")
+                          }
+                      }
+                  },
+                  contentPadding = ZeroPadding,
+                  colors = ButtonDefaults
+                      .buttonColors(
+                          containerColor = MaterialTheme.colorScheme.primary
+                      )
+              ) {
+                  Icon(
+                      painter = painterResource(R.drawable.ic_dm),
+                      stringResource(R.string.send_a_direct_message),
+                      modifier = Modifier.size(20.dp),
+                      tint = Color.White
+                  )
+              }
+          }
 
-                     */
+           */
                 }
             }
 
@@ -3726,40 +3745,32 @@ private fun RenderClassifieds(noteEvent: ClassifiedsEvent, note: Note, accountVi
 @Composable
 fun CreateImageHeader(
     note: Note,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
     val banner = remember(note.author?.info) { note.author?.info?.banner }
 
-    Box() {
+    Box {
         banner?.let {
             AsyncImage(
                 model = it,
-                contentDescription = stringResource(
-                    R.string.preview_card_image_for,
-                    it
-                ),
+                contentDescription =
+                    stringResource(
+                        R.string.preview_card_image_for,
+                        it,
+                    ),
                 contentScale = ContentScale.FillWidth,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
-        } ?: Image(
-            painter = painterResource(R.drawable.profile_banner),
-            contentDescription = stringResource(R.string.profile_banner),
-            contentScale = ContentScale.FillWidth,
-            modifier = remember {
-                Modifier
-                    .fillMaxWidth()
-                    .height(150.dp)
-            }
-        )
+        }
+            ?: Image(
+                painter = painterResource(R.drawable.profile_banner),
+                contentDescription = stringResource(R.string.profile_banner),
+                contentScale = ContentScale.FillWidth,
+                modifier = remember { Modifier.fillMaxWidth().height(150.dp) },
+            )
 
         Box(
-            remember {
-                Modifier
-                    .width(75.dp)
-                    .height(75.dp)
-                    .padding(10.dp)
-                    .align(Alignment.BottomStart)
-            }
+            remember { Modifier.width(75.dp).height(75.dp).padding(10.dp).align(Alignment.BottomStart) },
         ) {
             NoteAuthorPicture(baseNote = note, accountViewModel = accountViewModel, size = Size55dp)
         }

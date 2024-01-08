@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.navigation
 
 import android.content.Context
@@ -137,19 +157,17 @@ fun AppTopBar(
     drawerState: DrawerState,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    navPopBack: () -> Unit
+    navPopBack: () -> Unit,
 ) {
-    val currentRoute by remember(navEntryState.value) {
-        derivedStateOf {
-            navEntryState.value?.destination?.route?.substringBefore("?")
+    val currentRoute by
+        remember(navEntryState.value) {
+            derivedStateOf { navEntryState.value?.destination?.route?.substringBefore("?") }
         }
-    }
 
-    val id by remember(navEntryState.value) {
-        derivedStateOf {
-            navEntryState.value?.arguments?.getString("id")
+    val id by
+        remember(navEntryState.value) {
+            derivedStateOf { navEntryState.value?.arguments?.getString("id") }
         }
-    }
 
     RenderTopRouteBar(currentRoute, id, followLists, drawerState, accountViewModel, nav, navPopBack)
 }
@@ -162,14 +180,15 @@ private fun RenderTopRouteBar(
     drawerState: DrawerState,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    navPopBack: () -> Unit
+    navPopBack: () -> Unit,
 ) {
     when (currentRoute) {
         Route.Home.base -> HomeTopBar(followLists, drawerState, accountViewModel, nav)
         Route.Video.base -> StoriesTopBar(followLists, drawerState, accountViewModel, nav)
         Route.Discover.base -> DiscoveryTopBar(followLists, drawerState, accountViewModel, nav)
         Route.Notification.base -> NotificationTopBar(followLists, drawerState, accountViewModel, nav)
-        Route.Settings.base -> TopBarWithBackButton(stringResource(id = R.string.application_preferences), navPopBack)
+        Route.Settings.base ->
+            TopBarWithBackButton(stringResource(id = R.string.application_preferences), navPopBack)
         else -> {
             if (id != null) {
                 when (currentRoute) {
@@ -193,13 +212,11 @@ private fun RenderTopRouteBar(
 private fun ThreadTopBar(
     id: String,
     accountViewModel: AccountViewModel,
-    navPopBack: () -> Unit
+    navPopBack: () -> Unit,
 ) {
     FlexibleTopBarWithBackButton(
-        title = {
-            Text(stringResource(id = R.string.thread_title))
-        },
-        popBack = navPopBack
+        title = { Text(stringResource(id = R.string.thread_title)) },
+        popBack = navPopBack,
     )
 }
 
@@ -207,14 +224,14 @@ private fun ThreadTopBar(
 private fun GeoHashTopBar(
     tag: String,
     accountViewModel: AccountViewModel,
-    navPopBack: () -> Unit
+    navPopBack: () -> Unit,
 ) {
     FlexibleTopBarWithBackButton(
         title = {
             DislayGeoTagHeader(tag, remember { Modifier.weight(1f) })
             GeoHashActionOptions(tag, accountViewModel)
         },
-        popBack = navPopBack
+        popBack = navPopBack,
     )
 }
 
@@ -222,18 +239,18 @@ private fun GeoHashTopBar(
 private fun HashTagTopBar(
     tag: String,
     accountViewModel: AccountViewModel,
-    navPopBack: () -> Unit
+    navPopBack: () -> Unit,
 ) {
     FlexibleTopBarWithBackButton(
         title = {
             Text(
                 remember(tag) { "#$tag" },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
 
             HashtagActionOptions(tag, accountViewModel)
         },
-        popBack = navPopBack
+        popBack = navPopBack,
     )
 }
 
@@ -242,20 +259,18 @@ private fun CommunityTopBar(
     id: String,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    navPopBack: () -> Unit
+    navPopBack: () -> Unit,
 ) {
     LoadAddressableNote(aTagHex = id, accountViewModel) { baseNote ->
         if (baseNote != null) {
             FlexibleTopBarWithBackButton(
-                title = {
-                    ShortCommunityHeader(baseNote, accountViewModel, nav)
-                },
+                title = { ShortCommunityHeader(baseNote, accountViewModel, nav) },
                 extendableRow = {
                     Column(Modifier.verticalScroll(rememberScrollState())) {
                         LongCommunityHeader(baseNote = baseNote, accountViewModel = accountViewModel, nav = nav)
                     }
                 },
-                popBack = navPopBack
+                popBack = navPopBack,
             )
         } else {
             Spacer(BottomTopHeight)
@@ -268,7 +283,7 @@ private fun RoomTopBar(
     id: String,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    navPopBack: () -> Unit
+    navPopBack: () -> Unit,
 ) {
     LoadRoom(roomId = id, accountViewModel) { room ->
         if (room != null) {
@@ -284,7 +299,7 @@ private fun RoomByAuthorTopBar(
     id: String,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    navPopBack: () -> Unit
+    navPopBack: () -> Unit,
 ) {
     LoadRoomByAuthor(authorPubKeyHex = id, accountViewModel) { room ->
         if (room != null) {
@@ -300,7 +315,7 @@ private fun RenderRoomTopBar(
     room: ChatroomKey,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    navPopBack: () -> Unit
+    navPopBack: () -> Unit,
 ) {
     if (room.users.size == 1) {
         FlexibleTopBarWithBackButton(
@@ -310,7 +325,7 @@ private fun RenderRoomTopBar(
                         ClickableUserPicture(
                             baseUser = baseUser,
                             accountViewModel = accountViewModel,
-                            size = Size34dp
+                            size = Size34dp,
                         )
 
                         Spacer(modifier = DoubleHorzSpacer)
@@ -325,12 +340,12 @@ private fun RenderRoomTopBar(
                         UserCompose(
                             baseUser = it,
                             accountViewModel = accountViewModel,
-                            nav = nav
+                            nav = nav,
                         )
                     }
                 }
             },
-            popBack = navPopBack
+            popBack = navPopBack,
         )
     } else {
         FlexibleTopBarWithBackButton(
@@ -338,22 +353,20 @@ private fun RenderRoomTopBar(
                 NonClickableUserPictures(
                     users = room.users,
                     accountViewModel = accountViewModel,
-                    size = Size34dp
+                    size = Size34dp,
                 )
 
                 RoomNameOnlyDisplay(
                     room,
-                    Modifier
-                        .padding(start = 10.dp)
-                        .weight(1f),
+                    Modifier.padding(start = 10.dp).weight(1f),
                     fontWeight = FontWeight.Normal,
-                    accountViewModel.userProfile()
+                    accountViewModel.userProfile(),
                 )
             },
             extendableRow = {
                 LongRoomHeader(room = room, accountViewModel = accountViewModel, nav = nav)
             },
-            popBack = navPopBack
+            popBack = navPopBack,
         )
     }
 }
@@ -363,7 +376,7 @@ private fun ChannelTopBar(
     id: String,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    navPopBack: () -> Unit
+    navPopBack: () -> Unit,
 ) {
     LoadChannel(baseChannelHex = id, accountViewModel) { baseChannel ->
         FlexibleTopBarWithBackButton(
@@ -372,29 +385,32 @@ private fun ChannelTopBar(
                     baseChannel = baseChannel,
                     accountViewModel = accountViewModel,
                     nav = nav,
-                    showFlag = true
+                    showFlag = true,
                 )
             },
             extendableRow = {
                 LongChannelHeader(baseChannel = baseChannel, accountViewModel = accountViewModel, nav = nav)
             },
-            popBack = navPopBack
+            popBack = navPopBack,
         )
     }
 }
 
-@Composable
-fun NoTopBar() {
-}
+@Composable fun NoTopBar() {}
 
 @Composable
-fun StoriesTopBar(followLists: FollowListViewModel, drawerState: DrawerState, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+fun StoriesTopBar(
+    followLists: FollowListViewModel,
+    drawerState: DrawerState,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     GenericMainTopBar(drawerState, accountViewModel, nav) { accountViewModel ->
         val list by accountViewModel.account.defaultStoriesFollowList.collectAsStateWithLifecycle()
 
         FollowListWithRoutes(
             followListsModel = followLists,
-            listName = list
+            listName = list,
         ) { listName ->
             accountViewModel.account.changeDefaultStoriesFollowList(listName.code)
         }
@@ -402,13 +418,18 @@ fun StoriesTopBar(followLists: FollowListViewModel, drawerState: DrawerState, ac
 }
 
 @Composable
-fun HomeTopBar(followLists: FollowListViewModel, drawerState: DrawerState, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+fun HomeTopBar(
+    followLists: FollowListViewModel,
+    drawerState: DrawerState,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     GenericMainTopBar(drawerState, accountViewModel, nav) { accountViewModel ->
         val list by accountViewModel.account.defaultHomeFollowList.collectAsStateWithLifecycle()
 
         FollowListWithRoutes(
             followListsModel = followLists,
-            listName = list
+            listName = list,
         ) { listName ->
             if (listName.type == CodeNameType.ROUTE) {
                 nav(listName.code)
@@ -420,13 +441,18 @@ fun HomeTopBar(followLists: FollowListViewModel, drawerState: DrawerState, accou
 }
 
 @Composable
-fun NotificationTopBar(followLists: FollowListViewModel, drawerState: DrawerState, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+fun NotificationTopBar(
+    followLists: FollowListViewModel,
+    drawerState: DrawerState,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     GenericMainTopBar(drawerState, accountViewModel, nav) { accountViewModel ->
         val list by accountViewModel.account.defaultNotificationFollowList.collectAsStateWithLifecycle()
 
         FollowListWithoutRoutes(
             followListsModel = followLists,
-            listName = list
+            listName = list,
         ) { listName ->
             accountViewModel.account.changeDefaultNotificationFollowList(listName.code)
         }
@@ -434,13 +460,18 @@ fun NotificationTopBar(followLists: FollowListViewModel, drawerState: DrawerStat
 }
 
 @Composable
-fun DiscoveryTopBar(followLists: FollowListViewModel, drawerState: DrawerState, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+fun DiscoveryTopBar(
+    followLists: FollowListViewModel,
+    drawerState: DrawerState,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     GenericMainTopBar(drawerState, accountViewModel, nav) { accountViewModel ->
         val list by accountViewModel.account.defaultDiscoveryFollowList.collectAsStateWithLifecycle()
 
         FollowListWithoutRoutes(
             followListsModel = followLists,
-            listName = list
+            listName = list,
         ) { listName ->
             accountViewModel.account.changeDefaultDiscoveryFollowList(listName.code)
         }
@@ -448,10 +479,12 @@ fun DiscoveryTopBar(followLists: FollowListViewModel, drawerState: DrawerState, 
 }
 
 @Composable
-fun MainTopBar(drawerState: DrawerState, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
-    GenericMainTopBar(drawerState, accountViewModel, nav) {
-        AmethystClickableIcon()
-    }
+fun MainTopBar(
+    drawerState: DrawerState,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
+    GenericMainTopBar(drawerState, accountViewModel, nav) { AmethystClickableIcon() }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -460,25 +493,24 @@ fun GenericMainTopBar(
     drawerState: DrawerState,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    content: @Composable (AccountViewModel) -> Unit
+    content: @Composable (AccountViewModel) -> Unit,
 ) {
     Column(modifier = BottomTopHeight) {
         TopAppBar(
-            colors = TopAppBarDefaults.topAppBarColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ),
             title = {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                    horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Box(Modifier) {
                         Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .fillMaxHeight(),
+                            modifier = Modifier.fillMaxWidth().fillMaxHeight(),
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
+                            verticalArrangement = Arrangement.Center,
                         ) {
                             content(accountViewModel)
                         }
@@ -487,17 +519,9 @@ fun GenericMainTopBar(
             },
             navigationIcon = {
                 val coroutineScope = rememberCoroutineScope()
-                LoggedInUserPictureDrawer(accountViewModel) {
-                    coroutineScope.launch {
-                        drawerState.open()
-                    }
-                }
+                LoggedInUserPictureDrawer(accountViewModel) { coroutineScope.launch { drawerState.open() } }
             },
-            actions = {
-                SearchButton() {
-                    nav(Route.Search.route)
-                }
-            }
+            actions = { SearchButton { nav(Route.Search.route) } },
         )
         Divider(thickness = DividerThickness)
     }
@@ -506,7 +530,7 @@ fun GenericMainTopBar(
 @Composable
 private fun SearchButton(onClick: () -> Unit) {
     IconButton(
-        onClick = onClick
+        onClick = onClick,
     ) {
         SearchIcon(modifier = Size22Modifier, Color.Unspecified)
     }
@@ -515,17 +539,19 @@ private fun SearchButton(onClick: () -> Unit) {
 @Composable
 private fun LoggedInUserPictureDrawer(
     accountViewModel: AccountViewModel,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
-    val profilePicture by accountViewModel.account.userProfile().live().profilePictureChanges.observeAsState()
+    val profilePicture by
+        accountViewModel.account.userProfile().live().profilePictureChanges.observeAsState()
     val pubkeyHex = remember { accountViewModel.userProfile().pubkeyHex }
 
-    val automaticallyShowProfilePicture = remember {
-        accountViewModel.settings.showProfilePictures.value
-    }
+    val automaticallyShowProfilePicture =
+        remember {
+            accountViewModel.settings.showProfilePictures.value
+        }
 
     IconButton(
-        onClick = onClick
+        onClick = onClick,
     ) {
         RobohashFallbackAsyncImage(
             robot = pubkeyHex,
@@ -533,7 +559,7 @@ private fun LoggedInUserPictureDrawer(
             contentDescription = stringResource(id = R.string.profile_image),
             modifier = HeaderPictureModifier,
             contentScale = ContentScale.Crop,
-            loadProfilePicture = automaticallyShowProfilePicture
+            loadProfilePicture = automaticallyShowProfilePicture,
         )
     }
 }
@@ -542,16 +568,14 @@ private fun LoggedInUserPictureDrawer(
 fun FollowListWithRoutes(
     followListsModel: FollowListViewModel,
     listName: String,
-    onChange: (CodeName) -> Unit
+    onChange: (CodeName) -> Unit,
 ) {
     val allLists by followListsModel.kind3GlobalPeopleRoutes.collectAsStateWithLifecycle()
 
     SimpleTextSpinner(
         placeholderCode = listName,
         options = allLists,
-        onSelect = {
-            onChange(allLists.getOrNull(it) ?: followListsModel.kind3Follow)
-        }
+        onSelect = { onChange(allLists.getOrNull(it) ?: followListsModel.kind3Follow) },
     )
 }
 
@@ -559,110 +583,134 @@ fun FollowListWithRoutes(
 fun FollowListWithoutRoutes(
     followListsModel: FollowListViewModel,
     listName: String,
-    onChange: (CodeName) -> Unit
+    onChange: (CodeName) -> Unit,
 ) {
     val allLists by followListsModel.kind3GlobalPeople.collectAsStateWithLifecycle()
 
     SimpleTextSpinner(
         placeholderCode = listName,
         options = allLists,
-        onSelect = {
-            onChange(allLists.getOrNull(it) ?: followListsModel.kind3Follow)
-        }
+        onSelect = { onChange(allLists.getOrNull(it) ?: followListsModel.kind3Follow) },
     )
 }
 
 enum class CodeNameType {
-    HARDCODED, PEOPLE_LIST, ROUTE
+    HARDCODED,
+    PEOPLE_LIST,
+    ROUTE,
 }
 
 abstract class Name {
     abstract fun name(): String
+
     open fun name(context: Context) = name()
 }
 
 class GeoHashName(val geoHashTag: String) : Name() {
     override fun name() = "/g/$geoHashTag"
 }
+
 class HashtagName(val hashTag: String) : Name() {
     override fun name() = "#$hashTag"
 }
+
 class ResourceName(val resourceId: Int) : Name() {
     override fun name() = " $resourceId " // Space to make sure it goes first
+
     override fun name(context: Context) = context.getString(resourceId)
 }
 
 class PeopleListName(val note: AddressableNote) : Name() {
     override fun name() = (note.event as? PeopleListEvent)?.nameOrTitle() ?: note.dTag() ?: ""
 }
+
 class CommunityName(val note: AddressableNote) : Name() {
     override fun name() = "/n/${(note.dTag() ?: "")}"
 }
 
-@Immutable
-data class CodeName(val code: String, val name: Name, val type: CodeNameType)
+@Immutable data class CodeName(val code: String, val name: Name, val type: CodeNameType)
 
 @Stable
 class FollowListViewModel(val account: Account) : ViewModel() {
-    val kind3Follow = CodeName(KIND3_FOLLOWS, ResourceName(R.string.follow_list_kind3follows), CodeNameType.HARDCODED)
-    val globalFollow = CodeName(GLOBAL_FOLLOWS, ResourceName(R.string.follow_list_global), CodeNameType.HARDCODED)
-    val muteListFollow = CodeName(
-        MuteListEvent.blockListFor(account.userProfile().pubkeyHex),
-        ResourceName(R.string.follow_list_mute_list),
-        CodeNameType.HARDCODED
-    )
+    val kind3Follow =
+        CodeName(KIND3_FOLLOWS, ResourceName(R.string.follow_list_kind3follows), CodeNameType.HARDCODED)
+    val globalFollow =
+        CodeName(GLOBAL_FOLLOWS, ResourceName(R.string.follow_list_global), CodeNameType.HARDCODED)
+    val muteListFollow =
+        CodeName(
+            MuteListEvent.blockListFor(account.userProfile().pubkeyHex),
+            ResourceName(R.string.follow_list_mute_list),
+            CodeNameType.HARDCODED,
+        )
 
-    private var _kind3GlobalPeopleRoutes = MutableStateFlow<ImmutableList<CodeName>>(emptyList<CodeName>().toPersistentList())
+    private var _kind3GlobalPeopleRoutes =
+        MutableStateFlow<ImmutableList<CodeName>>(emptyList<CodeName>().toPersistentList())
     val kind3GlobalPeopleRoutes = _kind3GlobalPeopleRoutes.asStateFlow()
 
-    private var _kind3GlobalPeople = MutableStateFlow<ImmutableList<CodeName>>(emptyList<CodeName>().toPersistentList())
+    private var _kind3GlobalPeople =
+        MutableStateFlow<ImmutableList<CodeName>>(emptyList<CodeName>().toPersistentList())
     val kind3GlobalPeople = _kind3GlobalPeople.asStateFlow()
 
     fun refresh() {
-        viewModelScope.launch(Dispatchers.Default) {
-            refreshFollows()
-        }
+        viewModelScope.launch(Dispatchers.Default) { refreshFollows() }
     }
 
     private suspend fun refreshFollows() {
         checkNotInMainThread()
 
-        val newFollowLists = LocalCache.addressables.mapNotNull {
-            val event = (it.value.event as? PeopleListEvent)
-            // Has to have an list
-            if (event != null &&
-                event.pubKey == account.userProfile().pubkeyHex &&
-                (event.tags.size > 1 || event.content.length > 50)
-            ) {
-                CodeName(event.address().toTag(), PeopleListName(it.value), CodeNameType.PEOPLE_LIST)
-            } else {
-                null
+        val newFollowLists =
+            LocalCache.addressables
+                .mapNotNull {
+                    val event = (it.value.event as? PeopleListEvent)
+                    // Has to have an list
+                    if (
+                        event != null &&
+                        event.pubKey == account.userProfile().pubkeyHex &&
+                        (event.tags.size > 1 || event.content.length > 50)
+                    ) {
+                        CodeName(event.address().toTag(), PeopleListName(it.value), CodeNameType.PEOPLE_LIST)
+                    } else {
+                        null
+                    }
+                }
+                .sortedBy { it.name.name() }
+
+        val communities =
+            account.userProfile().cachedFollowingCommunitiesSet().mapNotNull {
+                LocalCache.checkGetOrCreateAddressableNote(it)?.let { communityNote ->
+                    CodeName(
+                        "Community/${communityNote.idHex}",
+                        CommunityName(communityNote),
+                        CodeNameType.ROUTE,
+                    )
+                }
             }
-        }.sortedBy { it.name.name() }
 
-        val communities = account.userProfile().cachedFollowingCommunitiesSet().mapNotNull {
-            LocalCache.checkGetOrCreateAddressableNote(it)?.let { communityNote ->
-                CodeName("Community/${communityNote.idHex}", CommunityName(communityNote), CodeNameType.ROUTE)
+        val hashtags =
+            account.userProfile().cachedFollowingTagSet().map {
+                CodeName("Hashtag/$it", HashtagName(it), CodeNameType.ROUTE)
             }
-        }
 
-        val hashtags = account.userProfile().cachedFollowingTagSet().map {
-            CodeName("Hashtag/$it", HashtagName(it), CodeNameType.ROUTE)
-        }
-
-        val geotags = account.userProfile().cachedFollowingGeohashSet().map {
-            CodeName("Geohash/$it", GeoHashName(it), CodeNameType.ROUTE)
-        }
+        val geotags =
+            account.userProfile().cachedFollowingGeohashSet().map {
+                CodeName("Geohash/$it", GeoHashName(it), CodeNameType.ROUTE)
+            }
 
         val routeList = (communities + hashtags + geotags).sortedBy { it.name.name() }
 
-        val kind3GlobalPeopleRouteList = listOf(listOf(kind3Follow, globalFollow), newFollowLists, routeList, listOf(muteListFollow)).flatten().toImmutableList()
+        val kind3GlobalPeopleRouteList =
+            listOf(listOf(kind3Follow, globalFollow), newFollowLists, routeList, listOf(muteListFollow))
+                .flatten()
+                .toImmutableList()
 
         if (!equalImmutableLists(_kind3GlobalPeopleRoutes.value, kind3GlobalPeopleRouteList)) {
             _kind3GlobalPeopleRoutes.emit(kind3GlobalPeopleRouteList)
         }
 
-        val kind3GlobalPeopleList = listOf(listOf(kind3Follow, globalFollow), newFollowLists, listOf(muteListFollow)).flatten().toImmutableList()
+        val kind3GlobalPeopleList =
+            listOf(listOf(kind3Follow, globalFollow), newFollowLists, listOf(muteListFollow))
+                .flatten()
+                .toImmutableList()
 
         if (!equalImmutableLists(_kind3GlobalPeople.value, kind3GlobalPeopleList)) {
             _kind3GlobalPeople.emit(kind3GlobalPeopleList)
@@ -674,17 +722,24 @@ class FollowListViewModel(val account: Account) : ViewModel() {
     init {
         Log.d("Init", "App Top Bar")
         refresh()
-        collectorJob = viewModelScope.launch(Dispatchers.IO) {
-            LocalCache.live.newEventBundles.collect { newNotes ->
-                checkNotInMainThread()
-                if (newNotes.any {
-                    it.event?.pubKey() == account.userProfile().pubkeyHex && (it.event is PeopleListEvent || it.event is MuteListEvent || it.event is ContactListEvent)
-                }
-                ) {
-                    refresh()
+        collectorJob =
+            viewModelScope.launch(Dispatchers.IO) {
+                LocalCache.live.newEventBundles.collect { newNotes ->
+                    checkNotInMainThread()
+                    if (
+                        newNotes.any {
+                            it.event?.pubKey() == account.userProfile().pubkeyHex &&
+                                (
+                                    it.event is PeopleListEvent ||
+                                        it.event is MuteListEvent ||
+                                        it.event is ContactListEvent
+                                )
+                        }
+                    ) {
+                        refresh()
+                    }
                 }
             }
-        }
     }
 
     override fun onCleared() {
@@ -705,25 +760,27 @@ fun SimpleTextSpinner(
     placeholderCode: String,
     options: ImmutableList<CodeName>,
     onSelect: (Int) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     var optionsShowing by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
-    val selectAnOption = stringResource(
-        id = R.string.select_an_option
-    )
-
-    var currentText by remember(placeholderCode, options) {
-        mutableStateOf(
-            options.firstOrNull { it.code == placeholderCode }?.name?.name(context) ?: selectAnOption
+    val selectAnOption =
+        stringResource(
+            id = R.string.select_an_option,
         )
-    }
+
+    var currentText by
+        remember(placeholderCode, options) {
+            mutableStateOf(
+                options.firstOrNull { it.code == placeholderCode }?.name?.name(context) ?: selectAnOption,
+            )
+        }
 
     Box(
         modifier = modifier,
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Spacer(modifier = Size20Modifier)
@@ -732,18 +789,17 @@ fun SimpleTextSpinner(
                 imageVector = Icons.Default.ExpandMore,
                 null,
                 modifier = Size20Modifier,
-                tint = MaterialTheme.colorScheme.placeholderText
+                tint = MaterialTheme.colorScheme.placeholderText,
             )
         }
         Box(
-            modifier = Modifier
-                .matchParentSize()
-                .clickable(
+            modifier =
+                Modifier.matchParentSize().clickable(
                     interactionSource = interactionSource,
-                    indication = null
+                    indication = null,
                 ) {
                     optionsShowing = true
-                }
+                },
         )
     }
 
@@ -756,7 +812,7 @@ fun SimpleTextSpinner(
                     currentText = options[it].name.name(context)
                     optionsShowing = false
                     onSelect(it)
-                }
+                },
             ) {
                 RenderOption(it.name)
             }
@@ -773,7 +829,7 @@ fun RenderOption(option: Name) {
                 LoadCityName(geohash) {
                     Row(
                         horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(text = "/g/$it", color = MaterialTheme.colorScheme.onSurface)
                     }
@@ -783,7 +839,7 @@ fun RenderOption(option: Name) {
         is HashtagName -> {
             Row(
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(text = option.name(), color = MaterialTheme.colorScheme.onSurface)
             }
@@ -791,15 +847,18 @@ fun RenderOption(option: Name) {
         is ResourceName -> {
             Row(
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(text = stringResource(id = option.resourceId), color = MaterialTheme.colorScheme.onSurface)
+                Text(
+                    text = stringResource(id = option.resourceId),
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
             }
         }
         is PeopleListName -> {
             Row(
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Text(text = option.name(), color = MaterialTheme.colorScheme.onSurface)
             }
@@ -807,11 +866,14 @@ fun RenderOption(option: Name) {
         is CommunityName -> {
             Row(
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                val name by option.note.live().metadata.map {
-                    "/n/" + ((it.note as? AddressableNote)?.dTag() ?: "")
-                }.observeAsState()
+                val name by
+                    option.note
+                        .live()
+                        .metadata
+                        .map { "/n/" + ((it.note as? AddressableNote)?.dTag() ?: "") }
+                        .observeAsState()
 
                 Text(text = name ?: "", color = MaterialTheme.colorScheme.onSurface)
             }
@@ -821,19 +883,22 @@ fun RenderOption(option: Name) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBarWithBackButton(caption: String, popBack: () -> Unit) {
+fun TopBarWithBackButton(
+    caption: String,
+    popBack: () -> Unit,
+) {
     Column(modifier = BottomTopHeight) {
         TopAppBar(
             title = { Text(caption) },
             navigationIcon = {
                 IconButton(
                     onClick = popBack,
-                    modifier = Modifier
+                    modifier = Modifier,
                 ) {
                     ArrowBackIcon()
                 }
             },
-            actions = {}
+            actions = {},
         )
         Divider(thickness = DividerThickness)
     }
@@ -843,18 +908,14 @@ fun TopBarWithBackButton(caption: String, popBack: () -> Unit) {
 fun FlexibleTopBarWithBackButton(
     title: @Composable RowScope.() -> Unit,
     extendableRow: (@Composable () -> Unit)? = null,
-    popBack: () -> Unit
+    popBack: () -> Unit,
 ) {
-    Column() {
+    Column {
         MyExtensibleTopAppBar(
             title = title,
             extendableRow = extendableRow,
-            navigationIcon = {
-                IconButton(onClick = popBack) {
-                    ArrowBackIcon()
-                }
-            },
-            actions = {}
+            navigationIcon = { IconButton(onClick = popBack) { ArrowBackIcon() } },
+            actions = {},
         )
         Spacer(modifier = HalfVertSpacer)
         Divider(thickness = DividerThickness)
@@ -866,23 +927,21 @@ fun AmethystClickableIcon() {
     val context = LocalContext.current
 
     IconButton(
-        onClick = {
-            debugState(context)
-        }
+        onClick = { debugState(context) },
     ) {
         AmethystIcon(Size40dp)
     }
 }
 
 fun debugState(context: Context) {
-    Client.allSubscriptions().map {
-        "$it ${
-        Client.getSubscriptionFilters(it)
-            .joinToString { it.filter.toJson() }
-        }"
-    }.forEach {
-        Log.d("STATE DUMP", it)
-    }
+    Client.allSubscriptions()
+        .map {
+            "$it ${
+                Client.getSubscriptionFilters(it)
+                    .joinToString { it.filter.toJson() }
+            }"
+        }
+        .forEach { Log.d("STATE DUMP", it) }
 
     NostrAccountDataSource.printCounter()
     NostrChannelDataSource.printCounter()
@@ -915,21 +974,56 @@ fun debugState(context: Context) {
     Log.d("STATE DUMP", "Connected Relays: " + RelayPool.connectedRelays())
 
     val imageLoader = Coil.imageLoader(context)
-    Log.d("STATE DUMP", "Image Disk Cache ${(imageLoader.diskCache?.size ?: 0) / (1024 * 1024)}/${(imageLoader.diskCache?.maxSize ?: 0) / (1024 * 1024)} MB")
-    Log.d("STATE DUMP", "Image Memory Cache ${(imageLoader.memoryCache?.size ?: 0) / (1024 * 1024)}/${(imageLoader.memoryCache?.maxSize ?: 0) / (1024 * 1024)} MB")
+    Log.d(
+        "STATE DUMP",
+        "Image Disk Cache ${(imageLoader.diskCache?.size ?: 0) / (1024 * 1024)}/${(imageLoader.diskCache?.maxSize ?: 0) / (1024 * 1024)} MB",
+    )
+    Log.d(
+        "STATE DUMP",
+        "Image Memory Cache ${(imageLoader.memoryCache?.size ?: 0) / (1024 * 1024)}/${(imageLoader.memoryCache?.maxSize ?: 0) / (1024 * 1024)} MB",
+    )
 
-    Log.d("STATE DUMP", "Notes: " + LocalCache.notes.filter { it.value.liveSet != null }.size + " / " + LocalCache.notes.filter { it.value.event != null }.size + " / " + LocalCache.notes.size)
-    Log.d("STATE DUMP", "Addressables: " + LocalCache.addressables.filter { it.value.liveSet != null }.size + " / " + LocalCache.addressables.filter { it.value.event != null }.size + " / " + LocalCache.addressables.size)
-    Log.d("STATE DUMP", "Users: " + LocalCache.users.filter { it.value.liveSet != null }.size + " / " + LocalCache.users.filter { it.value.info?.latestMetadata != null }.size + " / " + LocalCache.users.size)
+    Log.d(
+        "STATE DUMP",
+        "Notes: " +
+            LocalCache.notes.filter { it.value.liveSet != null }.size +
+            " / " +
+            LocalCache.notes.filter { it.value.event != null }.size +
+            " / " +
+            LocalCache.notes.size,
+    )
+    Log.d(
+        "STATE DUMP",
+        "Addressables: " +
+            LocalCache.addressables.filter { it.value.liveSet != null }.size +
+            " / " +
+            LocalCache.addressables.filter { it.value.event != null }.size +
+            " / " +
+            LocalCache.addressables.size,
+    )
+    Log.d(
+        "STATE DUMP",
+        "Users: " +
+            LocalCache.users.filter { it.value.liveSet != null }.size +
+            " / " +
+            LocalCache.users.filter { it.value.info?.latestMetadata != null }.size +
+            " / " +
+            LocalCache.users.size,
+    )
 
-    Log.d("STATE DUMP", "Memory used by Events: " + LocalCache.notes.values.sumOf { it.event?.countMemory() ?: 0 } / (1024 * 1024) + " MB")
+    Log.d(
+        "STATE DUMP",
+        "Memory used by Events: " +
+            LocalCache.notes.values.sumOf { it.event?.countMemory() ?: 0 } / (1024 * 1024) +
+            " MB",
+    )
 
-    LocalCache.notes.values.groupBy { it.event?.kind() }.forEach {
-        Log.d("STATE DUMP", "Kind ${it.key}: \t${it.value.size} elements ")
-    }
-    LocalCache.addressables.values.groupBy { it.event?.kind() }.forEach {
-        Log.d("STATE DUMP", "Kind ${it.key}: \t${it.value.size} elements ")
-    }
+    LocalCache.notes.values
+        .groupBy { it.event?.kind() }
+        .forEach { Log.d("STATE DUMP", "Kind ${it.key}: \t${it.value.size} elements ") }
+    LocalCache.addressables.values
+        .groupBy { it.event?.kind() }
+        .forEach { Log.d("STATE DUMP", "Kind ${it.key}: \t${it.value.size} elements ") }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -939,20 +1033,18 @@ fun MyExtensibleTopAppBar(
     extendableRow: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
     navigationIcon: @Composable (() -> Unit)? = null,
-    actions: @Composable RowScope.() -> Unit = {}
+    actions: @Composable RowScope.() -> Unit = {},
 ) {
     val expanded = remember { mutableStateOf(false) }
 
     Column(
-        Modifier.clickable {
-            expanded.value = !expanded.value
-        }
+        Modifier.clickable { expanded.value = !expanded.value },
     ) {
         Row(modifier = BottomTopHeight) {
             TopAppBar(
                 title = {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         title()
                     }
@@ -967,7 +1059,7 @@ fun MyExtensibleTopAppBar(
                         }
                     }
                 },
-                actions = actions
+                actions = actions,
             )
         }
 
@@ -975,11 +1067,9 @@ fun MyExtensibleTopAppBar(
             Row(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column {
-                    extendableRow()
-                }
+                Column { extendableRow() }
             }
         }
     }

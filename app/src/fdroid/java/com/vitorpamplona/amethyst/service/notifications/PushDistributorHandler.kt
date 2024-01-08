@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.service.notifications
 
 import android.content.Context
@@ -9,10 +29,14 @@ import org.unifiedpush.android.connector.UnifiedPush
 
 interface PushDistributorActions {
     fun getSavedDistributor(): String
+
     fun getInstalledDistributors(): List<String>
+
     fun saveDistributor(distributor: String)
+
     fun removeSavedDistributor()
 }
+
 object PushDistributorHandler : PushDistributorActions {
     private val appContext = Amethyst.instance.applicationContext
     private val unifiedPush: UnifiedPush = UnifiedPush
@@ -21,6 +45,7 @@ object PushDistributorHandler : PushDistributorActions {
     val endpoint = endpointInternal
 
     fun getSavedEndpoint() = endpoint
+
     fun setEndpoint(newEndpoint: String) {
         endpointInternal = newEndpoint
         Log.d("PushHandler", "New endpoint saved : $endpointInternal")
@@ -42,23 +67,28 @@ object PushDistributorHandler : PushDistributorActions {
 
     fun formattedDistributorNames(): List<String> {
         val distributorsArray = getInstalledDistributors().toTypedArray()
-        val distributorsNameArray = distributorsArray.map {
-            try {
-                val ai = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    appContext.packageManager.getApplicationInfo(
-                        it,
-                        PackageManager.ApplicationInfoFlags.of(
-                            PackageManager.GET_META_DATA.toLong()
-                        )
-                    )
-                } else {
-                    appContext.packageManager.getApplicationInfo(it, 0)
+        val distributorsNameArray =
+            distributorsArray
+                .map {
+                    try {
+                        val ai =
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                appContext.packageManager.getApplicationInfo(
+                                    it,
+                                    PackageManager.ApplicationInfoFlags.of(
+                                        PackageManager.GET_META_DATA.toLong(),
+                                    ),
+                                )
+                            } else {
+                                appContext.packageManager.getApplicationInfo(it, 0)
+                            }
+                        appContext.packageManager.getApplicationLabel(ai)
+                    } catch (e: PackageManager.NameNotFoundException) {
+                        it
+                    }
+                        as String
                 }
-                appContext.packageManager.getApplicationLabel(ai)
-            } catch (e: PackageManager.NameNotFoundException) {
-                it
-            } as String
-        }.toTypedArray()
+                .toTypedArray()
         return distributorsNameArray.toList()
     }
 
@@ -70,6 +100,7 @@ object PushDistributorHandler : PushDistributorActions {
     override fun removeSavedDistributor() {
         unifiedPush.safeRemoveDistributor(appContext)
     }
+
     fun forceRemoveDistributor(context: Context) {
         unifiedPush.forceRemoveDistributor(context)
     }

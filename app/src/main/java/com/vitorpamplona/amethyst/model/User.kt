@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.model
 
 import androidx.compose.runtime.Immutable
@@ -50,6 +70,7 @@ class User(val pubkeyHex: String) {
         private set
 
     fun pubkey() = Hex.decode(pubkeyHex)
+
     fun pubkeyNpub() = pubkey().toNpub()
 
     fun pubkeyDisplayHex() = pubkeyNpub().toShortenHex()
@@ -63,12 +84,13 @@ class User(val pubkeyHex: String) {
 
         val names = fullName.split(' ')
 
-        val firstName = if (names[0].length <= 3) {
-            // too short. Remove Dr.
-            "${names[0]} ${names.getOrNull(1) ?: ""}"
-        } else {
-            names[0]
-        }
+        val firstName =
+            if (names[0].length <= 3) {
+                // too short. Remove Dr.
+                "${names[0]} ${names.getOrNull(1) ?: ""}"
+            } else {
+                names[0]
+            }
 
         return firstName
     }
@@ -82,7 +104,7 @@ class User(val pubkeyHex: String) {
     }
 
     fun bestDisplayName(): String? {
-        return info?.displayName?.ifBlank { null } ?: info?.display_name?.ifBlank { null }
+        return info?.displayName?.ifBlank { null }
     }
 
     fun nip05(): String? {
@@ -151,7 +173,10 @@ class User(val pubkeyHex: String) {
         }
     }
 
-    fun addZap(zapRequest: Note, zap: Note?) {
+    fun addZap(
+        zapRequest: Note,
+        zap: Note?,
+    ) {
         if (zaps[zapRequest] == null) {
             zaps = zaps + Pair(zapRequest, zap)
             liveSet?.innerZaps?.invalidateData()
@@ -189,24 +214,27 @@ class User(val pubkeyHex: String) {
     }
 
     fun reportsBy(users: Set<HexKey>): List<Note> {
-        return reports.mapNotNull {
-            if (it.key.pubkeyHex in users) {
-                it.value
-            } else {
-                null
+        return reports
+            .mapNotNull {
+                if (it.key.pubkeyHex in users) {
+                    it.value
+                } else {
+                    null
+                }
             }
-        }.flatten()
+            .flatten()
     }
 
     @Synchronized
     private fun getOrCreatePrivateChatroomSync(key: ChatroomKey): Chatroom {
         checkNotInMainThread()
 
-        return privateChatrooms[key] ?: run {
-            val privateChatroom = Chatroom()
-            privateChatrooms = privateChatrooms + Pair(key, privateChatroom)
-            privateChatroom
-        }
+        return privateChatrooms[key]
+            ?: run {
+                val privateChatroom = Chatroom()
+                privateChatrooms = privateChatrooms + Pair(key, privateChatroom)
+                privateChatroom
+            }
     }
 
     private fun getOrCreatePrivateChatroom(user: User): Chatroom {
@@ -218,7 +246,10 @@ class User(val pubkeyHex: String) {
         return privateChatrooms[key] ?: getOrCreatePrivateChatroomSync(key)
     }
 
-    fun addMessage(room: ChatroomKey, msg: Note) {
+    fun addMessage(
+        room: ChatroomKey,
+        msg: Note,
+    ) {
         val privateChatroom = getOrCreatePrivateChatroom(room)
         if (msg !in privateChatroom.roomMessages) {
             privateChatroom.addMessageSync(msg)
@@ -226,7 +257,10 @@ class User(val pubkeyHex: String) {
         }
     }
 
-    fun addMessage(user: User, msg: Note) {
+    fun addMessage(
+        user: User,
+        msg: Note,
+    ) {
         val privateChatroom = getOrCreatePrivateChatroom(user)
         if (msg !in privateChatroom.roomMessages) {
             privateChatroom.addMessageSync(msg)
@@ -238,7 +272,10 @@ class User(val pubkeyHex: String) {
         getOrCreatePrivateChatroom(withKey)
     }
 
-    fun removeMessage(user: User, msg: Note) {
+    fun removeMessage(
+        user: User,
+        msg: Note,
+    ) {
         checkNotInMainThread()
 
         val privateChatroom = getOrCreatePrivateChatroom(user)
@@ -248,7 +285,10 @@ class User(val pubkeyHex: String) {
         }
     }
 
-    fun addRelayBeingUsed(relay: Relay, eventTime: Long) {
+    fun addRelayBeingUsed(
+        relay: Relay,
+        eventTime: Long,
+    ) {
         val here = relaysBeingUsed[relay.url]
         if (here == null) {
             relaysBeingUsed = relaysBeingUsed + Pair(relay.url, RelayInfo(relay.url, eventTime, 1))
@@ -262,7 +302,10 @@ class User(val pubkeyHex: String) {
         liveSet?.innerRelayInfo?.invalidateData()
     }
 
-    fun updateUserInfo(newUserInfo: UserMetadata, latestMetadata: MetadataEvent) {
+    fun updateUserInfo(
+        newUserInfo: UserMetadata,
+        latestMetadata: MetadataEvent,
+    ) {
         info = newUserInfo
         info?.latestMetadata = latestMetadata
         info?.updatedMetadataAt = latestMetadata.createdAt
@@ -290,25 +333,29 @@ class User(val pubkeyHex: String) {
     fun isFollowingHashtagCached(tag: String): Boolean {
         return latestContactList?.verifiedFollowTagSet?.let {
             return tag.lowercase() in it
-        } ?: false
+        }
+            ?: false
     }
 
     fun isFollowingGeohashCached(geoTag: String): Boolean {
         return latestContactList?.verifiedFollowGeohashSet?.let {
             return geoTag.lowercase() in it
-        } ?: false
+        }
+            ?: false
     }
 
     fun isFollowingCached(user: User): Boolean {
         return latestContactList?.verifiedFollowKeySet?.let {
             return user.pubkeyHex in it
-        } ?: false
+        }
+            ?: false
     }
 
     fun isFollowingCached(userHex: String): Boolean {
         return latestContactList?.verifiedFollowKeySet?.let {
             return userHex in it
-        } ?: false
+        }
+            ?: false
     }
 
     fun transientFollowCount(): Int? {
@@ -349,9 +396,13 @@ class User(val pubkeyHex: String) {
         return messagesToUser.roomMessages.any { this.pubkeyHex == it.author?.pubkeyHex }
     }
 
-    fun hasReport(loggedIn: User, type: ReportEvent.ReportType): Boolean {
-        return reports[loggedIn]?.firstOrNull() {
-            it.event is ReportEvent && (it.event as ReportEvent).reportedAuthor().any { it.reportType == type }
+    fun hasReport(
+        loggedIn: User,
+        type: ReportEvent.ReportType,
+    ): Boolean {
+        return reports[loggedIn]?.firstOrNull {
+            it.event is ReportEvent &&
+                (it.event as ReportEvent).reportedAuthor().any { it.reportType == type }
         } != null
     }
 
@@ -455,22 +506,14 @@ class UserLiveSet(u: User) {
     val relays = innerRelays.map { it }
     val relayInfo = innerRelayInfo.map { it }
     val zaps = innerZaps.map { it }
-    val bookmarks = innerBookmarks.map {
-        it
-    }
+    val bookmarks = innerBookmarks.map { it }
     val statuses = innerStatuses.map { it }
 
-    val profilePictureChanges = innerMetadata.map {
-        it.user.profilePicture()
-    }.distinctUntilChanged()
+    val profilePictureChanges = innerMetadata.map { it.user.profilePicture() }.distinctUntilChanged()
 
-    val nip05Changes = innerMetadata.map {
-        it.user.nip05()
-    }.distinctUntilChanged()
+    val nip05Changes = innerMetadata.map { it.user.nip05() }.distinctUntilChanged()
 
-    val userMetadataInfo = innerMetadata.map {
-        it.user.info
-    }.distinctUntilChanged()
+    val userMetadataInfo = innerMetadata.map { it.user.info }.distinctUntilChanged()
 
     fun isInUse(): Boolean {
         return metadata.hasObservers() ||
@@ -506,7 +549,7 @@ class UserLiveSet(u: User) {
 data class RelayInfo(
     val url: String,
     var lastEvent: Long,
-    var counter: Long
+    var counter: Long,
 )
 
 class UserBundledRefresherLiveData(val user: User) : LiveData<UserState>(UserState(user)) {
@@ -520,16 +563,14 @@ class UserBundledRefresherLiveData(val user: User) : LiveData<UserState>(UserSta
     fun invalidateData() {
         checkNotInMainThread()
 
-        bundler.invalidate() {
+        bundler.invalidate {
             checkNotInMainThread()
 
             postValue(UserState(user))
         }
     }
 
-    fun <Y> map(
-        transform: (UserState) -> Y
-    ): UserLoadingLiveData<Y> {
+    fun <Y> map(transform: (UserState) -> Y): UserLoadingLiveData<Y> {
         val initialValue = this.value?.let { transform(it) }
         val result = UserLoadingLiveData(user, initialValue)
         result.addSource(this) { x -> result.value = transform(x) }
@@ -550,7 +591,7 @@ class UserBundledRefresherFlow(val user: User) {
     fun invalidateData() {
         checkNotInMainThread()
 
-        bundler.invalidate() {
+        bundler.invalidate {
             checkNotInMainThread()
 
             stateFlow.emit(UserState(user))
@@ -570,5 +611,4 @@ class UserLoadingLiveData<Y>(val user: User, initialValue: Y?) : MediatorLiveDat
     }
 }
 
-@Immutable
-class UserState(val user: User)
+@Immutable class UserState(val user: User)

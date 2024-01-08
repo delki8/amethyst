@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.screen
 
 import androidx.compose.animation.Crossfade
@@ -140,32 +160,37 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun ThreadFeedView(noteId: String, viewModel: FeedViewModel, accountViewModel: AccountViewModel, nav: (String) -> Unit) {
+fun ThreadFeedView(
+    noteId: String,
+    viewModel: FeedViewModel,
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
     val feedState by viewModel.feedContent.collectAsStateWithLifecycle()
 
     val listState = rememberLazyListState()
 
     var refreshing by remember { mutableStateOf(false) }
-    val refresh = { refreshing = true; viewModel.invalidateData(); refreshing = false }
+    val refresh = {
+        refreshing = true
+        viewModel.invalidateData()
+        refreshing = false
+    }
     val pullRefreshState = rememberPullRefreshState(refreshing, onRefresh = refresh)
 
     Box(Modifier.pullRefresh(pullRefreshState)) {
-        Column() {
+        Column {
             Crossfade(
                 targetState = feedState,
                 animationSpec = tween(durationMillis = 100),
-                label = "ThreadViewMainState"
+                label = "ThreadViewMainState",
             ) { state ->
                 when (state) {
                     is FeedState.Empty -> {
-                        FeedEmpty {
-                            refreshing = true
-                        }
+                        FeedEmpty { refreshing = true }
                     }
                     is FeedState.FeedError -> {
-                        FeedError(state.errorMessage) {
-                            refreshing = true
-                        }
+                        FeedError(state.errorMessage) { refreshing = true }
                     }
                     is FeedState.Loaded -> {
                         refreshing = false
@@ -181,51 +206,60 @@ fun ThreadFeedView(noteId: String, viewModel: FeedViewModel, accountViewModel: A
                                         position-- // show the replying note
                                     }
 
-                                    withContext(Dispatchers.Main) {
-                                        listState.scrollToItem(position)
-                                    }
+                                    withContext(Dispatchers.Main) { listState.scrollToItem(position) }
                                 }
                             }
                         }
 
                         LazyColumn(
                             contentPadding = FeedPadding,
-                            state = listState
+                            state = listState,
                         ) {
                             itemsIndexed(state.feed.value, key = { _, item -> item.idHex }) { index, item ->
                                 if (index == 0) {
                                     ProvideTextStyle(TextStyle(fontSize = 18.sp, lineHeight = 1.20.em)) {
                                         NoteMaster(
                                             item,
-                                            modifier = Modifier.drawReplyLevel(
-                                                item.replyLevel(),
-                                                MaterialTheme.colorScheme.placeholderText,
-                                                if (item.idHex == noteId) MaterialTheme.colorScheme.lessImportantLink else MaterialTheme.colorScheme.placeholderText
-                                            ),
+                                            modifier =
+                                                Modifier.drawReplyLevel(
+                                                    item.replyLevel(),
+                                                    MaterialTheme.colorScheme.placeholderText,
+                                                    if (item.idHex == noteId) {
+                                                        MaterialTheme.colorScheme.lessImportantLink
+                                                    } else {
+                                                        MaterialTheme.colorScheme.placeholderText
+                                                    },
+                                                ),
                                             accountViewModel = accountViewModel,
-                                            nav = nav
+                                            nav = nav,
                                         )
                                     }
                                 } else {
-                                    Column() {
-                                        Row() {
+                                    Column {
+                                        Row {
                                             val selectedNoteColor = MaterialTheme.colorScheme.selectedNote
-                                            val background = remember {
-                                                if (item.idHex == noteId) mutableStateOf(selectedNoteColor) else null
-                                            }
+                                            val background =
+                                                remember {
+                                                    if (item.idHex == noteId) mutableStateOf(selectedNoteColor) else null
+                                                }
 
                                             NoteCompose(
                                                 item,
-                                                modifier = Modifier.drawReplyLevel(
-                                                    item.replyLevel(),
-                                                    MaterialTheme.colorScheme.placeholderText,
-                                                    if (item.idHex == noteId) MaterialTheme.colorScheme.lessImportantLink else MaterialTheme.colorScheme.placeholderText
-                                                ),
+                                                modifier =
+                                                    Modifier.drawReplyLevel(
+                                                        item.replyLevel(),
+                                                        MaterialTheme.colorScheme.placeholderText,
+                                                        if (item.idHex == noteId) {
+                                                            MaterialTheme.colorScheme.lessImportantLink
+                                                        } else {
+                                                            MaterialTheme.colorScheme.placeholderText
+                                                        },
+                                                    ),
                                                 parentBackgroundColor = background,
                                                 isBoostedNote = false,
                                                 unPackReply = false,
                                                 accountViewModel = accountViewModel,
-                                                nav = nav
+                                                nav = nav,
                                             )
                                         }
                                     }
@@ -245,8 +279,12 @@ fun ThreadFeedView(noteId: String, viewModel: FeedViewModel, accountViewModel: A
 }
 
 // Creates a Zebra pattern where each bar is a reply level.
-fun Modifier.drawReplyLevel(level: Int, color: Color, selected: Color): Modifier = this
-    .drawBehind {
+fun Modifier.drawReplyLevel(
+    level: Int,
+    color: Color,
+    selected: Color,
+): Modifier =
+    this.drawBehind {
         val paddingDp = 2
         val strokeWidthDp = 2
         val levelWidthDp = strokeWidthDp + 1
@@ -260,13 +298,13 @@ fun Modifier.drawReplyLevel(level: Int, color: Color, selected: Color): Modifier
                 if (it == level - 1) selected else color,
                 Offset(padding + it * levelWidth, 0f),
                 Offset(padding + it * levelWidth, size.height),
-                strokeWidth = strokeWidth
+                strokeWidth = strokeWidth,
             )
         }
 
         return@drawBehind
     }
-    .padding(start = (2 + (level * 3)).dp)
+        .padding(start = (2 + (level * 3)).dp)
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -274,7 +312,7 @@ fun NoteMaster(
     baseNote: Note,
     modifier: Modifier = Modifier,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val noteState by baseNote.live().metadata.observeAsState()
     val note = noteState?.note
@@ -290,9 +328,7 @@ fun NoteMaster(
     val context = LocalContext.current
 
     val moreActionsExpanded = remember { mutableStateOf(false) }
-    val enablePopup = remember {
-        { moreActionsExpanded.value = true }
-    }
+    val enablePopup = remember { { moreActionsExpanded.value = true } }
 
     val noteEvent = note?.event
 
@@ -304,9 +340,7 @@ fun NoteMaster(
     if (noteEvent == null) {
         BlankNote()
     } else if (!account.isAcceptable(noteForReports) && !showHiddenNote) {
-        val reports = remember {
-            account.getRelevantReports(noteForReports).toImmutableSet()
-        }
+        val reports = remember { account.getRelevantReports(noteForReports).toImmutableSet() }
 
         HiddenNote(
             reports,
@@ -315,39 +349,34 @@ fun NoteMaster(
             Modifier,
             false,
             nav,
-            onClick = { showHiddenNote = true }
+            onClick = { showHiddenNote = true },
         )
     } else {
         Column(
-            modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp)
+            modifier.fillMaxWidth().padding(top = 10.dp),
         ) {
             Row(
-                modifier = Modifier
-                    .padding(start = 12.dp, end = 12.dp)
-                    .clickable(onClick = {
-                        note.author?.let {
-                            nav("User/${it.pubkeyHex}")
-                        }
-                    })
+                modifier =
+                    Modifier.padding(start = 12.dp, end = 12.dp)
+                        .clickable(onClick = { note.author?.let { nav("User/${it.pubkeyHex}") } }),
             ) {
                 NoteAuthorPicture(
                     baseNote = baseNote,
                     nav = nav,
                     accountViewModel = accountViewModel,
-                    size = 55.dp
+                    size = 55.dp,
                 )
 
                 Column(modifier = Modifier.padding(start = 10.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         NoteUsernameDisplay(baseNote, Modifier.weight(1f))
 
-                        val isCommunityPost by remember(baseNote) {
-                            derivedStateOf {
-                                baseNote.event?.isTaggedAddressableKind(CommunityDefinitionEvent.kind) == true
+                        val isCommunityPost by
+                            remember(baseNote) {
+                                derivedStateOf {
+                                    baseNote.event?.isTaggedAddressableKind(CommunityDefinitionEvent.KIND) == true
+                                }
                             }
-                        }
 
                         if (isCommunityPost) {
                             DisplayFollowingCommunityInPost(baseNote, accountViewModel, nav)
@@ -358,18 +387,18 @@ fun NoteMaster(
                         Text(
                             timeAgo(note.createdAt(), context = context),
                             color = MaterialTheme.colorScheme.placeholderText,
-                            maxLines = 1
+                            maxLines = 1,
                         )
 
                         IconButton(
                             modifier = Modifier.then(Modifier.size(24.dp)),
-                            onClick = enablePopup
+                            onClick = enablePopup,
                         ) {
                             Icon(
                                 imageVector = Icons.Default.MoreVert,
                                 null,
                                 modifier = Modifier.size(15.dp),
-                                tint = MaterialTheme.colorScheme.placeholderText
+                                tint = MaterialTheme.colorScheme.placeholderText,
                             )
 
                             NoteDropDownMenu(baseNote, moreActionsExpanded, accountViewModel)
@@ -377,7 +406,12 @@ fun NoteMaster(
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        ObserveDisplayNip05Status(baseNote, remember { Modifier.weight(1f) }, accountViewModel, nav)
+                        ObserveDisplayNip05Status(
+                            baseNote,
+                            remember { Modifier.weight(1f) },
+                            accountViewModel,
+                            nav,
+                        )
 
                         val geo = remember { noteEvent.getGeoHash() }
                         if (geo != null) {
@@ -408,22 +442,25 @@ fun NoteMaster(
             }
 
             Row(
-                modifier = Modifier
-                    .padding(horizontal = 12.dp)
-                    .combinedClickable(
-                        onClick = { },
-                        onLongClick = { popupExpanded = true }
-                    )
+                modifier =
+                    Modifier.padding(horizontal = 12.dp)
+                        .combinedClickable(
+                            onClick = {},
+                            onLongClick = { popupExpanded = true },
+                        ),
             ) {
-                Column() {
-                    if ((noteEvent is ChannelCreateEvent || noteEvent is ChannelMetadataEvent) && note.channelHex() != null) {
+                Column {
+                    if (
+                        (noteEvent is ChannelCreateEvent || noteEvent is ChannelMetadataEvent) &&
+                        note.channelHex() != null
+                    ) {
                         ChannelHeader(
                             channelHex = note.channelHex()!!,
                             showVideo = true,
                             showBottomDiviser = false,
                             sendToChannel = true,
                             accountViewModel = accountViewModel,
-                            nav = nav
+                            nav = nav,
                         )
                     } else if (noteEvent is VideoEvent) {
                         VideoDisplay(baseNote, false, true, backgroundColor, accountViewModel, nav)
@@ -444,28 +481,28 @@ fun NoteMaster(
                             true,
                             backgroundColor,
                             accountViewModel,
-                            nav
+                            nav,
                         )
                     } else if (noteEvent is PinListEvent) {
                         RenderPinListEvent(
                             baseNote,
                             backgroundColor,
                             accountViewModel,
-                            nav
+                            nav,
                         )
                     } else if (noteEvent is EmojiPackEvent) {
                         RenderEmojiPack(
                             baseNote,
                             true,
                             backgroundColor,
-                            accountViewModel
+                            accountViewModel,
                         )
                     } else if (noteEvent is RelaySetEvent) {
                         DisplayRelaySet(
                             baseNote,
                             backgroundColor,
                             accountViewModel,
-                            nav
+                            nav,
                         )
                     } else if (noteEvent is AppDefinitionEvent) {
                         RenderAppDefinition(baseNote, accountViewModel, nav)
@@ -479,14 +516,15 @@ fun NoteMaster(
                             true,
                             backgroundColor,
                             accountViewModel,
-                            nav
+                            nav,
                         )
                     } else if (noteEvent is RepostEvent || noteEvent is GenericRepostEvent) {
                         RenderRepost(baseNote, backgroundColor, accountViewModel, nav)
                     } else if (noteEvent is PollNoteEvent) {
-                        val canPreview = note.author == account.userProfile() ||
-                            (note.author?.let { account.userProfile().isFollowingCached(it) } ?: true) ||
-                            !noteForReports.hasAnyReports()
+                        val canPreview =
+                            note.author == account.userProfile() ||
+                                (note.author?.let { account.userProfile().isFollowingCached(it) } ?: true) ||
+                                !noteForReports.hasAnyReports()
 
                         RenderPoll(
                             baseNote,
@@ -494,12 +532,13 @@ fun NoteMaster(
                             canPreview,
                             backgroundColor,
                             accountViewModel,
-                            nav
+                            nav,
                         )
                     } else {
-                        val canPreview = note.author == account.userProfile() ||
-                            (note.author?.let { account.userProfile().isFollowingCached(it) } ?: true) ||
-                            !noteForReports.hasAnyReports()
+                        val canPreview =
+                            note.author == account.userProfile() ||
+                                (note.author?.let { account.userProfile().isFollowingCached(it) } ?: true) ||
+                                !noteForReports.hasAnyReports()
 
                         RenderTextEvent(
                             baseNote,
@@ -507,7 +546,7 @@ fun NoteMaster(
                             canPreview,
                             backgroundColor,
                             accountViewModel,
-                            nav
+                            nav,
                         )
                     }
                 }
@@ -523,7 +562,7 @@ fun NoteMaster(
             ReactionsRow(note, true, accountViewModel, nav)
 
             Divider(
-                thickness = DividerThickness
+                thickness = DividerThickness,
             )
         }
 
@@ -536,28 +575,29 @@ private fun RenderClassifiedsReaderForThread(
     noteEvent: ClassifiedsEvent,
     note: Note,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val images = remember(noteEvent) { noteEvent.images().toImmutableList() }
     val title = remember(noteEvent) { noteEvent.title() }
-    val summary = remember(noteEvent) {
-        val sum = noteEvent.summary()
-        if (sum != noteEvent.content) {
-            sum
-        } else {
-            null
+    val summary =
+        remember(noteEvent) {
+            val sum = noteEvent.summary()
+            if (sum != noteEvent.content) {
+                sum
+            } else {
+                null
+            }
         }
-    }
     val price = remember(noteEvent) { noteEvent.price() }
     val location = remember(noteEvent) { noteEvent.location() }
 
     Row(modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp)) {
         Column {
             if (images.isNotEmpty()) {
-                Row() {
+                Row {
                     InlineCarrousel(
                         images,
-                        images.first()
+                        images.first(),
                     )
                 }
             } else {
@@ -566,13 +606,13 @@ private fun RenderClassifiedsReaderForThread(
 
             Row(
                 Modifier.padding(top = 10.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 title?.let {
                     Text(
                         text = it,
                         style = MaterialTheme.typography.headlineSmall,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                 }
             }
@@ -580,35 +620,34 @@ private fun RenderClassifiedsReaderForThread(
             price?.let {
                 Row(
                     Modifier.padding(top = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    val newAmount = price.amount.toBigDecimalOrNull()?.let {
-                        showAmount(it)
-                    } ?: price.amount
+                    val newAmount = price.amount.toBigDecimalOrNull()?.let { showAmount(it) } ?: price.amount
 
-                    val priceTag = remember(noteEvent) {
-                        if (price.frequency != null && price.currency != null) {
-                            "$newAmount ${price.currency}/${price.frequency}"
-                        } else if (price.currency != null) {
-                            "$newAmount ${price.currency}"
-                        } else {
-                            newAmount
+                    val priceTag =
+                        remember(noteEvent) {
+                            if (price.frequency != null && price.currency != null) {
+                                "$newAmount ${price.currency}/${price.frequency}"
+                            } else if (price.currency != null) {
+                                "$newAmount ${price.currency}"
+                            } else {
+                                newAmount
+                            }
                         }
-                    }
 
                     Text(
                         text = priceTag,
                         maxLines = 1,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
 
                     location?.let {
                         Text(
                             text = it,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
                         )
                     }
                 }
@@ -617,29 +656,27 @@ private fun RenderClassifiedsReaderForThread(
             summary?.let {
                 Row(
                     Modifier.padding(top = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = it,
                         style = MaterialTheme.typography.bodySmall,
                         modifier = Modifier.weight(1f),
                         color = Color.Gray,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
 
             Row(
-                Modifier
-                    .padding(start = 20.dp, end = 20.dp, bottom = 5.dp, top = 15.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                Modifier.padding(start = 20.dp, end = 20.dp, bottom = 5.dp, top = 15.dp).fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
                     painter = painterResource(R.drawable.ic_dm),
                     stringResource(R.string.send_a_direct_message),
                     modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    tint = MaterialTheme.colorScheme.primary,
                 )
 
                 Spacer(modifier = StdHorzSpacer)
@@ -648,58 +685,54 @@ private fun RenderClassifiedsReaderForThread(
             }
 
             Row(
-                modifier = Modifier
-                    .padding(start = 10.dp, end = 10.dp, bottom = 5.dp, top = 5.dp)
-                    .fillMaxWidth(),
+                modifier =
+                    Modifier.padding(start = 10.dp, end = 10.dp, bottom = 5.dp, top = 5.dp).fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 val sellerName = note.author?.bestDisplayName() ?: note.author?.bestUsername()
 
-                val msg = if (sellerName != null) {
-                    stringResource(
-                        id = R.string.hi_seller_is_this_still_available,
-                        sellerName
-                    )
-                } else {
-                    stringResource(id = R.string.hi_there_is_this_still_available)
-                }
+                val msg =
+                    if (sellerName != null) {
+                        stringResource(
+                            id = R.string.hi_seller_is_this_still_available,
+                            sellerName,
+                        )
+                    } else {
+                        stringResource(id = R.string.hi_there_is_this_still_available)
+                    }
 
-                var message by remember {
-                    mutableStateOf(TextFieldValue(msg))
-                }
+                var message by remember { mutableStateOf(TextFieldValue(msg)) }
 
                 TextField(
                     value = message,
-                    onValueChange = {
-                        message = it
-                    },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        capitalization = KeyboardCapitalization.Sentences
-                    ),
+                    onValueChange = { message = it },
+                    keyboardOptions =
+                        KeyboardOptions.Default.copy(
+                            capitalization = KeyboardCapitalization.Sentences,
+                        ),
                     shape = EditFieldBorder,
                     modifier = Modifier.weight(1f, true),
                     placeholder = {
                         Text(
                             text = stringResource(R.string.reply_here),
-                            color = MaterialTheme.colorScheme.placeholderText
+                            color = MaterialTheme.colorScheme.placeholderText,
                         )
                     },
                     textStyle = LocalTextStyle.current.copy(textDirection = TextDirection.Content),
                     trailingIcon = {
                         ThinSendButton(
                             isActive = message.text.isNotBlank(),
-                            modifier = EditFieldTrailingIconModifier
+                            modifier = EditFieldTrailingIconModifier,
                         ) {
-                            note.author?.let {
-                                nav(routeToMessage(it, msg, accountViewModel))
-                            }
+                            note.author?.let { nav(routeToMessage(it, msg, accountViewModel)) }
                         }
                     },
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent
-                    )
+                    colors =
+                        TextFieldDefaults.colors(
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                        ),
                 )
             }
         }
@@ -713,12 +746,13 @@ private fun RenderLongFormHeaderForThread(noteEvent: LongTextNoteEvent) {
             noteEvent.image()?.let {
                 AsyncImage(
                     model = it,
-                    contentDescription = stringResource(
-                        R.string.preview_card_image_for,
-                        it
-                    ),
+                    contentDescription =
+                        stringResource(
+                            R.string.preview_card_image_for,
+                            it,
+                        ),
                     contentScale = ContentScale.FillWidth,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
 
@@ -728,18 +762,21 @@ private fun RenderLongFormHeaderForThread(noteEvent: LongTextNoteEvent) {
                     text = it,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
             }
 
-            noteEvent.summary()?.ifBlank { null }?.let {
-                Spacer(modifier = DoubleVertSpacer)
-                Text(
-                    text = it,
-                    modifier = Modifier.fillMaxWidth(),
-                    color = Color.Gray
-                )
-            }
+            noteEvent
+                .summary()
+                ?.ifBlank { null }
+                ?.let {
+                    Spacer(modifier = DoubleVertSpacer)
+                    Text(
+                        text = it,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = Color.Gray,
+                    )
+                }
         }
     }
 }

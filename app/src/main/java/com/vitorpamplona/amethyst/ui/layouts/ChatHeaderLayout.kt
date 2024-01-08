@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.layouts
 
 import androidx.compose.foundation.Image
@@ -39,7 +59,7 @@ fun ChannelNamePreview() {
                 Image(
                     painter = painterResource(R.drawable.github),
                     contentDescription = stringResource(id = R.string.profile_banner),
-                    contentScale = ContentScale.FillWidth
+                    contentScale = ContentScale.FillWidth,
                 )
             },
             firstRow = {
@@ -50,8 +70,7 @@ fun ChannelNamePreview() {
                 Text("This is a message from this person", Modifier.weight(1f))
                 NewItemsBubble()
             },
-            onClick = {
-            }
+            onClick = {},
         )
 
         Divider()
@@ -74,9 +93,9 @@ fun ChannelNamePreview() {
                     painter = painterResource(R.drawable.github),
                     contentDescription = stringResource(id = R.string.profile_banner),
                     contentScale = ContentScale.FillWidth,
-                    modifier = Size55Modifier
+                    modifier = Size55Modifier,
                 )
-            }
+            },
         )
     }
 }
@@ -86,24 +105,22 @@ fun ChatHeaderLayout(
     channelPicture: @Composable () -> Unit,
     firstRow: @Composable RowScope.() -> Unit,
     secondRow: @Composable RowScope.() -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Column(modifier = remember { Modifier.clickable(onClick = onClick) }) {
         Row(
             modifier = ChatHeadlineBorders,
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Box(Size55Modifier) {
-                channelPicture()
-            }
+            Box(Size55Modifier) { channelPicture() }
 
             Spacer(modifier = DoubleHorzSpacer)
 
             Column(
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             ) {
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     firstRow()
                 }
@@ -111,7 +128,7 @@ fun ChatHeaderLayout(
                 Spacer(modifier = Height4dpModifier)
 
                 Row(
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     secondRow()
                 }
@@ -120,7 +137,7 @@ fun ChatHeaderLayout(
 
         Divider(
             modifier = StdTopPadding,
-            thickness = DividerThickness
+            thickness = DividerThickness,
         )
     }
 }

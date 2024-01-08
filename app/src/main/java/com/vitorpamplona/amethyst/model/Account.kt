@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.model
 
 import android.content.res.Resources
@@ -72,6 +92,7 @@ import com.vitorpamplona.quartz.events.ZapSplitSetup
 import com.vitorpamplona.quartz.signers.NostrSigner
 import com.vitorpamplona.quartz.signers.NostrSignerExternal
 import com.vitorpamplona.quartz.signers.NostrSignerInternal
+import com.vitorpamplona.quartz.utils.DualCase
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableSet
@@ -97,12 +118,24 @@ import java.util.Locale
 import java.util.UUID
 import kotlin.coroutines.resume
 
-val DefaultChannels = setOf(
-    "25e5c82273a271cb1a840d0060391a0bf4965cafeb029d5ab55350b418953fbb", // -> Anigma's Nostr
-    "42224859763652914db53052103f0b744df79dfc4efef7e950fc0802fc3df3c5" // -> Amethyst's Group
-)
+val DefaultChannels =
+    setOf(
+        // Anigma's Nostr
+        "25e5c82273a271cb1a840d0060391a0bf4965cafeb029d5ab55350b418953fbb",
+        // Amethyst's Group
+        "42224859763652914db53052103f0b744df79dfc4efef7e950fc0802fc3df3c5",
+    )
 
-val DefaultReactions = listOf("\uD83D\uDE80", "\uD83E\uDEC2", "\uD83D\uDC40", "\uD83D\uDE02", "\uD83C\uDF89", "\uD83E\uDD14", "\uD83D\uDE31")
+val DefaultReactions =
+    listOf(
+        "\uD83D\uDE80",
+        "\uD83E\uDEC2",
+        "\uD83D\uDC40",
+        "\uD83D\uDE02",
+        "\uD83C\uDF89",
+        "\uD83E\uDD14",
+        "\uD83D\uDE31",
+    )
 
 val DefaultZapAmounts = listOf(500L, 1000L, 5000L)
 
@@ -115,15 +148,17 @@ fun getLanguagesSpokenByUser(): Set<String> {
     return codedList
 }
 
-val GLOBAL_FOLLOWS = " Global " // This has spaces to avoid mixing with a potential NIP-51 list with the same name.
-val KIND3_FOLLOWS = " All Follows " // This has spaces to avoid mixing with a potential NIP-51 list with the same name.
+val GLOBAL_FOLLOWS =
+    " Global " // This has spaces to avoid mixing with a potential NIP-51 list with the same name.
+val KIND3_FOLLOWS =
+    " All Follows " // This has spaces to avoid mixing with a potential NIP-51 list with the same
+// name.
 
 @OptIn(DelicateCoroutinesApi::class)
 @Stable
 class Account(
     val keyPair: KeyPair,
     val signer: NostrSigner = NostrSignerInternal(keyPair),
-
     var localRelays: Set<RelaySetupInfo> = Constants.defaultRelays.toSet(),
     var dontTranslateFrom: Set<String> = getLanguagesSpokenByUser(),
     var languagePreferences: Map<String, String> = mapOf(),
@@ -146,7 +181,7 @@ class Account(
     var showSensitiveContent: Boolean? = null,
     var warnAboutPostsWithReports: Boolean = true,
     var filterSpamFromStrangers: Boolean = true,
-    var lastReadPerRoute: Map<String, Long> = mapOf<String, Long>()
+    var lastReadPerRoute: Map<String, Long> = mapOf<String, Long>(),
 ) {
     // Uses a single scope for the entire application.
     val scope = Amethyst.instance.applicationIOScope
@@ -155,8 +190,9 @@ class Account(
 
     data class PaymentRequest(
         val relayUrl: String,
-        val description: String
+        val description: String,
     )
+
     var transientPaymentRequestDismissals: Set<PaymentRequest> = emptySet()
     val transientPaymentRequests: MutableStateFlow<Set<PaymentRequest>> = MutableStateFlow(emptySet())
 
@@ -170,165 +206,187 @@ class Account(
         val users: ImmutableSet<String> = persistentSetOf(),
         val hashtags: ImmutableSet<String> = persistentSetOf(),
         val geotags: ImmutableSet<String> = persistentSetOf(),
-        val communities: ImmutableSet<String> = persistentSetOf()
+        val communities: ImmutableSet<String> = persistentSetOf(),
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val liveKind3Follows: StateFlow<LiveFollowLists> by lazy {
-        userProfile().live().follows.asFlow().transformLatest {
-            emit(
-                LiveFollowLists(
-                    userProfile().cachedFollowingKeySet().toImmutableSet(),
-                    userProfile().cachedFollowingTagSet().toImmutableSet(),
-                    userProfile().cachedFollowingGeohashSet().toImmutableSet(),
-                    userProfile().cachedFollowingCommunitiesSet().toImmutableSet()
+        userProfile()
+            .live()
+            .follows
+            .asFlow()
+            .transformLatest {
+                emit(
+                    LiveFollowLists(
+                        userProfile().cachedFollowingKeySet().toImmutableSet(),
+                        userProfile().cachedFollowingTagSet().toImmutableSet(),
+                        userProfile().cachedFollowingGeohashSet().toImmutableSet(),
+                        userProfile().cachedFollowingCommunitiesSet().toImmutableSet(),
+                    ),
                 )
-            )
-        }.stateIn(scope, SharingStarted.Eagerly, LiveFollowLists())
+            }
+            .stateIn(scope, SharingStarted.Eagerly, LiveFollowLists())
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val liveHomeList: StateFlow<NoteState?> by lazy {
-        defaultHomeFollowList.transformLatest {
-            LocalCache.checkGetOrCreateAddressableNote(it)?.flow()?.metadata?.stateFlow?.let {
-                emit(it)
+        defaultHomeFollowList
+            .transformLatest {
+                LocalCache.checkGetOrCreateAddressableNote(it)?.flow()?.metadata?.stateFlow?.let {
+                    emit(it)
+                }
             }
-        }.flattenMerge()
+            .flattenMerge()
             .stateIn(scope, SharingStarted.Eagerly, null)
     }
 
     val liveHomeFollowLists: StateFlow<LiveFollowLists?> by lazy {
-        combineTransform(defaultHomeFollowList, liveKind3Follows, liveHomeList) { listName, kind3Follows, peopleListFollows ->
+        combineTransform(defaultHomeFollowList, liveKind3Follows, liveHomeList) {
+                listName,
+                kind3Follows,
+                peopleListFollows,
+            ->
             if (listName == GLOBAL_FOLLOWS) {
                 emit(null)
             } else if (listName == KIND3_FOLLOWS) {
                 emit(kind3Follows)
             } else {
-                val result = withTimeoutOrNull(1000) {
-                    suspendCancellableCoroutine { continuation ->
-                        decryptLiveFollows(peopleListFollows) {
-                            continuation.resume(it)
+                val result =
+                    withTimeoutOrNull(1000) {
+                        suspendCancellableCoroutine { continuation ->
+                            decryptLiveFollows(peopleListFollows) { continuation.resume(it) }
                         }
                     }
-                }
-                result?.let {
-                    emit(it)
-                } ?: run {
-                    emit(LiveFollowLists())
-                }
+                result?.let { emit(it) } ?: run { emit(LiveFollowLists()) }
             }
-        }.stateIn(scope, SharingStarted.Eagerly, LiveFollowLists())
+        }
+            .stateIn(scope, SharingStarted.Eagerly, LiveFollowLists())
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val liveNotificationList: StateFlow<NoteState?> by lazy {
-        defaultNotificationFollowList.transformLatest {
-            LocalCache.checkGetOrCreateAddressableNote(it)?.flow()?.metadata?.stateFlow?.let {
-                emit(it)
+        defaultNotificationFollowList
+            .transformLatest {
+                LocalCache.checkGetOrCreateAddressableNote(it)?.flow()?.metadata?.stateFlow?.let {
+                    emit(it)
+                }
             }
-        }.flattenMerge()
+            .flattenMerge()
             .stateIn(scope, SharingStarted.Eagerly, null)
     }
 
     val liveNotificationFollowLists: StateFlow<LiveFollowLists?> by lazy {
-        combineTransform(defaultNotificationFollowList, liveKind3Follows, liveNotificationList) { listName, kind3Follows, peopleListFollows ->
+        combineTransform(defaultNotificationFollowList, liveKind3Follows, liveNotificationList) {
+                listName,
+                kind3Follows,
+                peopleListFollows,
+            ->
             if (listName == GLOBAL_FOLLOWS) {
                 emit(null)
             } else if (listName == KIND3_FOLLOWS) {
                 emit(kind3Follows)
             } else {
-                val result = withTimeoutOrNull(1000) {
-                    suspendCancellableCoroutine { continuation ->
-                        decryptLiveFollows(peopleListFollows) {
-                            continuation.resume(it)
+                val result =
+                    withTimeoutOrNull(1000) {
+                        suspendCancellableCoroutine { continuation ->
+                            decryptLiveFollows(peopleListFollows) { continuation.resume(it) }
                         }
                     }
-                }
-                result?.let {
-                    emit(it)
-                } ?: run {
-                    emit(LiveFollowLists())
-                }
+                result?.let { emit(it) } ?: run { emit(LiveFollowLists()) }
             }
-        }.stateIn(scope, SharingStarted.Eagerly, LiveFollowLists())
+        }
+            .stateIn(scope, SharingStarted.Eagerly, LiveFollowLists())
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val liveStoriesList: StateFlow<NoteState?> by lazy {
-        defaultStoriesFollowList.transformLatest {
-            LocalCache.checkGetOrCreateAddressableNote(it)?.flow()?.metadata?.stateFlow?.let {
-                emit(it)
+        defaultStoriesFollowList
+            .transformLatest {
+                LocalCache.checkGetOrCreateAddressableNote(it)?.flow()?.metadata?.stateFlow?.let {
+                    emit(it)
+                }
             }
-        }.flattenMerge()
+            .flattenMerge()
             .stateIn(scope, SharingStarted.Eagerly, null)
     }
 
     val liveStoriesFollowLists: StateFlow<LiveFollowLists?> by lazy {
-        combineTransform(defaultStoriesFollowList, liveKind3Follows, liveStoriesList) { listName, kind3Follows, peopleListFollows ->
+        combineTransform(defaultStoriesFollowList, liveKind3Follows, liveStoriesList) {
+                listName,
+                kind3Follows,
+                peopleListFollows,
+            ->
             if (listName == GLOBAL_FOLLOWS) {
                 emit(null)
             } else if (listName == KIND3_FOLLOWS) {
                 emit(kind3Follows)
             } else {
-                val result = withTimeoutOrNull(1000) {
-                    suspendCancellableCoroutine { continuation ->
-                        decryptLiveFollows(peopleListFollows) {
-                            continuation.resume(it)
+                val result =
+                    withTimeoutOrNull(1000) {
+                        suspendCancellableCoroutine { continuation ->
+                            decryptLiveFollows(peopleListFollows) { continuation.resume(it) }
                         }
                     }
-                }
-                result?.let {
-                    emit(it)
-                } ?: run {
-                    emit(LiveFollowLists())
-                }
+                result?.let { emit(it) } ?: run { emit(LiveFollowLists()) }
             }
-        }.stateIn(scope, SharingStarted.Eagerly, LiveFollowLists())
+        }
+            .stateIn(scope, SharingStarted.Eagerly, LiveFollowLists())
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val liveDiscoveryList: StateFlow<NoteState?> by lazy {
-        defaultDiscoveryFollowList.transformLatest {
-            LocalCache.checkGetOrCreateAddressableNote(it)?.flow()?.metadata?.stateFlow?.let {
-                emit(it)
+        defaultDiscoveryFollowList
+            .transformLatest {
+                LocalCache.checkGetOrCreateAddressableNote(it)?.flow()?.metadata?.stateFlow?.let {
+                    emit(it)
+                }
             }
-        }.flattenMerge()
+            .flattenMerge()
             .stateIn(scope, SharingStarted.Eagerly, null)
     }
 
     val liveDiscoveryFollowLists: StateFlow<LiveFollowLists?> by lazy {
-        combineTransform(defaultDiscoveryFollowList, liveKind3Follows, liveDiscoveryList) { listName, kind3Follows, peopleListFollows ->
+        combineTransform(defaultDiscoveryFollowList, liveKind3Follows, liveDiscoveryList) {
+                listName,
+                kind3Follows,
+                peopleListFollows,
+            ->
             if (listName == GLOBAL_FOLLOWS) {
                 emit(null)
             } else if (listName == KIND3_FOLLOWS) {
                 emit(kind3Follows)
             } else {
-                val result = withTimeoutOrNull(1000) {
-                    suspendCancellableCoroutine { continuation ->
-                        decryptLiveFollows(peopleListFollows) {
-                            continuation.resume(it)
+                val result =
+                    withTimeoutOrNull(1000) {
+                        suspendCancellableCoroutine { continuation ->
+                            decryptLiveFollows(peopleListFollows) { continuation.resume(it) }
                         }
                     }
-                }
-                result?.let {
-                    emit(it)
-                } ?: run {
-                    emit(LiveFollowLists())
-                }
+                result?.let { emit(it) } ?: run { emit(LiveFollowLists()) }
             }
-        }.stateIn(scope, SharingStarted.Eagerly, LiveFollowLists())
+        }
+            .stateIn(scope, SharingStarted.Eagerly, LiveFollowLists())
     }
 
-    private fun decryptLiveFollows(peopleListFollows: NoteState?, onReady: (LiveFollowLists) -> Unit) {
+    private fun decryptLiveFollows(
+        peopleListFollows: NoteState?,
+        onReady: (LiveFollowLists) -> Unit,
+    ) {
         val listEvent = (peopleListFollows?.note?.event as? GeneralListEvent)
         listEvent?.privateTags(signer) { privateTagList ->
             onReady(
                 LiveFollowLists(
-                    users = (listEvent.bookmarkedPeople() + listEvent.filterUsers(privateTagList)).toImmutableSet(),
-                    hashtags = (listEvent.hashtags() + listEvent.filterHashtags(privateTagList)).toImmutableSet(),
-                    geotags = (listEvent.geohashes() + listEvent.filterGeohashes(privateTagList)).toImmutableSet(),
-                    communities = (listEvent.taggedAddresses() + listEvent.filterAddresses(privateTagList)).map { it.toTag() }.toImmutableSet()
-                )
+                    users =
+                        (listEvent.bookmarkedPeople() + listEvent.filterUsers(privateTagList)).toImmutableSet(),
+                    hashtags =
+                        (listEvent.hashtags() + listEvent.filterHashtags(privateTagList)).toImmutableSet(),
+                    geotags =
+                        (listEvent.geohashes() + listEvent.filterGeohashes(privateTagList)).toImmutableSet(),
+                    communities =
+                        (listEvent.taggedAddresses() + listEvent.filterAddresses(privateTagList))
+                            .map { it.toTag() }
+                            .toImmutableSet(),
+                ),
             )
         }
     }
@@ -338,55 +396,61 @@ class Account(
         val hiddenUsers: ImmutableSet<String>,
         val spammers: ImmutableSet<String>,
         val hiddenWords: ImmutableSet<String>,
-        val showSensitiveContent: Boolean?
+        val hiddenWordsCase: List<DualCase>,
+        val showSensitiveContent: Boolean?,
     )
 
     val flowHiddenUsers: StateFlow<LiveHiddenUsers> by lazy {
         combineTransform(
             live.asFlow(),
             getBlockListNote().flow().metadata.stateFlow,
-            getMuteListNote().flow().metadata.stateFlow
+            getMuteListNote().flow().metadata.stateFlow,
         ) { localLive, blockList, muteList ->
             checkNotInMainThread()
 
-            val resultBlockList = (blockList.note.event as? PeopleListEvent)?.let {
-                withTimeoutOrNull(1000) {
-                    suspendCancellableCoroutine { continuation ->
-                        it.publicAndPrivateUsersAndWords(signer) {
-                            continuation.resume(it)
+            val resultBlockList =
+                (blockList.note.event as? PeopleListEvent)?.let {
+                    withTimeoutOrNull(1000) {
+                        suspendCancellableCoroutine { continuation ->
+                            it.publicAndPrivateUsersAndWords(signer) { continuation.resume(it) }
                         }
                     }
                 }
-            } ?: PeopleListEvent.UsersAndWords()
+                    ?: PeopleListEvent.UsersAndWords()
 
-            val resultMuteList = (muteList.note.event as? MuteListEvent)?.let {
-                withTimeoutOrNull(1000) {
-                    suspendCancellableCoroutine { continuation ->
-                        it.publicAndPrivateUsersAndWords(signer) {
-                            continuation.resume(it)
+            val resultMuteList =
+                (muteList.note.event as? MuteListEvent)?.let {
+                    withTimeoutOrNull(1000) {
+                        suspendCancellableCoroutine { continuation ->
+                            it.publicAndPrivateUsersAndWords(signer) { continuation.resume(it) }
                         }
                     }
                 }
-            } ?: PeopleListEvent.UsersAndWords()
+                    ?: PeopleListEvent.UsersAndWords()
+
+            val hiddenWords = resultBlockList.words + resultMuteList.words
 
             emit(
                 LiveHiddenUsers(
                     hiddenUsers = (resultBlockList.users + resultMuteList.users).toPersistentSet(),
-                    hiddenWords = (resultBlockList.words + resultMuteList.words).toPersistentSet(),
+                    hiddenWords = hiddenWords.toPersistentSet(),
+                    hiddenWordsCase = hiddenWords.map { DualCase(it.lowercase(), it.uppercase()) },
                     spammers = localLive.account.transientHiddenUsers,
-                    showSensitiveContent = localLive.account.showSensitiveContent
-                )
+                    showSensitiveContent = localLive.account.showSensitiveContent,
+                ),
             )
-        }.stateIn(
-            scope,
-            SharingStarted.Eagerly,
-            LiveHiddenUsers(
-                hiddenUsers = persistentSetOf(),
-                hiddenWords = persistentSetOf(),
-                spammers = transientHiddenUsers,
-                showSensitiveContent = showSensitiveContent
+        }
+            .stateIn(
+                scope,
+                SharingStarted.Eagerly,
+                LiveHiddenUsers(
+                    hiddenUsers = persistentSetOf(),
+                    hiddenWords = persistentSetOf(),
+                    hiddenWordsCase = emptyList(),
+                    spammers = transientHiddenUsers,
+                    showSensitiveContent = showSensitiveContent,
+                ),
             )
-        )
     }
 
     val liveHiddenUsers = flowHiddenUsers.asLiveData()
@@ -395,18 +459,15 @@ class Account(
         userProfile().live().innerBookmarks.switchMap { userState ->
             liveData(Dispatchers.IO) {
                 userState.user.latestBookmarkList?.privateTags(signer) {
-                    scope.launch(Dispatchers.IO) {
-                        userState.user.latestBookmarkList?.let {
-                            emit(it)
-                        }
-                    }
+                    scope.launch(Dispatchers.IO) { userState.user.latestBookmarkList?.let { emit(it) } }
                 }
             }
         }
     }
 
     fun addPaymentRequestIfNew(paymentRequest: PaymentRequest) {
-        if (!this.transientPaymentRequests.value.contains(paymentRequest) &&
+        if (
+            !this.transientPaymentRequests.value.contains(paymentRequest) &&
             !this.transientPaymentRequestDismissals.contains(paymentRequest)
         ) {
             this.transientPaymentRequests.value = transientPaymentRequests.value + paymentRequest
@@ -422,7 +483,10 @@ class Account(
 
     var userProfileCache: User? = null
 
-    fun updateOptOutOptions(warnReports: Boolean, filterSpam: Boolean) {
+    fun updateOptOutOptions(
+        warnReports: Boolean,
+        filterSpam: Boolean,
+    ) {
         warnAboutPostsWithReports = warnReports
         filterSpamFromStrangers = filterSpam
         LocalCache.antiSpam.active = filterSpamFromStrangers
@@ -434,11 +498,12 @@ class Account(
     }
 
     fun userProfile(): User {
-        return userProfileCache ?: run {
-            val myUser: User = LocalCache.getOrCreateUser(keyPair.pubKey.toHexKey())
-            userProfileCache = myUser
-            myUser
-        }
+        return userProfileCache
+            ?: run {
+                val myUser: User = LocalCache.getOrCreateUser(keyPair.pubKey.toHexKey())
+                userProfileCache = myUser
+                myUser
+            }
     }
 
     fun isWriteable(): Boolean {
@@ -454,7 +519,7 @@ class Account(
             ContactListEvent.updateRelayList(
                 earlierVersion = contactList,
                 relayUse = relays,
-                signer = signer
+                signer = signer,
             ) {
                 Client.send(it)
                 LocalCache.justConsume(it, null)
@@ -467,7 +532,7 @@ class Account(
                 followCommunities = listOf(),
                 followEvents = DefaultChannels.toList(),
                 relayUse = relays,
-                signer = signer
+                signer = signer,
             ) {
                 // Keep this local to avoid erasing a good contact list.
                 // Client.send(it)
@@ -476,7 +541,11 @@ class Account(
         }
     }
 
-    suspend fun sendNewUserMetadata(toString: String, newName: String, identities: List<IdentityClaim>) {
+    suspend fun sendNewUserMetadata(
+        toString: String,
+        newName: String,
+        identities: List<IdentityClaim>,
+    ) {
         if (!isWriteable()) return
 
         MetadataEvent.create(toString, newName, identities, signer) {
@@ -487,7 +556,10 @@ class Account(
         return
     }
 
-    fun reactionTo(note: Note, reaction: String): List<Note> {
+    fun reactionTo(
+        note: Note,
+        reaction: String,
+    ): List<Note> {
         return note.reactedBy(userProfile(), reaction)
     }
 
@@ -499,11 +571,17 @@ class Account(
         return note.boostedBy(userProfile())
     }
 
-    fun hasReacted(note: Note, reaction: String): Boolean {
+    fun hasReacted(
+        note: Note,
+        reaction: String,
+    ): Boolean {
         return note.hasReacted(userProfile(), reaction)
     }
 
-    suspend fun reactTo(note: Note, reaction: String) {
+    suspend fun reactTo(
+        note: Note,
+        reaction: String,
+    ) {
         if (!isWriteable()) return
 
         if (hasReacted(note, reaction)) {
@@ -523,7 +601,7 @@ class Account(
                             emojiUrl = emojiUrl,
                             originalNote = it,
                             to = users,
-                            signer = signer
+                            signer = signer,
                         ) {
                             broadcastPrivately(it)
                         }
@@ -538,7 +616,7 @@ class Account(
                     content = reaction,
                     originalNote = it,
                     to = users,
-                    signer = signer
+                    signer = signer,
                 ) {
                     broadcastPrivately(it)
                 }
@@ -568,7 +646,14 @@ class Account(
         }
     }
 
-    fun createZapRequestFor(note: Note, pollOption: Int?, message: String = "", zapType: LnZapEvent.ZapType, toUser: User?, onReady: (LnZapRequestEvent) -> Unit) {
+    fun createZapRequestFor(
+        note: Note,
+        pollOption: Int?,
+        message: String = "",
+        zapType: LnZapEvent.ZapType,
+        toUser: User?,
+        onReady: (LnZapRequestEvent) -> Unit,
+    ) {
         if (!isWriteable()) return
 
         note.event?.let { event ->
@@ -581,7 +666,7 @@ class Account(
                 message,
                 zapType,
                 toUser?.pubkeyHex,
-                onReady = onReady
+                onReady = onReady,
             )
         }
     }
@@ -595,54 +680,70 @@ class Account(
     }
 
     fun getNIP47Signer(): NostrSigner {
-        return zapPaymentRequest?.secret?.hexToByteArray()?.let { NostrSignerInternal(KeyPair(it)) } ?: signer
+        return zapPaymentRequest?.secret?.hexToByteArray()?.let { NostrSignerInternal(KeyPair(it)) }
+            ?: signer
     }
 
-    fun decryptZapPaymentResponseEvent(zapResponseEvent: LnZapPaymentResponseEvent, onReady: (Response) -> Unit) {
+    fun decryptZapPaymentResponseEvent(
+        zapResponseEvent: LnZapPaymentResponseEvent,
+        onReady: (Response) -> Unit,
+    ) {
         val myNip47 = zapPaymentRequest ?: return
 
-        val signer = myNip47.secret?.hexToByteArray()?.let { NostrSignerInternal(KeyPair(it)) } ?: signer
+        val signer =
+            myNip47.secret?.hexToByteArray()?.let { NostrSignerInternal(KeyPair(it)) } ?: signer
 
         zapResponseEvent.response(signer, onReady)
     }
 
-    fun calculateIfNoteWasZappedByAccount(zappedNote: Note?, onWasZapped: () -> Unit) {
+    fun calculateIfNoteWasZappedByAccount(
+        zappedNote: Note?,
+        onWasZapped: () -> Unit,
+    ) {
         zappedNote?.isZappedBy(userProfile(), this, onWasZapped)
     }
 
-    fun calculateZappedAmount(zappedNote: Note?, onReady: (BigDecimal) -> Unit) {
+    fun calculateZappedAmount(
+        zappedNote: Note?,
+        onReady: (BigDecimal) -> Unit,
+    ) {
         zappedNote?.zappedAmountWithNWCPayments(getNIP47Signer(), onReady)
     }
 
-    fun sendZapPaymentRequestFor(bolt11: String, zappedNote: Note?, onResponse: (Response?) -> Unit) {
+    fun sendZapPaymentRequestFor(
+        bolt11: String,
+        zappedNote: Note?,
+        onResponse: (Response?) -> Unit,
+    ) {
         if (!isWriteable()) return
 
         zapPaymentRequest?.let { nip47 ->
-            val signer = nip47.secret?.hexToByteArray()?.let { NostrSignerInternal(KeyPair(it)) } ?: signer
+            val signer =
+                nip47.secret?.hexToByteArray()?.let { NostrSignerInternal(KeyPair(it)) } ?: signer
 
             LnZapPaymentRequestEvent.create(bolt11, nip47.pubKeyHex, signer) { event ->
-                val wcListener = NostrLnZapPaymentResponseDataSource(
-                    fromServiceHex = nip47.pubKeyHex,
-                    toUserHex = event.pubKey,
-                    replyingToHex = event.id,
-                    authSigner = signer
-                )
+                val wcListener =
+                    NostrLnZapPaymentResponseDataSource(
+                        fromServiceHex = nip47.pubKeyHex,
+                        toUserHex = event.pubKey,
+                        replyingToHex = event.id,
+                        authSigner = signer,
+                    )
                 wcListener.start()
 
-                LocalCache.consume(event, zappedNote) {
-                    it.response(signer) {
-                        onResponse(it)
-                    }
-                }
+                LocalCache.consume(event, zappedNote) { it.response(signer) { onResponse(it) } }
 
-                Client.send(event, nip47.relayUri, wcListener.feedTypes) {
-                    wcListener.destroy()
-                }
+                Client.send(event, nip47.relayUri, wcListener.feedTypes) { wcListener.destroy() }
             }
         }
     }
 
-    fun createZapRequestFor(userPubKeyHex: String, message: String = "", zapType: LnZapEvent.ZapType, onReady: (LnZapRequestEvent) -> Unit) {
+    fun createZapRequestFor(
+        userPubKeyHex: String,
+        message: String = "",
+        zapType: LnZapEvent.ZapType,
+        onReady: (LnZapRequestEvent) -> Unit,
+    ) {
         LnZapRequestEvent.create(
             userPubKeyHex,
             userProfile().latestContactList?.relays()?.keys?.ifEmpty { null }
@@ -650,11 +751,15 @@ class Account(
             signer,
             message,
             zapType,
-            onReady = onReady
+            onReady = onReady,
         )
     }
 
-    suspend fun report(note: Note, type: ReportEvent.ReportType, content: String = "") {
+    suspend fun report(
+        note: Note,
+        type: ReportEvent.ReportType,
+        content: String = "",
+    ) {
         if (!isWriteable()) return
 
         if (note.hasReacted(userProfile(), "⚠️")) {
@@ -677,7 +782,10 @@ class Account(
         }
     }
 
-    suspend fun report(user: User, type: ReportEvent.ReportType) {
+    suspend fun report(
+        user: User,
+        type: ReportEvent.ReportType,
+    ) {
         if (!isWriteable()) return
 
         if (user.hasReport(userProfile(), type)) {
@@ -698,9 +806,7 @@ class Account(
     suspend fun delete(notes: List<Note>) {
         if (!isWriteable()) return
 
-        val myNotes = notes.filter { it.author == userProfile() }.mapNotNull {
-            it.event?.id()
-        }
+        val myNotes = notes.filter { it.author == userProfile() }.mapNotNull { it.event?.id() }
 
         if (myNotes.isNotEmpty()) {
             DeletionEvent.create(myNotes, signer) {
@@ -710,7 +816,12 @@ class Account(
         }
     }
 
-    fun createHTTPAuthorization(url: String, method: String, body: ByteArray? = null, onReady: (HTTPAuthorizationEvent) -> Unit) {
+    fun createHTTPAuthorization(
+        url: String,
+        method: String,
+        body: ByteArray? = null,
+        onReady: (HTTPAuthorizationEvent) -> Unit,
+    ) {
         if (!isWriteable()) return
 
         HTTPAuthorizationEvent.create(url, method, body, signer, onReady = onReady)
@@ -742,9 +853,7 @@ class Account(
     fun broadcast(note: Note) {
         note.event?.let {
             if (it is WrappedEvent && it.host != null) {
-                it.host?.let { hostEvent ->
-                    Client.send(hostEvent)
-                }
+                it.host?.let { hostEvent -> Client.send(hostEvent) }
             } else {
                 Client.send(it)
             }
@@ -768,8 +877,11 @@ class Account(
                 followGeohashes = emptyList(),
                 followCommunities = emptyList(),
                 followEvents = DefaultChannels.toList(),
-                relayUse = Constants.defaultRelays.associate { it.url to ContactListEvent.ReadWrite(it.read, it.write) },
-                signer = signer
+                relayUse =
+                    Constants.defaultRelays.associate {
+                        it.url to ContactListEvent.ReadWrite(it.read, it.write)
+                    },
+                signer = signer,
             ) {
                 Client.send(it)
                 LocalCache.justConsume(it, null)
@@ -794,8 +906,11 @@ class Account(
                 followGeohashes = emptyList(),
                 followCommunities = emptyList(),
                 followEvents = DefaultChannels.toList().plus(channel.idHex),
-                relayUse = Constants.defaultRelays.associate { it.url to ContactListEvent.ReadWrite(it.read, it.write) },
-                signer = signer
+                relayUse =
+                    Constants.defaultRelays.associate {
+                        it.url to ContactListEvent.ReadWrite(it.read, it.write)
+                    },
+                signer = signer,
             ) {
                 Client.send(it)
                 LocalCache.justConsume(it, null)
@@ -814,7 +929,10 @@ class Account(
                 LocalCache.justConsume(it, null)
             }
         } else {
-            val relays = Constants.defaultRelays.associate { it.url to ContactListEvent.ReadWrite(it.read, it.write) }
+            val relays =
+                Constants.defaultRelays.associate {
+                    it.url to ContactListEvent.ReadWrite(it.read, it.write)
+                }
             ContactListEvent.createFromScratch(
                 followUsers = emptyList(),
                 followTags = emptyList(),
@@ -822,7 +940,7 @@ class Account(
                 followCommunities = listOf(community.address),
                 followEvents = DefaultChannels.toList(),
                 relayUse = relays,
-                signer = signer
+                signer = signer,
             ) {
                 Client.send(it)
                 LocalCache.justConsume(it, null)
@@ -839,7 +957,7 @@ class Account(
             ContactListEvent.followHashtag(
                 contactList,
                 tag,
-                signer
+                signer,
             ) {
                 Client.send(it)
                 LocalCache.justConsume(it, null)
@@ -851,8 +969,11 @@ class Account(
                 followGeohashes = emptyList(),
                 followCommunities = emptyList(),
                 followEvents = DefaultChannels.toList(),
-                relayUse = Constants.defaultRelays.associate { it.url to ContactListEvent.ReadWrite(it.read, it.write) },
-                signer = signer
+                relayUse =
+                    Constants.defaultRelays.associate {
+                        it.url to ContactListEvent.ReadWrite(it.read, it.write)
+                    },
+                signer = signer,
             ) {
                 Client.send(it)
                 LocalCache.justConsume(it, null)
@@ -870,7 +991,7 @@ class Account(
                 contactList,
                 geohash,
                 signer,
-                onReady = this::onNewEventCreated
+                onReady = this::onNewEventCreated,
             )
         } else {
             ContactListEvent.createFromScratch(
@@ -879,9 +1000,12 @@ class Account(
                 followGeohashes = listOf(geohash),
                 followCommunities = emptyList(),
                 followEvents = DefaultChannels.toList(),
-                relayUse = Constants.defaultRelays.associate { it.url to ContactListEvent.ReadWrite(it.read, it.write) },
+                relayUse =
+                    Constants.defaultRelays.associate {
+                        it.url to ContactListEvent.ReadWrite(it.read, it.write)
+                    },
                 signer = signer,
-                onReady = this::onNewEventCreated
+                onReady = this::onNewEventCreated,
             )
         }
     }
@@ -901,7 +1025,7 @@ class Account(
                 contactList,
                 user.pubkeyHex,
                 signer,
-                onReady = this::onNewEventCreated
+                onReady = this::onNewEventCreated,
             )
         }
     }
@@ -916,7 +1040,7 @@ class Account(
                 contactList,
                 tag,
                 signer,
-                onReady = this::onNewEventCreated
+                onReady = this::onNewEventCreated,
             )
         }
     }
@@ -931,7 +1055,7 @@ class Account(
                 contactList,
                 geohash,
                 signer,
-                onReady = this::onNewEventCreated
+                onReady = this::onNewEventCreated,
             )
         }
     }
@@ -946,7 +1070,7 @@ class Account(
                 contactList,
                 channel.idHex,
                 signer,
-                onReady = this::onNewEventCreated
+                onReady = this::onNewEventCreated,
             )
         }
     }
@@ -961,7 +1085,7 @@ class Account(
                 contactList,
                 community.address,
                 signer,
-                onReady = this::onNewEventCreated
+                onReady = this::onNewEventCreated,
             )
         }
     }
@@ -971,14 +1095,14 @@ class Account(
         headerInfo: FileHeader,
         alt: String?,
         sensitiveContent: Boolean,
-        onReady: (Pair<FileStorageEvent, FileStorageHeaderEvent>) -> Unit
+        onReady: (Pair<FileStorageEvent, FileStorageHeaderEvent>) -> Unit,
     ) {
         if (!isWriteable()) return
 
         FileStorageEvent.create(
             mimeType = headerInfo.mimeType ?: "",
             data = byteArray,
-            signer = signer
+            signer = signer,
         ) { data ->
             FileStorageHeaderEvent.create(
                 data,
@@ -989,16 +1113,20 @@ class Account(
                 blurhash = headerInfo.blurHash,
                 alt = alt,
                 sensitiveContent = sensitiveContent,
-                signer = signer
+                signer = signer,
             ) { signedEvent ->
                 onReady(
-                    Pair(data, signedEvent)
+                    Pair(data, signedEvent),
                 )
             }
         }
     }
 
-    fun consumeAndSendNip95(data: FileStorageEvent, signedEvent: FileStorageHeaderEvent, relayList: List<Relay>? = null): Note? {
+    fun consumeAndSendNip95(
+        data: FileStorageEvent,
+        signedEvent: FileStorageHeaderEvent,
+        relayList: List<Relay>? = null,
+    ): Note? {
         if (!isWriteable()) return null
 
         Client.send(data, relayList = relayList)
@@ -1010,25 +1138,34 @@ class Account(
         return LocalCache.notes[signedEvent.id]
     }
 
-    fun consumeNip95(data: FileStorageEvent, signedEvent: FileStorageHeaderEvent): Note? {
+    fun consumeNip95(
+        data: FileStorageEvent,
+        signedEvent: FileStorageHeaderEvent,
+    ): Note? {
         LocalCache.consume(data, null)
         LocalCache.consume(signedEvent, null)
 
         return LocalCache.notes[signedEvent.id]
     }
 
-    fun sendNip95(data: FileStorageEvent, signedEvent: FileStorageHeaderEvent, relayList: List<Relay>? = null) {
+    fun sendNip95(
+        data: FileStorageEvent,
+        signedEvent: FileStorageHeaderEvent,
+        relayList: List<Relay>? = null,
+    ) {
         Client.send(data, relayList = relayList)
         Client.send(signedEvent, relayList = relayList)
     }
 
-    fun sendHeader(signedEvent: FileHeaderEvent, relayList: List<Relay>? = null, onReady: (Note) -> Unit) {
+    fun sendHeader(
+        signedEvent: FileHeaderEvent,
+        relayList: List<Relay>? = null,
+        onReady: (Note) -> Unit,
+    ) {
         Client.send(signedEvent, relayList = relayList)
         LocalCache.consume(signedEvent, null)
 
-        LocalCache.notes[signedEvent.id]?.let {
-            onReady(it)
-        }
+        LocalCache.notes[signedEvent.id]?.let { onReady(it) }
     }
 
     fun createHeader(
@@ -1038,7 +1175,7 @@ class Account(
         alt: String?,
         sensitiveContent: Boolean,
         originalHash: String? = null,
-        onReady: (FileHeaderEvent) -> Unit
+        onReady: (FileHeaderEvent) -> Unit,
     ) {
         if (!isWriteable()) return
 
@@ -1053,7 +1190,7 @@ class Account(
             alt = alt,
             originalHash = originalHash,
             sensitiveContent = sensitiveContent,
-            signer = signer
+            signer = signer,
         ) { event ->
             onReady(event)
         }
@@ -1067,7 +1204,7 @@ class Account(
         sensitiveContent: Boolean,
         originalHash: String? = null,
         relayList: List<Relay>? = null,
-        onReady: (Note) -> Unit
+        onReady: (Note) -> Unit,
     ) {
         if (!isWriteable()) return
 
@@ -1082,7 +1219,7 @@ class Account(
             alt = alt,
             originalHash = originalHash,
             sensitiveContent = sensitiveContent,
-            signer = signer
+            signer = signer,
         ) { event ->
             sendHeader(event, relayList = relayList, onReady)
         }
@@ -1103,7 +1240,7 @@ class Account(
         zapRaiserAmount: Long? = null,
         relayList: List<Relay>? = null,
         geohash: String? = null,
-        nip94attachments: List<Event>? = null
+        nip94attachments: List<Event>? = null,
     ) {
         if (!isWriteable()) return
 
@@ -1130,16 +1267,12 @@ class Account(
             directMentions = directMentions,
             geohash = geohash,
             nip94attachments = nip94attachments,
-            signer = signer
+            signer = signer,
         ) {
             Client.send(it, relayList = relayList)
             LocalCache.justConsume(it, null)
 
-            replyTo?.forEach {
-                it.event?.let {
-                    Client.send(it, relayList = relayList)
-                }
-            }
+            replyTo?.forEach { it.event?.let { Client.send(it, relayList = relayList) } }
             addresses?.forEach {
                 LocalCache.getAddressableNoteIfExists(it.toTag())?.event?.let {
                     Client.send(it, relayList = relayList)
@@ -1161,7 +1294,7 @@ class Account(
         directMentions: Set<HexKey>,
         relayList: List<Relay>? = null,
         geohash: String? = null,
-        nip94attachments: List<Event>? = null
+        nip94attachments: List<Event>? = null,
     ) {
         if (!isWriteable()) return
 
@@ -1183,7 +1316,7 @@ class Account(
             directMentions = directMentions,
             geohash = geohash,
             nip94attachments = nip94attachments,
-            signer = signer
+            signer = signer,
         ) {
             Client.send(it, relayList = relayList)
             LocalCache.justConsume(it, null)
@@ -1194,11 +1327,7 @@ class Account(
                     Client.send(it, relayList = relayList)
                 }
             }
-            replyTo?.forEach {
-                it.event?.let {
-                    Client.send(it, relayList = relayList)
-                }
-            }
+            replyTo?.forEach { it.event?.let { Client.send(it, relayList = relayList) } }
             addresses?.forEach {
                 LocalCache.getAddressableNoteIfExists(it.toTag())?.event?.let {
                     Client.send(it, relayList = relayList)
@@ -1221,7 +1350,7 @@ class Account(
         zapRaiserAmount: Long? = null,
         relayList: List<Relay>? = null,
         geohash: String? = null,
-        nip94attachments: List<Event>? = null
+        nip94attachments: List<Event>? = null,
     ) {
         if (!isWriteable()) return
 
@@ -1244,17 +1373,13 @@ class Account(
             markAsSensitive = wantsToMarkAsSensitive,
             zapRaiserAmount = zapRaiserAmount,
             geohash = geohash,
-            nip94attachments = nip94attachments
+            nip94attachments = nip94attachments,
         ) {
             Client.send(it, relayList = relayList)
             LocalCache.justConsume(it, null)
 
             // Rebroadcast replies and tags to the current relay set
-            replyTo?.forEach {
-                it.event?.let {
-                    Client.send(it, relayList = relayList)
-                }
-            }
+            replyTo?.forEach { it.event?.let { Client.send(it, relayList = relayList) } }
             addresses?.forEach {
                 LocalCache.getAddressableNoteIfExists(it.toTag())?.event?.let {
                     Client.send(it, relayList = relayList)
@@ -1263,7 +1388,17 @@ class Account(
         }
     }
 
-    fun sendChannelMessage(message: String, toChannel: String, replyTo: List<Note>?, mentions: List<User>?, zapReceiver: List<ZapSplitSetup>? = null, wantsToMarkAsSensitive: Boolean, zapRaiserAmount: Long? = null, geohash: String? = null, nip94attachments: List<Event>? = null) {
+    fun sendChannelMessage(
+        message: String,
+        toChannel: String,
+        replyTo: List<Note>?,
+        mentions: List<User>?,
+        zapReceiver: List<ZapSplitSetup>? = null,
+        wantsToMarkAsSensitive: Boolean,
+        zapRaiserAmount: Long? = null,
+        geohash: String? = null,
+        nip94attachments: List<Event>? = null,
+    ) {
         if (!isWriteable()) return
 
         val repliesToHex = replyTo?.map { it.idHex }
@@ -1279,14 +1414,24 @@ class Account(
             zapRaiserAmount = zapRaiserAmount,
             geohash = geohash,
             nip94attachments = nip94attachments,
-            signer = signer
+            signer = signer,
         ) {
             Client.send(it)
             LocalCache.justConsume(it, null)
         }
     }
 
-    fun sendLiveMessage(message: String, toChannel: ATag, replyTo: List<Note>?, mentions: List<User>?, zapReceiver: List<ZapSplitSetup>? = null, wantsToMarkAsSensitive: Boolean, zapRaiserAmount: Long? = null, geohash: String? = null, nip94attachments: List<Event>? = null) {
+    fun sendLiveMessage(
+        message: String,
+        toChannel: ATag,
+        replyTo: List<Note>?,
+        mentions: List<User>?,
+        zapReceiver: List<ZapSplitSetup>? = null,
+        wantsToMarkAsSensitive: Boolean,
+        zapRaiserAmount: Long? = null,
+        geohash: String? = null,
+        nip94attachments: List<Event>? = null,
+    ) {
         if (!isWriteable()) return
 
         // val repliesToHex = listOfNotNull(replyingTo?.idHex).ifEmpty { null }
@@ -1303,18 +1448,45 @@ class Account(
             zapRaiserAmount = zapRaiserAmount,
             geohash = geohash,
             nip94attachments = nip94attachments,
-            signer = signer
+            signer = signer,
         ) {
             Client.send(it)
             LocalCache.justConsume(it, null)
         }
     }
 
-    fun sendPrivateMessage(message: String, toUser: User, replyingTo: Note? = null, mentions: List<User>?, zapReceiver: List<ZapSplitSetup>? = null, wantsToMarkAsSensitive: Boolean, zapRaiserAmount: Long? = null, geohash: String? = null) {
-        sendPrivateMessage(message, toUser.pubkeyHex, replyingTo, mentions, zapReceiver, wantsToMarkAsSensitive, zapRaiserAmount, geohash)
+    fun sendPrivateMessage(
+        message: String,
+        toUser: User,
+        replyingTo: Note? = null,
+        mentions: List<User>?,
+        zapReceiver: List<ZapSplitSetup>? = null,
+        wantsToMarkAsSensitive: Boolean,
+        zapRaiserAmount: Long? = null,
+        geohash: String? = null,
+    ) {
+        sendPrivateMessage(
+            message,
+            toUser.pubkeyHex,
+            replyingTo,
+            mentions,
+            zapReceiver,
+            wantsToMarkAsSensitive,
+            zapRaiserAmount,
+            geohash,
+        )
     }
 
-    fun sendPrivateMessage(message: String, toUser: HexKey, replyingTo: Note? = null, mentions: List<User>?, zapReceiver: List<ZapSplitSetup>? = null, wantsToMarkAsSensitive: Boolean, zapRaiserAmount: Long? = null, geohash: String? = null) {
+    fun sendPrivateMessage(
+        message: String,
+        toUser: HexKey,
+        replyingTo: Note? = null,
+        mentions: List<User>?,
+        zapReceiver: List<ZapSplitSetup>? = null,
+        wantsToMarkAsSensitive: Boolean,
+        zapRaiserAmount: Long? = null,
+        geohash: String? = null,
+    ) {
         if (!isWriteable()) return
 
         val repliesToHex = listOfNotNull(replyingTo?.idHex).ifEmpty { null }
@@ -1331,7 +1503,7 @@ class Account(
             zapRaiserAmount = zapRaiserAmount,
             geohash = geohash,
             signer = signer,
-            advertiseNip18 = false
+            advertiseNip18 = false,
         ) {
             Client.send(it)
             LocalCache.consume(it, null)
@@ -1347,7 +1519,7 @@ class Account(
         zapReceiver: List<ZapSplitSetup>? = null,
         wantsToMarkAsSensitive: Boolean,
         zapRaiserAmount: Long? = null,
-        geohash: String? = null
+        geohash: String? = null,
     ) {
         if (!isWriteable()) return
 
@@ -1364,23 +1536,19 @@ class Account(
             markAsSensitive = wantsToMarkAsSensitive,
             zapRaiserAmount = zapRaiserAmount,
             geohash = geohash,
-            signer = signer
+            signer = signer,
         ) {
             broadcastPrivately(it)
         }
     }
 
     fun broadcastPrivately(signedEvents: NIP24Factory.Result) {
-        val mine = signedEvents.wraps.filter {
-            (it.recipientPubKey() == signer.pubKey)
-        }
+        val mine = signedEvents.wraps.filter { (it.recipientPubKey() == signer.pubKey) }
 
         mine.forEach { giftWrap ->
             giftWrap.cachedGift(signer) { gift ->
                 if (gift is SealedGossipEvent) {
-                    gift.cachedGossip(signer) { gossip ->
-                        LocalCache.justConsume(gossip, null)
-                    }
+                    gift.cachedGossip(signer) { gossip -> LocalCache.justConsume(gossip, null) }
                 } else {
                     LocalCache.justConsume(gift, null)
                 }
@@ -1402,25 +1570,30 @@ class Account(
         }
     }
 
-    fun sendCreateNewChannel(name: String, about: String, picture: String) {
+    fun sendCreateNewChannel(
+        name: String,
+        about: String,
+        picture: String,
+    ) {
         if (!isWriteable()) return
 
         ChannelCreateEvent.create(
             name = name,
             about = about,
             picture = picture,
-            signer = signer
+            signer = signer,
         ) {
             Client.send(it)
             LocalCache.justConsume(it, null)
 
-            LocalCache.getChannelIfExists(it.id)?.let {
-                follow(it)
-            }
+            LocalCache.getChannelIfExists(it.id)?.let { follow(it) }
         }
     }
 
-    fun updateStatus(oldStatus: AddressableNote, newStatus: String) {
+    fun updateStatus(
+        oldStatus: AddressableNote,
+        newStatus: String,
+    ) {
         if (!isWriteable()) return
         val oldEvent = oldStatus.event as? StatusEvent ?: return
 
@@ -1454,7 +1627,10 @@ class Account(
         }
     }
 
-    fun removeEmojiPack(usersEmojiList: Note, emojiList: Note) {
+    fun removeEmojiPack(
+        usersEmojiList: Note,
+        emojiList: Note,
+    ) {
         if (!isWriteable()) return
 
         val noteEvent = usersEmojiList.event
@@ -1464,14 +1640,17 @@ class Account(
 
         EmojiPackSelectionEvent.create(
             noteEvent.taggedAddresses().filter { it != emojiListEvent.address() },
-            signer
+            signer,
         ) {
             Client.send(it)
             LocalCache.justConsume(it, null)
         }
     }
 
-    fun addEmojiPack(usersEmojiList: Note, emojiList: Note) {
+    fun addEmojiPack(
+        usersEmojiList: Note,
+        emojiList: Note,
+    ) {
         if (!isWriteable()) return
         val emojiListEvent = emojiList.event
         if (emojiListEvent !is EmojiPackEvent) return
@@ -1479,7 +1658,7 @@ class Account(
         if (usersEmojiList.event == null) {
             EmojiPackSelectionEvent.create(
                 listOf(emojiListEvent.address()),
-                signer
+                signer,
             ) {
                 Client.send(it)
                 LocalCache.justConsume(it, null)
@@ -1494,7 +1673,7 @@ class Account(
 
             EmojiPackSelectionEvent.create(
                 noteEvent.taggedAddresses().plus(emojiListEvent.address()),
-                signer
+                signer,
             ) {
                 Client.send(it)
                 LocalCache.justConsume(it, null)
@@ -1502,7 +1681,10 @@ class Account(
         }
     }
 
-    fun addBookmark(note: Note, isPrivate: Boolean) {
+    fun addBookmark(
+        note: Note,
+        isPrivate: Boolean,
+    ) {
         if (!isWriteable()) return
 
         if (note is AddressableNote) {
@@ -1510,7 +1692,7 @@ class Account(
                 userProfile().latestBookmarkList,
                 note.address,
                 isPrivate,
-                signer
+                signer,
             ) {
                 Client.send(it)
                 LocalCache.consume(it)
@@ -1520,7 +1702,7 @@ class Account(
                 userProfile().latestBookmarkList,
                 note.idHex,
                 isPrivate,
-                signer
+                signer,
             ) {
                 Client.send(it)
                 LocalCache.consume(it)
@@ -1528,7 +1710,10 @@ class Account(
         }
     }
 
-    fun removeBookmark(note: Note, isPrivate: Boolean) {
+    fun removeBookmark(
+        note: Note,
+        isPrivate: Boolean,
+    ) {
         if (!isWriteable()) return
 
         val bookmarks = userProfile().latestBookmarkList ?: return
@@ -1538,7 +1723,7 @@ class Account(
                 bookmarks,
                 note.address,
                 isPrivate,
-                signer
+                signer,
             ) {
                 Client.send(it)
                 LocalCache.consume(it)
@@ -1548,7 +1733,7 @@ class Account(
                 bookmarks,
                 note.idHex,
                 isPrivate,
-                signer
+                signer,
             ) {
                 Client.send(it)
                 LocalCache.consume(it)
@@ -1556,17 +1741,28 @@ class Account(
         }
     }
 
-    fun createAuthEvent(relay: Relay, challenge: String, onReady: (RelayAuthEvent) -> Unit) {
+    fun createAuthEvent(
+        relay: Relay,
+        challenge: String,
+        onReady: (RelayAuthEvent) -> Unit,
+    ) {
         return createAuthEvent(relay.url, challenge, onReady = onReady)
     }
 
-    fun createAuthEvent(relayUrl: String, challenge: String, onReady: (RelayAuthEvent) -> Unit) {
+    fun createAuthEvent(
+        relayUrl: String,
+        challenge: String,
+        onReady: (RelayAuthEvent) -> Unit,
+    ) {
         if (!isWriteable()) return
 
         RelayAuthEvent.create(relayUrl, challenge, signer, onReady = onReady)
     }
 
-    fun isInPrivateBookmarks(note: Note, onReady: (Boolean) -> Unit) {
+    fun isInPrivateBookmarks(
+        note: Note,
+        onReady: (Boolean) -> Unit,
+    ) {
         if (!isWriteable()) return
 
         if (note is AddressableNote) {
@@ -1591,32 +1787,35 @@ class Account(
     }
 
     fun getBlockListNote(): AddressableNote {
-        val aTag = ATag(
-            PeopleListEvent.kind,
-            userProfile().pubkeyHex,
-            PeopleListEvent.blockList,
-            null
-        )
+        val aTag =
+            ATag(
+                PeopleListEvent.KIND,
+                userProfile().pubkeyHex,
+                PeopleListEvent.BLOCK_LIST_D_TAG,
+                null,
+            )
         return LocalCache.getOrCreateAddressableNote(aTag)
     }
 
     fun getMuteListNote(): AddressableNote {
-        val aTag = ATag(
-            MuteListEvent.kind,
-            userProfile().pubkeyHex,
-            "",
-            null
-        )
+        val aTag =
+            ATag(
+                MuteListEvent.KIND,
+                userProfile().pubkeyHex,
+                "",
+                null,
+            )
         return LocalCache.getOrCreateAddressableNote(aTag)
     }
 
     fun getFileServersNote(): AddressableNote {
-        val aTag = ATag(
-            FileServersEvent.kind,
-            userProfile().pubkeyHex,
-            "",
-            null
-        )
+        val aTag =
+            ATag(
+                FileServersEvent.KIND,
+                userProfile().pubkeyHex,
+                "",
+                null,
+            )
         return LocalCache.getOrCreateAddressableNote(aTag)
     }
 
@@ -1640,7 +1839,7 @@ class Account(
                 earlierVersion = muteList,
                 word = word,
                 isPrivate = true,
-                signer = signer
+                signer = signer,
             ) {
                 Client.send(it)
                 LocalCache.consume(it, null)
@@ -1649,7 +1848,7 @@ class Account(
             MuteListEvent.createListWithWord(
                 word = word,
                 isPrivate = true,
-                signer = signer
+                signer = signer,
             ) {
                 Client.send(it)
                 LocalCache.consume(it, null)
@@ -1665,7 +1864,7 @@ class Account(
                 earlierVersion = blockList,
                 word = word,
                 isPrivate = true,
-                signer = signer
+                signer = signer,
             ) {
                 Client.send(it)
                 LocalCache.consume(it, null)
@@ -1679,7 +1878,7 @@ class Account(
                 earlierVersion = muteList,
                 word = word,
                 isPrivate = true,
-                signer = signer
+                signer = signer,
             ) {
                 Client.send(it)
                 LocalCache.consume(it, null)
@@ -1695,7 +1894,7 @@ class Account(
                 earlierVersion = muteList,
                 pubKeyHex = pubkeyHex,
                 isPrivate = true,
-                signer = signer
+                signer = signer,
             ) {
                 Client.send(it)
                 LocalCache.consume(it, null)
@@ -1704,7 +1903,7 @@ class Account(
             MuteListEvent.createListWithUser(
                 pubKeyHex = pubkeyHex,
                 isPrivate = true,
-                signer = signer
+                signer = signer,
             ) {
                 Client.send(it)
                 LocalCache.consume(it, null)
@@ -1720,7 +1919,7 @@ class Account(
                 earlierVersion = blockList,
                 pubKeyHex = pubkeyHex,
                 isPrivate = true,
-                signer = signer
+                signer = signer,
             ) {
                 Client.send(it)
                 LocalCache.consume(it, null)
@@ -1734,7 +1933,7 @@ class Account(
                 earlierVersion = muteList,
                 pubKeyHex = pubkeyHex,
                 isPrivate = true,
-                signer = signer
+                signer = signer,
             ) {
                 Client.send(it)
                 LocalCache.consume(it, null)
@@ -1805,7 +2004,12 @@ class Account(
         return contactList?.taggedEvents()?.toSet() ?: DefaultChannels
     }
 
-    fun sendChangeChannel(name: String, about: String, picture: String, channel: Channel) {
+    fun sendChangeChannel(
+        name: String,
+        about: String,
+        picture: String,
+        channel: Channel,
+    ) {
         if (!isWriteable()) return
 
         ChannelMetadataEvent.create(
@@ -1813,7 +2017,7 @@ class Account(
             about,
             picture,
             originalChannelIdHex = channel.idHex,
-            signer = signer
+            signer = signer,
         ) {
             Client.send(it)
             LocalCache.justConsume(it, null)
@@ -1822,13 +2026,19 @@ class Account(
         }
     }
 
-    fun unwrap(event: GiftWrapEvent, onReady: (Event) -> Unit) {
+    fun unwrap(
+        event: GiftWrapEvent,
+        onReady: (Event) -> Unit,
+    ) {
         if (!isWriteable()) return
 
         return event.cachedGift(signer, onReady)
     }
 
-    fun unseal(event: SealedGossipEvent, onReady: (Event) -> Unit) {
+    fun unseal(
+        event: SealedGossipEvent,
+        onReady: (Event) -> Unit,
+    ) {
         if (!isWriteable()) return
 
         return event.cachedGossip(signer, onReady)
@@ -1845,29 +2055,29 @@ class Account(
         }
     }
 
-    fun decryptContent(note: Note, onReady: (String) -> Unit) {
+    fun decryptContent(
+        note: Note,
+        onReady: (String) -> Unit,
+    ) {
         val event = note.event
         if (event is PrivateDmEvent && isWriteable()) {
             event.plainContent(signer, onReady)
         } else if (event is LnZapRequestEvent) {
-            decryptZapContentAuthor(note) {
-                onReady(it.content)
-            }
+            decryptZapContentAuthor(note) { onReady(it.content) }
         } else {
-            event?.content()?.let {
-                onReady(it)
-            }
+            event?.content()?.let { onReady(it) }
         }
     }
 
-    fun decryptZapContentAuthor(note: Note, onReady: (Event) -> Unit) {
+    fun decryptZapContentAuthor(
+        note: Note,
+        onReady: (Event) -> Unit,
+    ) {
         val event = note.event
         if (event is LnZapRequestEvent) {
             if (event.isPrivateZap()) {
                 if (isWriteable()) {
-                    event.decryptPrivateZap(signer) {
-                        onReady(it)
-                    }
+                    event.decryptPrivateZap(signer) { onReady(it) }
                 }
             } else {
                 onReady(event)
@@ -1889,12 +2099,19 @@ class Account(
         saveable.invalidateData()
     }
 
-    fun prefer(source: String, target: String, preference: String) {
+    fun prefer(
+        source: String,
+        target: String,
+        preference: String,
+    ) {
         languagePreferences = languagePreferences + Pair("$source,$target", preference)
         saveable.invalidateData()
     }
 
-    fun preferenceBetween(source: String, target: String): String? {
+    fun preferenceBetween(
+        source: String,
+        target: String,
+    ): String? {
         return languagePreferences.get("$source,$target")
     }
 
@@ -1910,40 +2127,48 @@ class Account(
 
     // Takes a User's relay list and adds the types of feeds they are active for.
     fun activeRelays(): Array<Relay>? {
-        var usersRelayList = userProfile().latestContactList?.relays()?.map {
-            val localFeedTypes = localRelays.firstOrNull() { localRelay -> localRelay.url == it.key }?.feedTypes
-                ?: Constants.defaultRelays.filter { defaultRelay -> defaultRelay.url == it.key }.firstOrNull()?.feedTypes
-                ?: FeedType.values().toSet()
+        var usersRelayList =
+            userProfile().latestContactList?.relays()?.map {
+                val localFeedTypes =
+                    localRelays.firstOrNull { localRelay -> localRelay.url == it.key }?.feedTypes
+                        ?: Constants.defaultRelays
+                            .filter { defaultRelay -> defaultRelay.url == it.key }
+                            .firstOrNull()
+                            ?.feedTypes
+                        ?: FeedType.values().toSet()
 
-            Relay(it.key, it.value.read, it.value.write, localFeedTypes)
-        } ?: return null
+                Relay(it.key, it.value.read, it.value.write, localFeedTypes)
+            }
+                ?: return null
 
         // Ugly, but forces nostr.band as the only search-supporting relay today.
         // TODO: Remove when search becomes more available.
-        val searchRelays = usersRelayList.filter { it.url.removeSuffix("/") in Constants.forcedRelaysForSearchSet }
+        val searchRelays =
+            usersRelayList.filter { it.url.removeSuffix("/") in Constants.forcedRelaysForSearchSet }
         val hasSearchRelay = usersRelayList.any { it.activeTypes.contains(FeedType.SEARCH) }
         if (!hasSearchRelay && searchRelays.isEmpty()) {
-            usersRelayList = usersRelayList + Constants.forcedRelayForSearch.map {
-                Relay(
-                    it.url,
-                    it.read,
-                    it.write,
-                    it.feedTypes
-                )
-            }
+            usersRelayList =
+                usersRelayList +
+                Constants.forcedRelayForSearch.map {
+                    Relay(
+                        it.url,
+                        it.read,
+                        it.write,
+                        it.feedTypes,
+                    )
+                }
         }
 
         return usersRelayList.toTypedArray()
     }
 
     fun convertLocalRelays(): Array<Relay> {
-        return localRelays.map {
-            Relay(it.url, it.read, it.write, it.feedTypes)
-        }.toTypedArray()
+        return localRelays.map { Relay(it.url, it.read, it.write, it.feedTypes) }.toTypedArray()
     }
 
     fun activeGlobalRelays(): Array<String> {
-        return (activeRelays() ?: convertLocalRelays()).filter { it.activeTypes.contains(FeedType.GLOBAL) }
+        return (activeRelays() ?: convertLocalRelays())
+            .filter { it.activeTypes.contains(FeedType.GLOBAL) }
             .map { it.url }
             .toTypedArray()
     }
@@ -1959,7 +2184,8 @@ class Account(
     fun isHidden(user: User) = isHidden(user.pubkeyHex)
 
     fun isHidden(userHex: String): Boolean {
-        return flowHiddenUsers.value.hiddenUsers.contains(userHex) || flowHiddenUsers.value.spammers.contains(userHex)
+        return flowHiddenUsers.value.hiddenUsers.contains(userHex) ||
+            flowHiddenUsers.value.spammers.contains(userHex)
     }
 
     fun followingKeySet(): Set<HexKey> {
@@ -2009,31 +2235,37 @@ class Account(
             isAcceptableDirect(note) &&
             (
                 (note.event !is RepostEvent && note.event !is GenericRepostEvent) ||
-                    (note.replyTo?.firstOrNull { isAcceptableDirect(it) } != null)
-                ) // is not a reaction about a blocked post
+                    (
+                        note.replyTo?.firstOrNull { isAcceptableDirect(it) } !=
+                            null
+                    )
+            ) // is not a reaction about a blocked post
     }
 
     fun getRelevantReports(note: Note): Set<Note> {
         val followsPlusMe = userProfile().latestContactList?.verifiedFollowKeySetAndMe ?: emptySet()
 
-        val innerReports = if (note.event is RepostEvent || note.event is GenericRepostEvent) {
-            note.replyTo?.map { getRelevantReports(it) }?.flatten() ?: emptyList()
-        } else {
-            emptyList()
-        }
+        val innerReports =
+            if (note.event is RepostEvent || note.event is GenericRepostEvent) {
+                note.replyTo?.map { getRelevantReports(it) }?.flatten() ?: emptyList()
+            } else {
+                emptyList()
+            }
 
         return (
             note.reportsBy(followsPlusMe) +
-                (
-                    note.author?.reportsBy(followsPlusMe) ?: emptyList()
-                    ) + innerReports
-            ).toSet()
+                (note.author?.reportsBy(followsPlusMe) ?: emptyList()) +
+                innerReports
+        )
+            .toSet()
     }
 
     fun saveRelayList(value: List<RelaySetupInfo>) {
         try {
             localRelays = value.toSet()
-            return sendNewRelayList(value.associate { it.url to ContactListEvent.ReadWrite(it.read, it.write) })
+            return sendNewRelayList(
+                value.associate { it.url to ContactListEvent.ReadWrite(it.read, it.write) },
+            )
         } finally {
             saveable.invalidateData()
         }
@@ -2060,7 +2292,10 @@ class Account(
         live.invalidateData()
     }
 
-    fun markAsRead(route: String, timestampInSecs: Long): Boolean {
+    fun markAsRead(
+        route: String,
+        timestampInSecs: Long,
+    ): Boolean {
         val lastTime = lastReadPerRoute[route]
         return if (lastTime == null || timestampInSecs > lastTime) {
             lastReadPerRoute = lastReadPerRoute + Pair(route, timestampInSecs)
@@ -2075,28 +2310,27 @@ class Account(
         return lastReadPerRoute[route] ?: 0
     }
 
-    suspend fun registerObservers() = withContext(Dispatchers.Main) {
-        // saves contact list for the next time.
-        userProfile().live().follows.observeForever {
-            GlobalScope.launch(Dispatchers.IO) {
-                updateContactListTo(userProfile().latestContactList)
+    suspend fun registerObservers() =
+        withContext(Dispatchers.Main) {
+            // saves contact list for the next time.
+            userProfile().live().follows.observeForever {
+                GlobalScope.launch(Dispatchers.IO) { updateContactListTo(userProfile().latestContactList) }
             }
-        }
 
-        // imports transient blocks due to spam.
-        LocalCache.antiSpam.liveSpam.observeForever {
-            GlobalScope.launch(Dispatchers.IO) {
-                it.cache.spamMessages.snapshot().values.forEach {
-                    if (it.pubkeyHex !in transientHiddenUsers && it.duplicatedMessages.size >= 5) {
-                        if (it.pubkeyHex != userProfile().pubkeyHex && it.pubkeyHex !in followingKeySet()) {
-                            transientHiddenUsers = (transientHiddenUsers + it.pubkeyHex).toImmutableSet()
-                            live.invalidateData()
+            // imports transient blocks due to spam.
+            LocalCache.antiSpam.liveSpam.observeForever {
+                GlobalScope.launch(Dispatchers.IO) {
+                    it.cache.spamMessages.snapshot().values.forEach {
+                        if (it.pubkeyHex !in transientHiddenUsers && it.duplicatedMessages.size >= 5) {
+                            if (it.pubkeyHex != userProfile().pubkeyHex && it.pubkeyHex !in followingKeySet()) {
+                                transientHiddenUsers = (transientHiddenUsers + it.pubkeyHex).toImmutableSet()
+                                live.invalidateData()
+                            }
                         }
                     }
                 }
             }
         }
-    }
 
     init {
         Log.d("Init", "Account")
@@ -2104,20 +2338,19 @@ class Account(
             println("Loading saved contacts ${it.toJson()}")
 
             if (userProfile().latestContactList == null) {
-                GlobalScope.launch(Dispatchers.IO) {
-                    LocalCache.consume(it)
-                }
+                GlobalScope.launch(Dispatchers.IO) { LocalCache.consume(it) }
             }
         }
     }
 }
 
-class AccountLiveData(private val account: Account) : LiveData<AccountState>(AccountState(account)) {
+class AccountLiveData(private val account: Account) :
+    LiveData<AccountState>(AccountState(account)) {
     // Refreshes observers in batches.
     private val bundler = BundledUpdate(300, Dispatchers.Default)
 
     fun invalidateData() {
-        bundler.invalidate() {
+        bundler.invalidate {
             if (hasActiveObservers()) {
                 refresh()
             }
@@ -2129,5 +2362,4 @@ class AccountLiveData(private val account: Account) : LiveData<AccountState>(Acc
     }
 }
 
-@Immutable
-class AccountState(val account: Account)
+@Immutable class AccountState(val account: Account)

@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.service
 
 import android.util.Log
@@ -14,7 +34,7 @@ object Nip96MediaServers {
             ServerName("Nostrage", "https://nostrage.com"),
             ServerName("Sove", "https://sove.rent"),
             ServerName("Sovbit", "https://files.sovbit.host"),
-            ServerName("Void.cat", "https://void.cat")
+            ServerName("Void.cat", "https://void.cat"),
         )
 
     data class ServerName(val name: String, val baseUrl: String)
@@ -39,7 +59,7 @@ class Nip96Retriever {
         @JsonProperty("supported_nips") val supportedNips: ArrayList<Int> = arrayListOf(),
         @JsonProperty("tos_url") val tosUrl: String? = null,
         @JsonProperty("content_types") val contentTypes: ArrayList<MimeType> = arrayListOf(),
-        @JsonProperty("plans") val plans: Map<PlanName, Plan> = mapOf()
+        @JsonProperty("plans") val plans: Map<PlanName, Plan> = mapOf(),
     )
 
     data class Plan(
@@ -48,45 +68,46 @@ class Nip96Retriever {
         @JsonProperty("url") val url: String? = null,
         @JsonProperty("max_byte_size") val maxByteSize: Long? = null,
         @JsonProperty("file_expiration") val fileExpiration: ArrayList<Int> = arrayListOf(),
-        @JsonProperty("media_transformations") val mediaTransformations: Map<MimeType, Array<String>> = emptyMap()
+        @JsonProperty("media_transformations")
+        val mediaTransformations: Map<MimeType, Array<String>> = emptyMap(),
     )
 
     fun parse(body: String): ServerInfo {
-        val mapper = jacksonObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        val mapper =
+            jacksonObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
         return mapper.readValue(body, ServerInfo::class.java)
     }
 
-    suspend fun loadInfo(
-        baseUrl: String
-    ): ServerInfo {
+    suspend fun loadInfo(baseUrl: String): ServerInfo {
         checkNotInMainThread()
 
-        val request: Request = Request
-            .Builder()
-            .header("Accept", "application/nostr+json")
-            .url(baseUrl.removeSuffix("/") + "/.well-known/nostr/nip96.json")
-            .build()
+        val request: Request =
+            Request.Builder()
+                .header("Accept", "application/nostr+json")
+                .url(baseUrl.removeSuffix("/") + "/.well-known/nostr/nip96.json")
+                .build()
 
-        HttpClient.getHttpClient()
-            .newCall(request)
-            .execute().use { response ->
-                checkNotInMainThread()
-                response.use {
-                    val body = it.body.string()
-                    try {
-                        if (it.isSuccessful) {
-                            return parse(body)
-                        } else {
-                            throw RuntimeException("Resulting Message from $baseUrl is an error: ${response.code} ${response.message}")
-                        }
-                    } catch (e: Exception) {
-                        Log.e("RelayInfoFail", "Resulting Message from $baseUrl in not parseable: $body", e)
-                        throw e
+        HttpClient.getHttpClient().newCall(request).execute().use { response ->
+            checkNotInMainThread()
+            response.use {
+                val body = it.body.string()
+                try {
+                    if (it.isSuccessful) {
+                        return parse(body)
+                    } else {
+                        throw RuntimeException(
+                            "Resulting Message from $baseUrl is an error: ${response.code} ${response.message}",
+                        )
                     }
+                } catch (e: Exception) {
+                    Log.e("RelayInfoFail", "Resulting Message from $baseUrl in not parseable: $body", e)
+                    throw e
                 }
             }
+        }
     }
 }
 
 typealias PlanName = String
+
 typealias MimeType = String

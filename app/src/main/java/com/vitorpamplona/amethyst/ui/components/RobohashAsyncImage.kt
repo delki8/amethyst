@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.components
 
 import android.content.Context
@@ -38,20 +58,19 @@ fun RobohashAsyncImage(
     robot: String,
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
-    transform: (AsyncImagePainter.State) -> AsyncImagePainter.State = AsyncImagePainter.DefaultTransform,
+    transform: (AsyncImagePainter.State) -> AsyncImagePainter.State =
+        AsyncImagePainter.DefaultTransform,
     onState: ((AsyncImagePainter.State) -> Unit)? = null,
     alignment: Alignment = Alignment.Center,
     contentScale: ContentScale = ContentScale.Fit,
     alpha: Float = DefaultAlpha,
     colorFilter: ColorFilter? = null,
-    filterQuality: FilterQuality = DrawScope.DefaultFilterQuality
+    filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
 ) {
     val context = LocalContext.current
     val isLightTheme = MaterialTheme.colorScheme.isLight
 
-    val imageRequest = remember(robot) {
-        RobohashImageRequest.build(context, robot, isLightTheme)
-    }
+    val imageRequest = remember(robot) { RobohashImageRequest.build(context, robot, isLightTheme) }
 
     AsyncImage(
         model = imageRequest,
@@ -63,7 +82,7 @@ fun RobohashAsyncImage(
         contentScale = contentScale,
         alpha = alpha,
         colorFilter = colorFilter,
-        filterQuality = filterQuality
+        filterQuality = filterQuality,
     )
 }
 
@@ -78,25 +97,23 @@ fun RobohashFallbackAsyncImage(
     alpha: Float = DefaultAlpha,
     colorFilter: ColorFilter? = null,
     filterQuality: FilterQuality = DrawScope.DefaultFilterQuality,
-    loadProfilePicture: Boolean
+    loadProfilePicture: Boolean,
 ) {
     val context = LocalContext.current
     val isLightTheme = MaterialTheme.colorScheme.isLight
-    val painter = rememberAsyncImagePainter(
-        model = RobohashImageRequest.build(context, robot, isLightTheme)
-    )
+    val painter =
+        rememberAsyncImagePainter(
+            model = RobohashImageRequest.build(context, robot, isLightTheme),
+        )
 
     if (model != null && loadProfilePicture) {
-        val isBase64 by remember {
-            derivedStateOf {
-                model.startsWith("data:image/jpeg;base64,")
-            }
-        }
+        val isBase64 by remember { derivedStateOf { model.startsWith("data:image/jpeg;base64,") } }
 
         if (isBase64) {
-            val base64Painter = rememberAsyncImagePainter(
-                model = Base64Requester.imageRequest(context, model)
-            )
+            val base64Painter =
+                rememberAsyncImagePainter(
+                    model = Base64Requester.imageRequest(context, model),
+                )
 
             Image(
                 painter = base64Painter,
@@ -104,7 +121,7 @@ fun RobohashFallbackAsyncImage(
                 modifier = modifier,
                 alignment = alignment,
                 contentScale = contentScale,
-                colorFilter = colorFilter
+                colorFilter = colorFilter,
             )
         } else {
             AsyncImage(
@@ -118,7 +135,7 @@ fun RobohashFallbackAsyncImage(
                 contentScale = contentScale,
                 alpha = alpha,
                 colorFilter = colorFilter,
-                filterQuality = filterQuality
+                filterQuality = filterQuality,
             )
         }
     } else {
@@ -128,27 +145,25 @@ fun RobohashFallbackAsyncImage(
             modifier = modifier,
             alignment = alignment,
             contentScale = contentScale,
-            colorFilter = colorFilter
+            colorFilter = colorFilter,
         )
     }
 }
 
 object Base64Requester {
-    fun imageRequest(context: Context, message: String): ImageRequest {
-        return ImageRequest
-            .Builder(context)
-            .data(message)
-            .fetcherFactory(Base64Fetcher.Factory)
-            .build()
+    fun imageRequest(
+        context: Context,
+        message: String,
+    ): ImageRequest {
+        return ImageRequest.Builder(context).data(message).fetcherFactory(Base64Fetcher.Factory).build()
     }
 }
 
 @Stable
 class Base64Fetcher(
     private val options: Options,
-    private val data: Uri
+    private val data: Uri,
 ) : Fetcher {
-
     override suspend fun fetch(): FetchResult {
         checkNotInMainThread()
 
@@ -164,12 +179,16 @@ class Base64Fetcher(
         return DrawableResult(
             drawable = bitmap.toDrawable(options.context.resources),
             isSampled = false,
-            dataSource = DataSource.MEMORY
+            dataSource = DataSource.MEMORY,
         )
     }
 
     object Factory : Fetcher.Factory<Uri> {
-        override fun create(data: Uri, options: Options, imageLoader: ImageLoader): Fetcher {
+        override fun create(
+            data: Uri,
+            options: Options,
+            imageLoader: ImageLoader,
+        ): Fetcher {
             return Base64Fetcher(options, data)
         }
     }

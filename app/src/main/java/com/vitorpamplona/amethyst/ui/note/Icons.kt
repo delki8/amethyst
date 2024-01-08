@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.note
 
 import androidx.compose.foundation.layout.size
@@ -44,7 +64,7 @@ fun AmethystIcon(iconSize: Dp) {
         painter = painterResource(R.drawable.amethyst),
         null,
         modifier = Modifier.size(iconSize),
-        tint = Color.Unspecified
+        tint = Color.Unspecified,
     )
 }
 
@@ -54,7 +74,7 @@ fun FollowingIcon(iconSize: Dp) {
         painter = painterResource(R.drawable.following),
         contentDescription = stringResource(id = R.string.following),
         modifier = remember(iconSize) { Modifier.size(iconSize) },
-        tint = Color.Unspecified
+        tint = Color.Unspecified,
     )
 }
 
@@ -63,7 +83,7 @@ fun ArrowBackIcon() {
     Icon(
         imageVector = Icons.Default.ArrowBack,
         contentDescription = stringResource(R.string.back),
-        tint = MaterialTheme.colorScheme.grayText
+        tint = MaterialTheme.colorScheme.grayText,
     )
 }
 
@@ -73,17 +93,20 @@ fun MessageIcon(modifier: Modifier) {
         painter = painterResource(R.drawable.ic_dm),
         null,
         modifier = modifier,
-        tint = MaterialTheme.colorScheme.primary
+        tint = MaterialTheme.colorScheme.primary,
     )
 }
 
 @Composable
-fun DownloadForOfflineIcon(iconSize: Dp, tint: Color = MaterialTheme.colorScheme.primary) {
+fun DownloadForOfflineIcon(
+    iconSize: Dp,
+    tint: Color = MaterialTheme.colorScheme.primary,
+) {
     Icon(
         imageVector = Icons.Default.DownloadForOffline,
         null,
         modifier = remember(iconSize) { Modifier.size(iconSize) },
-        tint = tint
+        tint = tint,
     )
 }
 
@@ -93,7 +116,7 @@ fun HashCheckIcon(iconSize: Dp) {
         painter = painterResource(R.drawable.original),
         contentDescription = stringResource(id = R.string.hash_verification_passed),
         modifier = remember(iconSize) { Modifier.size(iconSize) },
-        tint = Color.Unspecified
+        tint = Color.Unspecified,
     )
 }
 
@@ -103,7 +126,7 @@ fun HashCheckFailedIcon(iconSize: Dp) {
         imageVector = Icons.Default.Report,
         contentDescription = stringResource(id = R.string.hash_verification_failed),
         modifier = remember(iconSize) { Modifier.size(iconSize) },
-        tint = Color.Red
+        tint = Color.Red,
     )
 }
 
@@ -118,37 +141,46 @@ fun LikedIcon(modifier: Modifier) {
         painter = painterResource(R.drawable.ic_liked),
         null,
         modifier = modifier,
-        tint = Color.Unspecified
+        tint = Color.Unspecified,
     )
 }
 
 @Composable
-fun LikeIcon(iconSizeModifier: Modifier, grayTint: Color) {
+fun LikeIcon(
+    iconSizeModifier: Modifier,
+    grayTint: Color,
+) {
     Icon(
         painter = painterResource(R.drawable.ic_like),
         null,
         modifier = iconSizeModifier,
-        tint = grayTint
+        tint = grayTint,
     )
 }
 
 @Composable
-fun RepostedIcon(modifier: Modifier, tint: Color = Color.Unspecified) {
+fun RepostedIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+) {
     Icon(
         painter = painterResource(R.drawable.ic_retweeted),
         null,
         modifier = modifier,
-        tint = tint
+        tint = tint,
     )
 }
 
 @Composable
-fun LightningAddressIcon(modifier: Modifier, tint: Color = Color.Unspecified) {
+fun LightningAddressIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+) {
     Icon(
         imageVector = Icons.Default.Bolt,
         contentDescription = stringResource(R.string.lightning_address),
         tint = tint,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -163,12 +195,15 @@ fun ZappedIcon(modifier: Modifier) {
 }
 
 @Composable
-fun ZapIcon(modifier: Modifier, tint: Color = Color.Unspecified) {
+fun ZapIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+) {
     Icon(
         imageVector = Icons.Default.Bolt,
         contentDescription = stringResource(R.string.zaps),
         tint = tint,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -178,27 +213,33 @@ fun CashuIcon(modifier: Modifier) {
         painter = painterResource(R.drawable.cashu),
         "Cashu",
         tint = Color.Unspecified,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
 @Composable
-fun CopyIcon(modifier: Modifier, tint: Color = Color.Unspecified) {
+fun CopyIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+) {
     Icon(
         imageVector = Icons.Default.ContentCopy,
         stringResource(id = R.string.copy_to_clipboard),
         tint = tint,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
 @Composable
-fun OpenInNewIcon(modifier: Modifier, tint: Color = Color.Unspecified) {
+fun OpenInNewIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+) {
     Icon(
         imageVector = Icons.Default.OpenInNew,
         stringResource(id = R.string.copy_to_clipboard),
         tint = tint,
-        modifier = modifier
+        modifier = modifier,
     )
 }
 
@@ -208,7 +249,7 @@ fun ExpandLessIcon(modifier: Modifier) {
         imageVector = Icons.Default.ExpandLess,
         null,
         modifier = modifier,
-        tint = MaterialTheme.colorScheme.subtleButton
+        tint = MaterialTheme.colorScheme.subtleButton,
     )
 }
 
@@ -218,27 +259,33 @@ fun ExpandMoreIcon(modifier: Modifier) {
         imageVector = Icons.Default.ExpandMore,
         null,
         modifier = modifier,
-        tint = MaterialTheme.colorScheme.subtleButton
+        tint = MaterialTheme.colorScheme.subtleButton,
     )
 }
 
 @Composable
-fun CommentIcon(iconSizeModifier: Modifier, tint: Color) {
+fun CommentIcon(
+    iconSizeModifier: Modifier,
+    tint: Color,
+) {
     Icon(
         painter = painterResource(R.drawable.ic_comment),
         contentDescription = null,
         modifier = iconSizeModifier,
-        tint = tint
+        tint = tint,
     )
 }
 
 @Composable
-fun ViewCountIcon(modifier: Modifier, tint: Color = Color.Unspecified) {
+fun ViewCountIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+) {
     Icon(
         imageVector = Icons.Outlined.BarChart,
         null,
         modifier = modifier,
-        tint = tint
+        tint = tint,
     )
 }
 
@@ -248,7 +295,7 @@ fun PollIcon() {
         painter = painterResource(R.drawable.ic_poll),
         null,
         modifier = Size20Modifier,
-        tint = MaterialTheme.colorScheme.onBackground
+        tint = MaterialTheme.colorScheme.onBackground,
     )
 }
 
@@ -258,7 +305,7 @@ fun RegularPostIcon() {
         painter = painterResource(R.drawable.ic_lists),
         null,
         modifier = Size20Modifier,
-        tint = MaterialTheme.colorScheme.onBackground
+        tint = MaterialTheme.colorScheme.onBackground,
     )
 }
 
@@ -268,7 +315,7 @@ fun CancelIcon() {
         imageVector = Icons.Default.Cancel,
         null,
         modifier = Size30Modifier,
-        tint = MaterialTheme.colorScheme.placeholderText
+        tint = MaterialTheme.colorScheme.placeholderText,
     )
 }
 
@@ -277,7 +324,7 @@ fun CloseIcon() {
     Icon(
         painter = painterResource(id = R.drawable.ic_close),
         contentDescription = stringResource(id = R.string.cancel),
-        modifier = Size20Modifier
+        modifier = Size20Modifier,
     )
 }
 
@@ -287,7 +334,7 @@ fun MutedIcon() {
         imageVector = Icons.Default.VolumeOff,
         contentDescription = stringResource(id = R.string.muted_button),
         tint = MaterialTheme.colorScheme.onBackground,
-        modifier = Size30Modifier
+        modifier = Size30Modifier,
     )
 }
 
@@ -297,57 +344,72 @@ fun MuteIcon() {
         imageVector = Icons.Default.VolumeUp,
         contentDescription = stringResource(id = R.string.mute_button),
         tint = MaterialTheme.colorScheme.onBackground,
-        modifier = Size30Modifier
+        modifier = Size30Modifier,
     )
 }
 
 @Composable
-fun SearchIcon(modifier: Modifier, tint: Color = Color.Unspecified) {
+fun SearchIcon(
+    modifier: Modifier,
+    tint: Color = Color.Unspecified,
+) {
     Icon(
         painter = painterResource(R.drawable.ic_search),
         contentDescription = stringResource(id = R.string.search_button),
         modifier = modifier,
-        tint = tint
+        tint = tint,
     )
 }
 
 @Composable
-fun PlayIcon(modifier: Modifier, tint: Color) {
+fun PlayIcon(
+    modifier: Modifier,
+    tint: Color,
+) {
     Icon(
         imageVector = Icons.Outlined.PlayCircle,
         contentDescription = null,
         modifier = modifier,
-        tint = tint
+        tint = tint,
     )
 }
 
 @Composable
-fun PinIcon(modifier: Modifier, tint: Color) {
+fun PinIcon(
+    modifier: Modifier,
+    tint: Color,
+) {
     Icon(
         imageVector = Icons.Default.PushPin,
         contentDescription = null,
         modifier = modifier,
-        tint = tint
+        tint = tint,
     )
 }
 
 @Composable
-fun LyricsIcon(modifier: Modifier, tint: Color) {
+fun LyricsIcon(
+    modifier: Modifier,
+    tint: Color,
+) {
     Icon(
         painter = painterResource(id = R.drawable.lyrics_on),
         contentDescription = null,
         modifier = modifier,
-        tint = tint
+        tint = tint,
     )
 }
 
 @Composable
-fun LyricsOffIcon(modifier: Modifier, tint: Color) {
+fun LyricsOffIcon(
+    modifier: Modifier,
+    tint: Color,
+) {
     Icon(
         painter = painterResource(id = R.drawable.lyrics_off),
         contentDescription = null,
         modifier = modifier,
-        tint = tint
+        tint = tint,
     )
 }
 
@@ -355,17 +417,20 @@ fun LyricsOffIcon(modifier: Modifier, tint: Color) {
 fun ClearTextIcon() {
     Icon(
         imageVector = Icons.Default.Clear,
-        contentDescription = stringResource(R.string.clear)
+        contentDescription = stringResource(R.string.clear),
     )
 }
 
 @Composable
-fun LinkIcon(modifier: Modifier, tint: Color) {
+fun LinkIcon(
+    modifier: Modifier,
+    tint: Color,
+) {
     Icon(
         imageVector = Icons.Default.Link,
         contentDescription = stringResource(R.string.website),
         modifier = modifier,
-        tint = tint
+        tint = tint,
     )
 }
 
@@ -375,7 +440,7 @@ fun VerticalDotsIcon() {
         imageVector = Icons.Default.MoreVert,
         null,
         modifier = Size18Modifier,
-        tint = MaterialTheme.colorScheme.placeholderText
+        tint = MaterialTheme.colorScheme.placeholderText,
     )
 }
 
@@ -385,7 +450,7 @@ fun NIP05CheckingIcon(modifier: Modifier) {
         imageVector = Icons.Default.Downloading,
         contentDescription = stringResource(id = R.string.nip05_checking),
         modifier = modifier,
-        tint = Color.Yellow
+        tint = Color.Yellow,
     )
 }
 
@@ -395,7 +460,7 @@ fun NIP05VerifiedIcon(modifier: Modifier) {
         painter = painterResource(R.drawable.nip_05),
         contentDescription = stringResource(id = R.string.nip05_verified),
         modifier = modifier,
-        tint = Color.Unspecified
+        tint = Color.Unspecified,
     )
 }
 
@@ -405,6 +470,6 @@ fun NIP05FailedVerification(modifier: Modifier) {
         imageVector = Icons.Default.Report,
         contentDescription = stringResource(id = R.string.nip05_failed),
         modifier = modifier,
-        tint = Color.Red
+        tint = Color.Red,
     )
 }

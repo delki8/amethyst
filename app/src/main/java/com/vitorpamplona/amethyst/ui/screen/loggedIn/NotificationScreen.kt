@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn
 
 import android.Manifest
@@ -76,7 +96,7 @@ fun NotificationScreen(
     userReactionsStatsModel: UserReactionsViewModel,
     sharedPreferencesViewModel: SharedPreferencesViewModel,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     SelectNotificationProvider(sharedPreferencesViewModel)
 
@@ -84,22 +104,21 @@ fun NotificationScreen(
 
     val lifeCycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifeCycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                NostrAccountDataSource.account = accountViewModel.account
-                NostrAccountDataSource.invalidateFilters()
+        val observer =
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    NostrAccountDataSource.account = accountViewModel.account
+                    NostrAccountDataSource.invalidateFilters()
+                }
             }
-        }
 
         lifeCycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifeCycleOwner.lifecycle.removeObserver(observer)
-        }
+        onDispose { lifeCycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Column(Modifier.fillMaxHeight()) {
         SummaryBar(
-            model = userReactionsStatsModel
+            model = userReactionsStatsModel,
         )
 
         RefresheableCardView(
@@ -107,19 +126,18 @@ fun NotificationScreen(
             accountViewModel = accountViewModel,
             nav = nav,
             routeForLastRead = Route.Notification.base,
-            scrollStateKey = ScrollStateKeys.NOTIFICATION_SCREEN
+            scrollStateKey = ScrollStateKeys.NOTIFICATION_SCREEN,
         )
     }
 }
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
-fun CheckifItNeedsToRequestNotificationPermission(
-    sharedPreferencesViewModel: SharedPreferencesViewModel
-): PermissionState {
-    val notificationPermissionState = rememberPermissionState(
-        Manifest.permission.POST_NOTIFICATIONS
-    )
+fun CheckifItNeedsToRequestNotificationPermission(sharedPreferencesViewModel: SharedPreferencesViewModel): PermissionState {
+    val notificationPermissionState =
+        rememberPermissionState(
+            Manifest.permission.POST_NOTIFICATIONS,
+        )
 
     if (!sharedPreferencesViewModel.sharedPrefs.dontAskForNotificationPermissions) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -140,9 +158,10 @@ fun CheckifItNeedsToRequestNotificationPermission(
 @Composable
 fun WatchAccountForNotifications(
     notifFeedViewModel: NotificationViewModel,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
-    val listState by accountViewModel.account.liveNotificationFollowLists.collectAsStateWithLifecycle()
+    val listState by
+        accountViewModel.account.liveNotificationFollowLists.collectAsStateWithLifecycle()
 
     LaunchedEffect(accountViewModel, listState) {
         NostrAccountDataSource.account = accountViewModel.account
@@ -153,58 +172,58 @@ fun WatchAccountForNotifications(
 
 @Composable
 fun SummaryBar(model: UserReactionsViewModel) {
-    var showChart by remember {
-        mutableStateOf(false)
-    }
+    var showChart by remember { mutableStateOf(false) }
 
-    UserReactionsRow(model) {
-        showChart = !showChart
-    }
+    UserReactionsRow(model) { showChart = !showChart }
 
     if (showChart) {
         val lineChartCount =
             lineChart(
-                lines = listOf(RoyalBlue, Color.Green, Color.Red).map { lineChartColor ->
-                    LineChart.LineSpec(
-                        lineColor = lineChartColor.toArgb(),
-                        lineBackgroundShader = DynamicShaders.fromBrush(
-                            Brush.verticalGradient(
-                                listOf(
-                                    lineChartColor.copy(DefaultAlpha.LINE_BACKGROUND_SHADER_START),
-                                    lineChartColor.copy(DefaultAlpha.LINE_BACKGROUND_SHADER_END)
-                                )
-                            )
+                lines =
+                    listOf(RoyalBlue, Color.Green, Color.Red).map { lineChartColor ->
+                        LineChart.LineSpec(
+                            lineColor = lineChartColor.toArgb(),
+                            lineBackgroundShader =
+                                DynamicShaders.fromBrush(
+                                    Brush.verticalGradient(
+                                        listOf(
+                                            lineChartColor.copy(DefaultAlpha.LINE_BACKGROUND_SHADER_START),
+                                            lineChartColor.copy(DefaultAlpha.LINE_BACKGROUND_SHADER_END),
+                                        ),
+                                    ),
+                                ),
                         )
-                    )
-                },
-                targetVerticalAxisPosition = AxisPosition.Vertical.Start
+                    },
+                targetVerticalAxisPosition = AxisPosition.Vertical.Start,
             )
 
         val lineChartZaps =
             lineChart(
-                lines = listOf(BitcoinOrange).map { lineChartColor ->
-                    LineChart.LineSpec(
-                        lineColor = lineChartColor.toArgb(),
-                        lineBackgroundShader = DynamicShaders.fromBrush(
-                            Brush.verticalGradient(
-                                listOf(
-                                    lineChartColor.copy(DefaultAlpha.LINE_BACKGROUND_SHADER_START),
-                                    lineChartColor.copy(DefaultAlpha.LINE_BACKGROUND_SHADER_END)
-                                )
-                            )
+                lines =
+                    listOf(BitcoinOrange).map { lineChartColor ->
+                        LineChart.LineSpec(
+                            lineColor = lineChartColor.toArgb(),
+                            lineBackgroundShader =
+                                DynamicShaders.fromBrush(
+                                    Brush.verticalGradient(
+                                        listOf(
+                                            lineChartColor.copy(DefaultAlpha.LINE_BACKGROUND_SHADER_START),
+                                            lineChartColor.copy(DefaultAlpha.LINE_BACKGROUND_SHADER_END),
+                                        ),
+                                    ),
+                                ),
                         )
-                    )
-                },
-                targetVerticalAxisPosition = AxisPosition.Vertical.End
+                    },
+                targetVerticalAxisPosition = AxisPosition.Vertical.End,
             )
 
         Row(
-            modifier = Modifier
-                .padding(vertical = 10.dp, horizontal = 20.dp)
-                .clickable(onClick = { showChart = !showChart })
+            modifier =
+                Modifier.padding(vertical = 10.dp, horizontal = 20.dp)
+                    .clickable(onClick = { showChart = !showChart }),
         ) {
             ProvideChartStyle(
-                chartStyle = MaterialTheme.colorScheme.chartStyle
+                chartStyle = MaterialTheme.colorScheme.chartStyle,
             ) {
                 ObserveAndShowChart(model, lineChartCount, lineChartZaps)
             }
@@ -212,7 +231,7 @@ fun SummaryBar(model: UserReactionsViewModel) {
     }
 
     Divider(
-        thickness = DividerThickness
+        thickness = DividerThickness,
     )
 }
 
@@ -220,36 +239,38 @@ fun SummaryBar(model: UserReactionsViewModel) {
 private fun ObserveAndShowChart(
     model: UserReactionsViewModel,
     lineChartCount: LineChart,
-    lineChartZaps: LineChart
+    lineChartZaps: LineChart,
 ) {
     val axisModel = model.axisLabels.collectAsStateWithLifecycle()
     val chartModel by model.chartModel.collectAsStateWithLifecycle()
 
     chartModel?.let {
         Chart(
-            chart = remember(lineChartCount, lineChartZaps) {
-                lineChartCount.plus(lineChartZaps)
-            },
+            chart = remember(lineChartCount, lineChartZaps) { lineChartCount.plus(lineChartZaps) },
             model = it,
-            startAxis = rememberStartAxis(
-                valueFormatter = CountAxisValueFormatter()
-            ),
-            endAxis = rememberEndAxis(
-                label = axisLabelComponent(color = BitcoinOrange),
-                valueFormatter = AmountAxisValueFormatter(model.shouldShowDecimalsInAxis)
-            ),
-            bottomAxis = rememberBottomAxis(
-                valueFormatter = LabelValueFormatter(axisModel)
-            )
+            startAxis =
+                rememberStartAxis(
+                    valueFormatter = CountAxisValueFormatter(),
+                ),
+            endAxis =
+                rememberEndAxis(
+                    label = axisLabelComponent(color = BitcoinOrange),
+                    valueFormatter = AmountAxisValueFormatter(model.shouldShowDecimalsInAxis),
+                ),
+            bottomAxis =
+                rememberBottomAxis(
+                    valueFormatter = LabelValueFormatter(axisModel),
+                ),
         )
     }
 }
 
 @Stable
-class LabelValueFormatter(val axisLabels: State<List<String>>) : AxisValueFormatter<AxisPosition.Horizontal.Bottom> {
+class LabelValueFormatter(val axisLabels: State<List<String>>) :
+    AxisValueFormatter<AxisPosition.Horizontal.Bottom> {
     override fun formatValue(
         value: Float,
-        chartValues: ChartValues
+        chartValues: ChartValues,
     ): String {
         return axisLabels.value[value.roundToInt()]
     }
@@ -259,17 +280,18 @@ class LabelValueFormatter(val axisLabels: State<List<String>>) : AxisValueFormat
 class CountAxisValueFormatter() : AxisValueFormatter<AxisPosition.Vertical.Start> {
     override fun formatValue(
         value: Float,
-        chartValues: ChartValues
+        chartValues: ChartValues,
     ): String {
         return showCount(value.roundToInt())
     }
 }
 
 @Stable
-class AmountAxisValueFormatter(val showDecimals: Boolean) : AxisValueFormatter<AxisPosition.Vertical.End> {
+class AmountAxisValueFormatter(val showDecimals: Boolean) :
+    AxisValueFormatter<AxisPosition.Vertical.End> {
     override fun formatValue(
         value: Float,
-        chartValues: ChartValues
+        chartValues: ChartValues,
     ): String {
         return if (showDecimals) {
             showAmount(value.toBigDecimal())

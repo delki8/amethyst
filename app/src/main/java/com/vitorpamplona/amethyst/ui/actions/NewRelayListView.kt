@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.actions
 
 import android.widget.Toast
@@ -86,17 +106,20 @@ import java.lang.Math.round
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewRelayListView(onClose: () -> Unit, accountViewModel: AccountViewModel, relayToAdd: String = "", nav: (String) -> Unit) {
+fun NewRelayListView(
+    onClose: () -> Unit,
+    accountViewModel: AccountViewModel,
+    relayToAdd: String = "",
+    nav: (String) -> Unit,
+) {
     val postViewModel: NewRelayListViewModel = viewModel()
     val feedState by postViewModel.relays.collectAsStateWithLifecycle()
 
-    LaunchedEffect(Unit) {
-        postViewModel.load(accountViewModel.account)
-    }
+    LaunchedEffect(Unit) { postViewModel.load(accountViewModel.account) }
 
     Dialog(
         onDismissRequest = onClose,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(usePlatformDefaultWidth = false),
     ) {
         Scaffold(
             topBar = {
@@ -105,18 +128,16 @@ fun NewRelayListView(onClose: () -> Unit, accountViewModel: AccountViewModel, re
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Spacer(modifier = StdHorzSpacer)
 
                             Button(
                                 onClick = {
                                     postViewModel.deleteAll()
-                                    defaultRelays.forEach {
-                                        postViewModel.addRelay(it)
-                                    }
+                                    defaultRelays.forEach { postViewModel.addRelay(it) }
                                     postViewModel.loadRelayDocuments()
-                                }
+                                },
                             ) {
                                 Text(stringResource(R.string.default_relays))
                             }
@@ -126,51 +147,53 @@ fun NewRelayListView(onClose: () -> Unit, accountViewModel: AccountViewModel, re
                                     postViewModel.create()
                                     onClose()
                                 },
-                                true
+                                true,
                             )
                         }
                     },
                     navigationIcon = {
                         Spacer(modifier = StdHorzSpacer)
-                        CloseButton(onPress = {
-                            postViewModel.clear()
-                            onClose()
-                        })
+                        CloseButton(
+                            onPress = {
+                                postViewModel.clear()
+                                onClose()
+                            },
+                        )
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    )
+                    colors =
+                        TopAppBarDefaults.topAppBarColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                        ),
                 )
-            }
+            },
         ) { pad ->
             Column(
-                modifier = Modifier.padding(
-                    16.dp,
-                    pad.calculateTopPadding(),
-                    16.dp,
-                    pad.calculateBottomPadding()
-                ),
-                verticalArrangement = Arrangement.SpaceAround
+                modifier =
+                    Modifier.padding(
+                        16.dp,
+                        pad.calculateTopPadding(),
+                        16.dp,
+                        pad.calculateBottomPadding(),
+                    ),
+                verticalArrangement = Arrangement.SpaceAround,
             ) {
                 Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
                     LazyColumn(
-                        contentPadding = FeedPadding
+                        contentPadding = FeedPadding,
                     ) {
                         itemsIndexed(feedState, key = { _, item -> item.url }) { index, item ->
                             ServerConfig(
                                 item,
                                 onToggleDownload = { postViewModel.toggleDownload(it) },
                                 onToggleUpload = { postViewModel.toggleUpload(it) },
-
                                 onToggleFollows = { postViewModel.toggleFollows(it) },
                                 onTogglePrivateDMs = { postViewModel.toggleMessages(it) },
                                 onTogglePublicChats = { postViewModel.togglePublicChats(it) },
                                 onToggleGlobal = { postViewModel.toggleGlobal(it) },
                                 onToggleSearch = { postViewModel.toggleSearch(it) },
-
                                 onDelete = { postViewModel.deleteRelay(it) },
                                 accountViewModel = accountViewModel,
-                                nav = nav
+                                nav = nav,
                             )
                         }
                     }
@@ -178,9 +201,7 @@ fun NewRelayListView(onClose: () -> Unit, accountViewModel: AccountViewModel, re
 
                 Spacer(modifier = StdVertSpacer)
 
-                EditableServerConfig(relayToAdd) {
-                    postViewModel.addRelay(it)
-                }
+                EditableServerConfig(relayToAdd) { postViewModel.addRelay(it) }
             }
         }
     }
@@ -196,7 +217,7 @@ fun ServerConfigHeader() {
                         text = stringResource(R.string.relay_address),
                         modifier = Modifier.weight(1f),
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
@@ -210,7 +231,7 @@ fun ServerConfigHeader() {
                         maxLines = 1,
                         fontSize = Font14SP,
                         modifier = Modifier.weight(1.2f),
-                        color = MaterialTheme.colorScheme.placeholderText
+                        color = MaterialTheme.colorScheme.placeholderText,
                     )
 
                     Spacer(modifier = Modifier.size(5.dp))
@@ -220,7 +241,7 @@ fun ServerConfigHeader() {
                         maxLines = 1,
                         fontSize = Font14SP,
                         modifier = Modifier.weight(1.2f),
-                        color = MaterialTheme.colorScheme.placeholderText
+                        color = MaterialTheme.colorScheme.placeholderText,
                     )
 
                     Spacer(modifier = Modifier.size(5.dp))
@@ -230,7 +251,7 @@ fun ServerConfigHeader() {
                         maxLines = 1,
                         fontSize = Font14SP,
                         modifier = Modifier.weight(1f),
-                        color = MaterialTheme.colorScheme.placeholderText
+                        color = MaterialTheme.colorScheme.placeholderText,
                     )
 
                     Spacer(modifier = Modifier.size(5.dp))
@@ -240,7 +261,7 @@ fun ServerConfigHeader() {
                         maxLines = 1,
                         fontSize = Font14SP,
                         modifier = Modifier.weight(1f),
-                        color = MaterialTheme.colorScheme.placeholderText
+                        color = MaterialTheme.colorScheme.placeholderText,
                     )
 
                     Spacer(modifier = Modifier.size(2.dp))
@@ -249,7 +270,7 @@ fun ServerConfigHeader() {
         }
 
         Divider(
-            thickness = DividerThickness
+            thickness = DividerThickness,
         )
     }
 }
@@ -259,17 +280,18 @@ fun ServerConfigHeader() {
 fun ServerConfigPreview() {
     ServerConfigClickableLine(
         loadProfilePicture = true,
-        item = RelaySetupInfo(
-            url = "nostr.mom",
-            read = true,
-            write = true,
-            errorCount = 23,
-            downloadCountInBytes = 10000,
-            uploadCountInBytes = 10000000,
-            spamCount = 10,
-            feedTypes = Constants.activeTypesGlobalChats,
-            paidRelay = true
-        ),
+        item =
+            RelaySetupInfo(
+                url = "nostr.mom",
+                read = true,
+                write = true,
+                errorCount = 23,
+                downloadCountInBytes = 10000,
+                uploadCountInBytes = 10000000,
+                spamCount = 10,
+                feedTypes = Constants.activeTypesGlobalChats,
+                paidRelay = true,
+            ),
         onDelete = {},
         onToggleDownload = {},
         onToggleUpload = {},
@@ -278,7 +300,7 @@ fun ServerConfigPreview() {
         onTogglePublicChats = {},
         onToggleGlobal = {},
         onToggleSearch = {},
-        onClick = {}
+        onClick = {},
     )
 }
 
@@ -292,10 +314,9 @@ fun ServerConfig(
     onTogglePublicChats: (RelaySetupInfo) -> Unit,
     onToggleGlobal: (RelaySetupInfo) -> Unit,
     onToggleSearch: (RelaySetupInfo) -> Unit,
-
     onDelete: (RelaySetupInfo) -> Unit,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     var relayInfo: RelayInfoDialog? by remember { mutableStateOf(null) }
     val context = LocalContext.current
@@ -306,13 +327,14 @@ fun ServerConfig(
             relayInfo = it.relayInfo,
             relayBriefInfo = it.relayBriefInfo,
             accountViewModel = accountViewModel,
-            nav = nav
+            nav = nav,
         )
     }
 
-    val automaticallyShowProfilePicture = remember {
-        accountViewModel.settings.showProfilePictures.value
-    }
+    val automaticallyShowProfilePicture =
+        remember {
+            accountViewModel.settings.showProfilePictures.value
+        }
 
     ServerConfigClickableLine(
         item = item,
@@ -328,24 +350,43 @@ fun ServerConfig(
         onClick = {
             accountViewModel.retrieveRelayDocument(
                 item.url,
-                onInfo = {
-                    relayInfo = RelayInfoDialog(RelayBriefInfoCache.RelayBriefInfo(item.url), it)
-                },
+                onInfo = { relayInfo = RelayInfoDialog(RelayBriefInfoCache.RelayBriefInfo(item.url), it) },
                 onError = { url, errorCode, exceptionMessage ->
-                    val msg = when (errorCode) {
-                        Nip11Retriever.ErrorCode.FAIL_TO_ASSEMBLE_URL -> context.getString(R.string.relay_information_document_error_assemble_url, url, exceptionMessage)
-                        Nip11Retriever.ErrorCode.FAIL_TO_REACH_SERVER -> context.getString(R.string.relay_information_document_error_assemble_url, url, exceptionMessage)
-                        Nip11Retriever.ErrorCode.FAIL_TO_PARSE_RESULT -> context.getString(R.string.relay_information_document_error_assemble_url, url, exceptionMessage)
-                        Nip11Retriever.ErrorCode.FAIL_WITH_HTTP_STATUS -> context.getString(R.string.relay_information_document_error_assemble_url, url, exceptionMessage)
-                    }
+                    val msg =
+                        when (errorCode) {
+                            Nip11Retriever.ErrorCode.FAIL_TO_ASSEMBLE_URL ->
+                                context.getString(
+                                    R.string.relay_information_document_error_assemble_url,
+                                    url,
+                                    exceptionMessage,
+                                )
+                            Nip11Retriever.ErrorCode.FAIL_TO_REACH_SERVER ->
+                                context.getString(
+                                    R.string.relay_information_document_error_assemble_url,
+                                    url,
+                                    exceptionMessage,
+                                )
+                            Nip11Retriever.ErrorCode.FAIL_TO_PARSE_RESULT ->
+                                context.getString(
+                                    R.string.relay_information_document_error_assemble_url,
+                                    url,
+                                    exceptionMessage,
+                                )
+                            Nip11Retriever.ErrorCode.FAIL_WITH_HTTP_STATUS ->
+                                context.getString(
+                                    R.string.relay_information_document_error_assemble_url,
+                                    url,
+                                    exceptionMessage,
+                                )
+                        }
 
                     accountViewModel.toast(
                         context.getString(R.string.unable_to_download_relay_document),
-                        msg
+                        msg,
                     )
-                }
+                },
             )
-        }
+        },
     )
 }
 
@@ -361,19 +402,19 @@ fun ServerConfigClickableLine(
     onToggleGlobal: (RelaySetupInfo) -> Unit,
     onToggleSearch: (RelaySetupInfo) -> Unit,
     onDelete: (RelaySetupInfo) -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
 ) {
     Column(Modifier.fillMaxWidth()) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(vertical = 5.dp)
+            modifier = Modifier.padding(vertical = 5.dp),
         ) {
             Column(Modifier.clickable(onClick = onClick)) {
                 RenderRelayIcon(
                     item.briefInfo.displayUrl,
                     item.briefInfo.favIcon,
                     loadProfilePicture,
-                    MaterialTheme.colorScheme.largeRelayIconModifier
+                    MaterialTheme.colorScheme.largeRelayIconModifier,
                 )
             }
 
@@ -384,7 +425,7 @@ fun ServerConfigClickableLine(
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = ReactionRowHeightChat.fillMaxWidth()
+                    modifier = ReactionRowHeightChat.fillMaxWidth(),
                 ) {
                     RenderActiveToggles(
                         item = item,
@@ -392,26 +433,26 @@ fun ServerConfigClickableLine(
                         onTogglePrivateDMs = onTogglePrivateDMs,
                         onTogglePublicChats = onTogglePublicChats,
                         onToggleGlobal = onToggleGlobal,
-                        onToggleSearch = onToggleSearch
+                        onToggleSearch = onToggleSearch,
                     )
                 }
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = ReactionRowHeightChat.fillMaxWidth()
+                    modifier = ReactionRowHeightChat.fillMaxWidth(),
                 ) {
                     RenderStatusRow(
                         item = item,
                         onToggleDownload = onToggleDownload,
                         onToggleUpload = onToggleUpload,
-                        modifier = HalfStartPadding.weight(1f)
+                        modifier = HalfStartPadding.weight(1f),
                     )
                 }
             }
         }
 
         Divider(
-            thickness = DividerThickness
+            thickness = DividerThickness,
         )
     }
 }
@@ -422,7 +463,7 @@ private fun RenderStatusRow(
     item: RelaySetupInfo,
     onToggleDownload: (RelaySetupInfo) -> Unit,
     onToggleUpload: (RelaySetupInfo) -> Unit,
-    modifier: Modifier
+    modifier: Modifier,
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -430,29 +471,29 @@ private fun RenderStatusRow(
     Icon(
         imageVector = Icons.Default.Download,
         contentDescription = stringResource(R.string.read_from_relay),
-        modifier = Modifier
-            .size(15.dp)
-            .combinedClickable(
-                onClick = { onToggleDownload(item) },
-                onLongClick = {
-                    scope.launch {
-                        Toast
-                            .makeText(
+        modifier =
+            Modifier.size(15.dp)
+                .combinedClickable(
+                    onClick = { onToggleDownload(item) },
+                    onLongClick = {
+                        scope.launch {
+                            Toast.makeText(
                                 context,
                                 context.getString(R.string.read_from_relay),
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_SHORT,
                             )
-                            .show()
-                    }
-                }
-            ),
-        tint = if (item.read) {
-            MaterialTheme.colorScheme.allGoodColor
-        } else {
-            MaterialTheme.colorScheme.onSurface.copy(
-                alpha = 0.32f
-            )
-        }
+                                .show()
+                        }
+                    },
+                ),
+        tint =
+            if (item.read) {
+                MaterialTheme.colorScheme.allGoodColor
+            } else {
+                MaterialTheme.colorScheme.onSurface.copy(
+                    alpha = 0.32f,
+                )
+            },
     )
 
     Text(
@@ -460,35 +501,35 @@ private fun RenderStatusRow(
         maxLines = 1,
         fontSize = 12.sp,
         modifier = modifier,
-        color = MaterialTheme.colorScheme.placeholderText
+        color = MaterialTheme.colorScheme.placeholderText,
     )
 
     Icon(
         imageVector = Icons.Default.Upload,
         stringResource(R.string.write_to_relay),
-        modifier = Modifier
-            .size(15.dp)
-            .combinedClickable(
-                onClick = { onToggleUpload(item) },
-                onLongClick = {
-                    scope.launch {
-                        Toast
-                            .makeText(
+        modifier =
+            Modifier.size(15.dp)
+                .combinedClickable(
+                    onClick = { onToggleUpload(item) },
+                    onLongClick = {
+                        scope.launch {
+                            Toast.makeText(
                                 context,
                                 context.getString(R.string.write_to_relay),
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_SHORT,
                             )
-                            .show()
-                    }
-                }
-            ),
-        tint = if (item.write) {
-            MaterialTheme.colorScheme.allGoodColor
-        } else {
-            MaterialTheme.colorScheme.onSurface.copy(
-                alpha = 0.32f
-            )
-        }
+                                .show()
+                        }
+                    },
+                ),
+        tint =
+            if (item.write) {
+                MaterialTheme.colorScheme.allGoodColor
+            } else {
+                MaterialTheme.colorScheme.onSurface.copy(
+                    alpha = 0.32f,
+                )
+            },
     )
 
     Text(
@@ -496,29 +537,33 @@ private fun RenderStatusRow(
         maxLines = 1,
         fontSize = 12.sp,
         modifier = modifier,
-        color = MaterialTheme.colorScheme.placeholderText
+        color = MaterialTheme.colorScheme.placeholderText,
     )
 
     Icon(
         imageVector = Icons.Default.SyncProblem,
         stringResource(R.string.errors),
-        modifier = Modifier
-            .size(15.dp)
-            .combinedClickable(
-                onClick = { },
-                onLongClick = {
-                    scope.launch {
-                        Toast
-                            .makeText(
+        modifier =
+            Modifier.size(15.dp)
+                .combinedClickable(
+                    onClick = {},
+                    onLongClick = {
+                        scope.launch {
+                            Toast.makeText(
                                 context,
                                 context.getString(R.string.errors),
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_SHORT,
                             )
-                            .show()
-                    }
-                }
-            ),
-        tint = if (item.errorCount > 0) MaterialTheme.colorScheme.warningColor else MaterialTheme.colorScheme.allGoodColor
+                                .show()
+                        }
+                    },
+                ),
+        tint =
+            if (item.errorCount > 0) {
+                MaterialTheme.colorScheme.warningColor
+            } else {
+                MaterialTheme.colorScheme.allGoodColor
+            },
     )
 
     Text(
@@ -526,29 +571,33 @@ private fun RenderStatusRow(
         maxLines = 1,
         fontSize = 12.sp,
         modifier = modifier,
-        color = MaterialTheme.colorScheme.placeholderText
+        color = MaterialTheme.colorScheme.placeholderText,
     )
 
     Icon(
         imageVector = Icons.Default.DeleteSweep,
         stringResource(R.string.spam),
-        modifier = Modifier
-            .size(15.dp)
-            .combinedClickable(
-                onClick = { },
-                onLongClick = {
-                    scope.launch {
-                        Toast
-                            .makeText(
+        modifier =
+            Modifier.size(15.dp)
+                .combinedClickable(
+                    onClick = {},
+                    onLongClick = {
+                        scope.launch {
+                            Toast.makeText(
                                 context,
                                 context.getString(R.string.spam),
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_SHORT,
                             )
-                            .show()
-                    }
-                }
-            ),
-        tint = if (item.spamCount > 0) MaterialTheme.colorScheme.warningColor else MaterialTheme.colorScheme.allGoodColor
+                                .show()
+                        }
+                    },
+                ),
+        tint =
+            if (item.spamCount > 0) {
+                MaterialTheme.colorScheme.warningColor
+            } else {
+                MaterialTheme.colorScheme.allGoodColor
+            },
     )
 
     Text(
@@ -556,7 +605,7 @@ private fun RenderStatusRow(
         maxLines = 1,
         fontSize = 12.sp,
         modifier = modifier,
-        color = MaterialTheme.colorScheme.placeholderText
+        color = MaterialTheme.colorScheme.placeholderText,
     )
 }
 
@@ -568,7 +617,7 @@ private fun RenderActiveToggles(
     onTogglePrivateDMs: (RelaySetupInfo) -> Unit,
     onTogglePublicChats: (RelaySetupInfo) -> Unit,
     onToggleGlobal: (RelaySetupInfo) -> Unit,
-    onToggleSearch: (RelaySetupInfo) -> Unit
+    onToggleSearch: (RelaySetupInfo) -> Unit,
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -579,173 +628,173 @@ private fun RenderActiveToggles(
         overflow = TextOverflow.Ellipsis,
         color = MaterialTheme.colorScheme.placeholderText,
         modifier = Modifier.padding(start = 2.dp, end = 5.dp),
-        fontSize = 14.sp
+        fontSize = 14.sp,
     )
 
     IconButton(
         modifier = Size30Modifier,
-        onClick = { onToggleFollows(item) }
+        onClick = { onToggleFollows(item) },
     ) {
         Icon(
             painterResource(R.drawable.ic_home),
             stringResource(R.string.home_feed),
-            modifier = Modifier
-                .padding(horizontal = 5.dp)
-                .size(15.dp)
-                .combinedClickable(
-                    onClick = { onToggleFollows(item) },
-                    onLongClick = {
-                        scope.launch {
-                            Toast
-                                .makeText(
+            modifier =
+                Modifier.padding(horizontal = 5.dp)
+                    .size(15.dp)
+                    .combinedClickable(
+                        onClick = { onToggleFollows(item) },
+                        onLongClick = {
+                            scope.launch {
+                                Toast.makeText(
                                     context,
                                     context.getString(R.string.home_feed),
-                                    Toast.LENGTH_SHORT
+                                    Toast.LENGTH_SHORT,
                                 )
-                                .show()
-                        }
-                    }
-                ),
-            tint = if (item.feedTypes.contains(FeedType.FOLLOWS)) {
-                MaterialTheme.colorScheme.allGoodColor
-            } else {
-                MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = 0.32f
-                )
-            }
+                                    .show()
+                            }
+                        },
+                    ),
+            tint =
+                if (item.feedTypes.contains(FeedType.FOLLOWS)) {
+                    MaterialTheme.colorScheme.allGoodColor
+                } else {
+                    MaterialTheme.colorScheme.onSurface.copy(
+                        alpha = 0.32f,
+                    )
+                },
         )
     }
     IconButton(
         modifier = Size30Modifier,
-        onClick = { onTogglePrivateDMs(item) }
+        onClick = { onTogglePrivateDMs(item) },
     ) {
         Icon(
             painterResource(R.drawable.ic_dm),
             stringResource(R.string.private_message_feed),
-            modifier = Modifier
-                .padding(horizontal = 5.dp)
-                .size(15.dp)
-                .combinedClickable(
-                    onClick = { onTogglePrivateDMs(item) },
-                    onLongClick = {
-                        scope.launch {
-                            Toast
-                                .makeText(
+            modifier =
+                Modifier.padding(horizontal = 5.dp)
+                    .size(15.dp)
+                    .combinedClickable(
+                        onClick = { onTogglePrivateDMs(item) },
+                        onLongClick = {
+                            scope.launch {
+                                Toast.makeText(
                                     context,
                                     context.getString(R.string.private_message_feed),
-                                    Toast.LENGTH_SHORT
+                                    Toast.LENGTH_SHORT,
                                 )
-                                .show()
-                        }
-                    }
-                ),
-            tint = if (item.feedTypes.contains(FeedType.PRIVATE_DMS)) {
-                MaterialTheme.colorScheme.allGoodColor
-            } else {
-                MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = 0.32f
-                )
-            }
+                                    .show()
+                            }
+                        },
+                    ),
+            tint =
+                if (item.feedTypes.contains(FeedType.PRIVATE_DMS)) {
+                    MaterialTheme.colorScheme.allGoodColor
+                } else {
+                    MaterialTheme.colorScheme.onSurface.copy(
+                        alpha = 0.32f,
+                    )
+                },
         )
     }
     IconButton(
         modifier = Size30Modifier,
-        onClick = { onTogglePublicChats(item) }
+        onClick = { onTogglePublicChats(item) },
     ) {
         Icon(
             imageVector = Icons.Default.Groups,
             contentDescription = stringResource(R.string.public_chat_feed),
-            modifier = Modifier
-                .padding(horizontal = 5.dp)
-                .size(15.dp)
-                .combinedClickable(
-                    onClick = { onTogglePublicChats(item) },
-                    onLongClick = {
-                        scope.launch {
-                            Toast
-                                .makeText(
+            modifier =
+                Modifier.padding(horizontal = 5.dp)
+                    .size(15.dp)
+                    .combinedClickable(
+                        onClick = { onTogglePublicChats(item) },
+                        onLongClick = {
+                            scope.launch {
+                                Toast.makeText(
                                     context,
                                     context.getString(R.string.public_chat_feed),
-                                    Toast.LENGTH_SHORT
+                                    Toast.LENGTH_SHORT,
                                 )
-                                .show()
-                        }
-                    }
-                ),
-            tint = if (item.feedTypes.contains(FeedType.PUBLIC_CHATS)) {
-                MaterialTheme.colorScheme.allGoodColor
-            } else {
-                MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = 0.32f
-                )
-            }
+                                    .show()
+                            }
+                        },
+                    ),
+            tint =
+                if (item.feedTypes.contains(FeedType.PUBLIC_CHATS)) {
+                    MaterialTheme.colorScheme.allGoodColor
+                } else {
+                    MaterialTheme.colorScheme.onSurface.copy(
+                        alpha = 0.32f,
+                    )
+                },
         )
     }
     IconButton(
         modifier = Size30Modifier,
-        onClick = { onToggleGlobal(item) }
+        onClick = { onToggleGlobal(item) },
     ) {
         Icon(
             imageVector = Icons.Default.Public,
             stringResource(R.string.global_feed),
-            modifier = Modifier
-                .padding(horizontal = 5.dp)
-                .size(15.dp)
-                .combinedClickable(
-                    onClick = { onToggleGlobal(item) },
-                    onLongClick = {
-                        scope.launch {
-                            Toast
-                                .makeText(
+            modifier =
+                Modifier.padding(horizontal = 5.dp)
+                    .size(15.dp)
+                    .combinedClickable(
+                        onClick = { onToggleGlobal(item) },
+                        onLongClick = {
+                            scope.launch {
+                                Toast.makeText(
                                     context,
                                     context.getString(R.string.global_feed),
-                                    Toast.LENGTH_SHORT
+                                    Toast.LENGTH_SHORT,
                                 )
-                                .show()
-                        }
-                    }
-                ),
-            tint = if (item.feedTypes.contains(FeedType.GLOBAL)) {
-                MaterialTheme.colorScheme.allGoodColor
-            } else {
-                MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = 0.32f
-                )
-            }
+                                    .show()
+                            }
+                        },
+                    ),
+            tint =
+                if (item.feedTypes.contains(FeedType.GLOBAL)) {
+                    MaterialTheme.colorScheme.allGoodColor
+                } else {
+                    MaterialTheme.colorScheme.onSurface.copy(
+                        alpha = 0.32f,
+                    )
+                },
         )
     }
 
     IconButton(
         modifier = Size30Modifier,
-        onClick = { onToggleSearch(item) }
+        onClick = { onToggleSearch(item) },
     ) {
         Icon(
             imageVector = Icons.Default.Search,
             stringResource(R.string.search_feed),
-            modifier = Modifier
-                .padding(horizontal = 5.dp)
-                .size(15.dp)
-                .combinedClickable(
-                    onClick = { onToggleSearch(item) },
-                    onLongClick = {
-                        scope.launch {
-                            Toast
-                                .makeText(
+            modifier =
+                Modifier.padding(horizontal = 5.dp)
+                    .size(15.dp)
+                    .combinedClickable(
+                        onClick = { onToggleSearch(item) },
+                        onLongClick = {
+                            scope.launch {
+                                Toast.makeText(
                                     context,
                                     context.getString(R.string.search_feed),
-                                    Toast.LENGTH_SHORT
+                                    Toast.LENGTH_SHORT,
                                 )
-                                .show()
-                        }
-                    }
-                ),
-            tint = if (item.feedTypes.contains(FeedType.SEARCH)) {
-                MaterialTheme.colorScheme.allGoodColor
-            } else {
-                MaterialTheme.colorScheme.onSurface.copy(
-                    alpha = 0.32f
-                )
-            }
+                                    .show()
+                            }
+                        },
+                    ),
+            tint =
+                if (item.feedTypes.contains(FeedType.SEARCH)) {
+                    MaterialTheme.colorScheme.allGoodColor
+                } else {
+                    MaterialTheme.colorScheme.onSurface.copy(
+                        alpha = 0.32f,
+                    )
+                },
         )
     }
 }
@@ -755,7 +804,7 @@ private fun FirstLine(
     item: RelaySetupInfo,
     onClick: () -> Unit,
     onDelete: (RelaySetupInfo) -> Unit,
-    modifier: Modifier
+    modifier: Modifier,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, modifier = modifier) {
         Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
@@ -763,39 +812,38 @@ private fun FirstLine(
                 text = item.briefInfo.displayUrl,
                 modifier = Modifier.clickable(onClick = onClick),
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
 
             if (item.paidRelay) {
                 Icon(
                     imageVector = Icons.Default.Paid,
                     null,
-                    modifier = Modifier
-                        .padding(start = 5.dp, top = 1.dp)
-                        .size(14.dp),
-                    tint = MaterialTheme.colorScheme.allGoodColor
+                    modifier = Modifier.padding(start = 5.dp, top = 1.dp).size(14.dp),
+                    tint = MaterialTheme.colorScheme.allGoodColor,
                 )
             }
         }
 
         IconButton(
             modifier = Modifier.size(30.dp),
-            onClick = { onDelete(item) }
+            onClick = { onDelete(item) },
         ) {
             Icon(
                 imageVector = Icons.Default.Cancel,
                 null,
-                modifier = Modifier
-                    .padding(start = 10.dp)
-                    .size(15.dp),
-                tint = WarningColor
+                modifier = Modifier.padding(start = 10.dp).size(15.dp),
+                tint = WarningColor,
             )
         }
     }
 }
 
 @Composable
-fun EditableServerConfig(relayToAdd: String, onNewRelay: (RelaySetupInfo) -> Unit) {
+fun EditableServerConfig(
+    relayToAdd: String,
+    onNewRelay: (RelaySetupInfo) -> Unit,
+) {
     var url by remember { mutableStateOf<String>(relayToAdd) }
     var read by remember { mutableStateOf(true) }
     var write by remember { mutableStateOf(true) }
@@ -810,20 +858,23 @@ fun EditableServerConfig(relayToAdd: String, onNewRelay: (RelaySetupInfo) -> Uni
                 Text(
                     text = "server.com",
                     color = MaterialTheme.colorScheme.placeholderText,
-                    maxLines = 1
+                    maxLines = 1,
                 )
             },
-            singleLine = true
+            singleLine = true,
         )
 
         IconButton(onClick = { read = !read }) {
             Icon(
                 imageVector = Icons.Default.Download,
                 null,
-                modifier = Modifier
-                    .size(Size35dp)
-                    .padding(horizontal = 5.dp),
-                tint = if (read) MaterialTheme.colorScheme.allGoodColor else MaterialTheme.colorScheme.placeholderText
+                modifier = Modifier.size(Size35dp).padding(horizontal = 5.dp),
+                tint =
+                    if (read) {
+                        MaterialTheme.colorScheme.allGoodColor
+                    } else {
+                        MaterialTheme.colorScheme.placeholderText
+                    },
             )
         }
 
@@ -831,17 +882,21 @@ fun EditableServerConfig(relayToAdd: String, onNewRelay: (RelaySetupInfo) -> Uni
             Icon(
                 imageVector = Icons.Default.Upload,
                 null,
-                modifier = Modifier
-                    .size(Size35dp)
-                    .padding(horizontal = 5.dp),
-                tint = if (write) MaterialTheme.colorScheme.allGoodColor else MaterialTheme.colorScheme.placeholderText
+                modifier = Modifier.size(Size35dp).padding(horizontal = 5.dp),
+                tint =
+                    if (write) {
+                        MaterialTheme.colorScheme.allGoodColor
+                    } else {
+                        MaterialTheme.colorScheme.placeholderText
+                    },
             )
         }
 
         Button(
             onClick = {
                 if (url.isNotBlank() && url != "/") {
-                    var addedWSS = if (!url.startsWith("wss://") && !url.startsWith("ws://")) "wss://$url" else url
+                    var addedWSS =
+                        if (!url.startsWith("wss://") && !url.startsWith("ws://")) "wss://$url" else url
                     if (url.endsWith("/")) addedWSS = addedWSS.dropLast(1)
                     onNewRelay(RelaySetupInfo(addedWSS, read, write, feedTypes = FeedType.values().toSet()))
                     url = ""
@@ -850,24 +905,33 @@ fun EditableServerConfig(relayToAdd: String, onNewRelay: (RelaySetupInfo) -> Uni
                 }
             },
             shape = ButtonBorder,
-            colors = ButtonDefaults
-                .buttonColors(
-                    containerColor = if (url.isNotBlank()) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.placeholderText
-                )
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor =
+                        if (url.isNotBlank()) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.placeholderText
+                        },
+                ),
         ) {
             Text(text = stringResource(id = R.string.add), color = Color.White)
         }
     }
 }
 
-fun countToHumanReadableBytes(counter: Int) = when {
-    counter >= 1000000000 -> "${round(counter / 1000000000f)} GB"
-    counter >= 1000000 -> "${round(counter / 1000000f)} MB"
-    counter >= 1000 -> "${round(counter / 1000f)} KB"
-    else -> "$counter"
-}
+fun countToHumanReadableBytes(counter: Int) =
+    when {
+        counter >= 1000000000 -> "${round(counter / 1000000000f)} GB"
+        counter >= 1000000 -> "${round(counter / 1000000f)} MB"
+        counter >= 1000 -> "${round(counter / 1000f)} KB"
+        else -> "$counter"
+    }
 
-fun countToHumanReadable(counter: Int, str: String) = when {
+fun countToHumanReadable(
+    counter: Int,
+    str: String,
+) = when {
     counter >= 1000000000 -> "${round(counter / 1000000000f)}G $str"
     counter >= 1000000 -> "${round(counter / 1000000f)}M $str"
     counter >= 1000 -> "${round(counter / 1000f)}K $str"

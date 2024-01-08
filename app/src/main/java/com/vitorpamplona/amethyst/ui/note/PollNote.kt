@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.note
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -79,7 +99,7 @@ fun PollNote(
     canPreview: Boolean,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     val pollViewModel: PollNoteViewModel = viewModel(key = "PollNoteViewModel")
 
@@ -91,7 +111,7 @@ fun PollNote(
         canPreview = canPreview,
         backgroundColor = backgroundColor,
         accountViewModel = accountViewModel,
-        nav = nav
+        nav = nav,
     )
 }
 
@@ -102,7 +122,7 @@ fun PollNote(
     canPreview: Boolean,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     WatchZapsAndUpdateTallies(baseNote, pollViewModel)
 
@@ -116,7 +136,7 @@ fun PollNote(
             accountViewModel,
             canPreview,
             backgroundColor,
-            nav
+            nav,
         )
     }
 }
@@ -124,13 +144,11 @@ fun PollNote(
 @Composable
 private fun WatchZapsAndUpdateTallies(
     baseNote: Note,
-    pollViewModel: PollNoteViewModel
+    pollViewModel: PollNoteViewModel,
 ) {
     val zapsState by baseNote.live().zaps.observeAsState()
 
-    LaunchedEffect(key1 = zapsState) {
-        pollViewModel.refreshTallies()
-    }
+    LaunchedEffect(key1 = zapsState) { pollViewModel.refreshTallies() }
 }
 
 @Composable
@@ -141,22 +159,21 @@ private fun OptionNote(
     accountViewModel: AccountViewModel,
     canPreview: Boolean,
     backgroundColor: MutableState<Color>,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    val tags = remember(baseNote) {
-        baseNote.event?.tags()?.toImmutableListOfLists() ?: EmptyTagList
-    }
+    val tags = remember(baseNote) { baseNote.event?.tags()?.toImmutableListOfLists() ?: EmptyTagList }
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(vertical = 3.dp)
+        modifier = Modifier.padding(vertical = 3.dp),
     ) {
         if (!pollViewModel.canZap()) {
-            val color = if (poolOption.consensusThreadhold) {
-                Color.Green.copy(alpha = 0.32f)
-            } else {
-                MaterialTheme.colorScheme.mediumImportanceLink
-            }
+            val color =
+                if (poolOption.consensusThreadhold) {
+                    Color.Green.copy(alpha = 0.32f)
+                } else {
+                    MaterialTheme.colorScheme.mediumImportanceLink
+                }
 
             ZapVote(
                 baseNote,
@@ -171,13 +188,12 @@ private fun OptionNote(
                         tags,
                         backgroundColor,
                         accountViewModel,
-                        nav
+                        nav,
                     )
                 },
-                clickablePrepend = {
-                },
+                clickablePrepend = {},
                 accountViewModel = accountViewModel,
-                nav = nav
+                nav = nav,
             )
         } else {
             ZapVote(
@@ -186,10 +202,17 @@ private fun OptionNote(
                 pollViewModel = pollViewModel,
                 nonClickablePrepend = {},
                 clickablePrepend = {
-                    RenderOptionBeforeVote(poolOption.descriptor, canPreview, tags, backgroundColor, accountViewModel, nav)
+                    RenderOptionBeforeVote(
+                        poolOption.descriptor,
+                        canPreview,
+                        tags,
+                        backgroundColor,
+                        accountViewModel,
+                        nav,
+                    )
                 },
                 accountViewModel = accountViewModel,
-                nav = nav
+                nav = nav,
             )
         }
     }
@@ -204,51 +227,40 @@ private fun RenderOptionAfterVote(
     tags: ImmutableListOfLists<String>,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    val totalPercentage = remember(totalRatio) {
-        "${(totalRatio * 100).roundToInt()}%"
-    }
+    val totalPercentage = remember(totalRatio) { "${(totalRatio * 100).roundToInt()}%" }
 
     Box(
-        Modifier
-            .fillMaxWidth(0.75f)
+        Modifier.fillMaxWidth(0.75f)
             .clip(shape = QuoteBorder)
             .border(
                 2.dp,
                 color,
-                QuoteBorder
-            )
+                QuoteBorder,
+            ),
     ) {
         LinearProgressIndicator(
             modifier = Modifier.matchParentSize(),
             color = color,
-            progress = totalRatio
+            progress = totalRatio,
         )
 
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
                 horizontalAlignment = Alignment.End,
-                modifier = remember {
-                    Modifier
-                        .padding(horizontal = 10.dp)
-                        .width(40.dp)
-                }
+                modifier = remember { Modifier.padding(horizontal = 10.dp).width(40.dp) },
             ) {
                 Text(
                     text = totalPercentage,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
                 )
             }
 
             Column(
-                modifier = remember {
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(15.dp)
-                }
+                modifier = remember { Modifier.fillMaxWidth().padding(15.dp) },
             ) {
                 TranslatableRichTextViewer(
                     description,
@@ -257,7 +269,7 @@ private fun RenderOptionAfterVote(
                     tags,
                     backgroundColor,
                     accountViewModel,
-                    nav
+                    nav,
                 )
             }
         }
@@ -271,17 +283,16 @@ private fun RenderOptionBeforeVote(
     tags: ImmutableListOfLists<String>,
     backgroundColor: MutableState<Color>,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     Box(
-        Modifier
-            .fillMaxWidth(0.75f)
+        Modifier.fillMaxWidth(0.75f)
             .clip(shape = QuoteBorder)
             .border(
                 2.dp,
                 MaterialTheme.colorScheme.primary,
-                QuoteBorder
-            )
+                QuoteBorder,
+            ),
     ) {
         TranslatableRichTextViewer(
             description,
@@ -290,7 +301,7 @@ private fun RenderOptionBeforeVote(
             tags,
             backgroundColor,
             accountViewModel,
-            nav
+            nav,
         )
     }
 }
@@ -305,18 +316,14 @@ fun ZapVote(
     nonClickablePrepend: @Composable () -> Unit,
     clickablePrepend: @Composable () -> Unit,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    val isLoggedUser by remember {
-        derivedStateOf {
-            accountViewModel.isLoggedUser(baseNote.author)
-        }
-    }
+    val isLoggedUser by remember { derivedStateOf { accountViewModel.isLoggedUser(baseNote.author) } }
 
     var wantsToZap by remember { mutableStateOf(false) }
     var wantsToPay by remember {
         mutableStateOf<ImmutableList<ZapPaymentHandler.Payable>>(
-            persistentListOf()
+            persistentListOf(),
         )
     }
 
@@ -330,60 +337,59 @@ fun ZapVote(
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.combinedClickable(
-            role = Role.Button,
-            interactionSource = remember { MutableInteractionSource() },
-            indication = rememberRipple(bounded = false, radius = 24.dp),
-            onClick = {
-                if (!accountViewModel.isWriteable()) {
-                    accountViewModel.toast(
-                        R.string.read_only_user,
-                        R.string.login_with_a_private_key_to_be_able_to_send_zaps
-                    )
-                } else if (pollViewModel.isPollClosed()) {
-                    accountViewModel.toast(
-                        R.string.poll_unable_to_vote,
-                        R.string.poll_is_closed_explainer
-                    )
-                } else if (isLoggedUser) {
-                    accountViewModel.toast(
-                        R.string.poll_unable_to_vote,
-                        R.string.poll_author_no_vote
-                    )
-                } else if (pollViewModel.isVoteAmountAtomic() && poolOption.zappedByLoggedIn) {
-                    // only allow one vote per option when min==max, i.e. atomic vote amount specified
-                    accountViewModel.toast(
-                        R.string.poll_unable_to_vote,
-                        R.string.one_vote_per_user_on_atomic_votes
-                    )
-                    return@combinedClickable
-                } else if (accountViewModel.account.zapAmountChoices.size == 1 &&
-                    pollViewModel.isValidInputVoteAmount(accountViewModel.account.zapAmountChoices.first())
-                ) {
-                    accountViewModel.zap(
-                        baseNote,
-                        accountViewModel.account.zapAmountChoices.first() * 1000,
-                        poolOption.option,
-                        "",
-                        context,
-                        onError = { title, message ->
-                            zappingProgress = 0f
-                            showErrorMessageDialog = StringToastMsg(title, message)
-                        },
-                        onProgress = {
-                            scope.launch(Dispatchers.Main) {
-                                zappingProgress = it
-                            }
-                        },
-                        onPayViaIntent = {
-                        },
-                        zapType = accountViewModel.account.defaultZapType
-                    )
-                } else {
-                    wantsToZap = true
-                }
-            }
-        )
+        modifier =
+            Modifier.combinedClickable(
+                role = Role.Button,
+                interactionSource = remember { MutableInteractionSource() },
+                indication = rememberRipple(bounded = false, radius = 24.dp),
+                onClick = {
+                    if (!accountViewModel.isWriteable()) {
+                        accountViewModel.toast(
+                            R.string.read_only_user,
+                            R.string.login_with_a_private_key_to_be_able_to_send_zaps,
+                        )
+                    } else if (pollViewModel.isPollClosed()) {
+                        accountViewModel.toast(
+                            R.string.poll_unable_to_vote,
+                            R.string.poll_is_closed_explainer,
+                        )
+                    } else if (isLoggedUser) {
+                        accountViewModel.toast(
+                            R.string.poll_unable_to_vote,
+                            R.string.poll_author_no_vote,
+                        )
+                    } else if (pollViewModel.isVoteAmountAtomic() && poolOption.zappedByLoggedIn) {
+                        // only allow one vote per option when min==max, i.e. atomic vote amount specified
+                        accountViewModel.toast(
+                            R.string.poll_unable_to_vote,
+                            R.string.one_vote_per_user_on_atomic_votes,
+                        )
+                        return@combinedClickable
+                    } else if (
+                        accountViewModel.account.zapAmountChoices.size == 1 &&
+                        pollViewModel.isValidInputVoteAmount(
+                            accountViewModel.account.zapAmountChoices.first(),
+                        )
+                    ) {
+                        accountViewModel.zap(
+                            baseNote,
+                            accountViewModel.account.zapAmountChoices.first() * 1000,
+                            poolOption.option,
+                            "",
+                            context,
+                            onError = { title, message ->
+                                zappingProgress = 0f
+                                showErrorMessageDialog = StringToastMsg(title, message)
+                            },
+                            onProgress = { scope.launch(Dispatchers.Main) { zappingProgress = it } },
+                            onPayViaIntent = {},
+                            zapType = accountViewModel.account.defaultZapType,
+                        )
+                    } else {
+                        wantsToZap = true
+                    }
+                },
+            ),
     ) {
         if (wantsToZap) {
             FilteredZapAmountChoicePopup(
@@ -395,21 +401,13 @@ fun ZapVote(
                     wantsToZap = false
                     zappingProgress = 0f
                 },
-                onChangeAmount = {
-                    wantsToZap = false
-                },
+                onChangeAmount = { wantsToZap = false },
                 onError = { title, message ->
                     showErrorMessageDialog = StringToastMsg(title, message)
                     zappingProgress = 0f
                 },
-                onProgress = {
-                    scope.launch(Dispatchers.Main) {
-                        zappingProgress = it
-                    }
-                },
-                onPayViaIntent = {
-                    wantsToPay = it
-                }
+                onProgress = { scope.launch(Dispatchers.Main) { zappingProgress = it } },
+                onPayViaIntent = { wantsToPay = it },
             )
         }
 
@@ -417,19 +415,18 @@ fun ZapVote(
             PayViaIntentDialog(
                 payingInvoices = wantsToPay,
                 accountViewModel = accountViewModel,
-                onClose = {
-                    wantsToPay = persistentListOf()
-                },
+                onClose = { wantsToPay = persistentListOf() },
                 onError = {
                     wantsToPay = persistentListOf()
                     scope.launch {
                         zappingProgress = 0f
-                        showErrorMessageDialog = StringToastMsg(
-                            context.getString(R.string.error_dialog_zap_error),
-                            it
-                        )
+                        showErrorMessageDialog =
+                            StringToastMsg(
+                                context.getString(R.string.error_dialog_zap_error),
+                                it,
+                            )
                     }
-                }
+                },
             )
         }
 
@@ -438,11 +435,9 @@ fun ZapVote(
                 title = toast.title,
                 textContent = toast.msg,
                 onClickStartMessage = {
-                    baseNote.author?.let {
-                        nav(routeToMessage(it, toast.msg, accountViewModel))
-                    }
+                    baseNote.author?.let { nav(routeToMessage(it, toast.msg, accountViewModel)) }
                 },
-                onDismiss = { showErrorMessageDialog = null }
+                onDismiss = { showErrorMessageDialog = null },
             )
         }
 
@@ -454,7 +449,7 @@ fun ZapVote(
                 imageVector = Icons.Default.Bolt,
                 contentDescription = stringResource(R.string.zaps),
                 modifier = Modifier.size(20.dp),
-                tint = BitcoinOrange
+                tint = BitcoinOrange,
             )
         } else {
             if (zappingProgress < 0.1 || zappingProgress > 0.99) {
@@ -462,14 +457,14 @@ fun ZapVote(
                     imageVector = Icons.Outlined.Bolt,
                     contentDescription = stringResource(id = R.string.zaps),
                     modifier = Modifier.size(20.dp),
-                    tint = MaterialTheme.colorScheme.placeholderText
+                    tint = MaterialTheme.colorScheme.placeholderText,
                 )
             } else {
                 Spacer(Modifier.width(3.dp))
                 CircularProgressIndicator(
                     progress = zappingProgress,
                     modifier = Modifier.size(14.dp),
-                    strokeWidth = 2.dp
+                    strokeWidth = 2.dp,
                 )
             }
         }
@@ -477,14 +472,12 @@ fun ZapVote(
 
     // only show tallies after a user has zapped note
     if (!pollViewModel.canZap()) {
-        val amountStr = remember(poolOption.zappedValue) {
-            showAmount(poolOption.zappedValue)
-        }
+        val amountStr = remember(poolOption.zappedValue) { showAmount(poolOption.zappedValue) }
         Text(
             text = amountStr,
             fontSize = Font14SP,
             color = MaterialTheme.colorScheme.placeholderText,
-            modifier = modifier
+            modifier = modifier,
         )
     }
 }
@@ -500,33 +493,29 @@ fun FilteredZapAmountChoicePopup(
     onChangeAmount: () -> Unit,
     onError: (title: String, text: String) -> Unit,
     onProgress: (percent: Float) -> Unit,
-    onPayViaIntent: (ImmutableList<ZapPaymentHandler.Payable>) -> Unit
+    onPayViaIntent: (ImmutableList<ZapPaymentHandler.Payable>) -> Unit,
 ) {
     val context = LocalContext.current
 
     val accountState by accountViewModel.accountLiveData.observeAsState()
-    val defaultZapType by remember(accountState) {
-        derivedStateOf {
-            accountState?.account?.defaultZapType ?: LnZapEvent.ZapType.PRIVATE
+    val defaultZapType by
+        remember(accountState) {
+            derivedStateOf { accountState?.account?.defaultZapType ?: LnZapEvent.ZapType.PRIVATE }
         }
-    }
 
     val zapMessage = ""
 
-    val sortedOptions = remember(accountState) {
-        pollViewModel.createZapOptionsThatMatchThePollingParameters()
-    }
+    val sortedOptions =
+        remember(accountState) { pollViewModel.createZapOptionsThatMatchThePollingParameters() }
 
     Popup(
         alignment = Alignment.BottomCenter,
         offset = IntOffset(0, -100),
-        onDismissRequest = { onDismiss() }
+        onDismissRequest = { onDismiss() },
     ) {
         FlowRow(horizontalArrangement = Arrangement.Center) {
             sortedOptions.forEach { amountInSats ->
-                val zapAmount = remember {
-                    "⚡ ${showAmount(amountInSats.toBigDecimal().setScale(1))}"
-                }
+                val zapAmount = remember { "⚡ ${showAmount(amountInSats.toBigDecimal().setScale(1))}" }
 
                 Button(
                     modifier = Modifier.padding(horizontal = 3.dp),
@@ -540,39 +529,38 @@ fun FilteredZapAmountChoicePopup(
                             onError,
                             onProgress,
                             onPayViaIntent,
-                            defaultZapType
+                            defaultZapType,
                         )
                         onDismiss()
                     },
                     shape = ButtonBorder,
-                    colors = ButtonDefaults
-                        .buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary,
+                        ),
                 ) {
                     Text(
                         text = zapAmount,
                         color = Color.White,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.combinedClickable(
-                            onClick = {
-                                accountViewModel.zap(
-                                    baseNote,
-                                    amountInSats * 1000,
-                                    pollOption,
-                                    zapMessage,
-                                    context,
-                                    onError,
-                                    onProgress,
-                                    onPayViaIntent,
-                                    defaultZapType
-                                )
-                                onDismiss()
-                            },
-                            onLongClick = {
-                                onChangeAmount()
-                            }
-                        )
+                        modifier =
+                            Modifier.combinedClickable(
+                                onClick = {
+                                    accountViewModel.zap(
+                                        baseNote,
+                                        amountInSats * 1000,
+                                        pollOption,
+                                        zapMessage,
+                                        context,
+                                        onError,
+                                        onProgress,
+                                        onPayViaIntent,
+                                        defaultZapType,
+                                    )
+                                    onDismiss()
+                                },
+                                onLongClick = { onChangeAmount() },
+                            ),
                     )
                 }
             }

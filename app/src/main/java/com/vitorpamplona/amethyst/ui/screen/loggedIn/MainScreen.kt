@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.screen.loggedIn
 
 import android.content.res.Configuration
@@ -97,26 +117,28 @@ import kotlin.math.abs
 fun MainScreen(
     accountViewModel: AccountViewModel,
     accountStateViewModel: AccountStateViewModel,
-    sharedPreferencesViewModel: SharedPreferencesViewModel
+    sharedPreferencesViewModel: SharedPreferencesViewModel,
 ) {
     val scope = rememberCoroutineScope()
     var openBottomSheet by rememberSaveable { mutableStateOf(false) }
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
-    val sheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true,
-        confirmValueChange = { it != SheetValue.PartiallyExpanded }
-    )
+    val sheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+            confirmValueChange = { it != SheetValue.PartiallyExpanded },
+        )
 
-    val openSheetFunction = remember {
-        {
-            scope.launch {
-                openBottomSheet = true
-                sheetState.show()
+    val openSheetFunction =
+        remember {
+            {
+                scope.launch {
+                    openBottomSheet = true
+                    sheetState.show()
+                }
+                Unit
             }
-            Unit
         }
-    }
 
     val navController = rememberNavController()
     val navState = navController.currentBackStackEntryAsState()
@@ -124,171 +146,190 @@ fun MainScreen(
     val orientation = LocalConfiguration.current.orientation
     val currentDrawerState = drawerState.currentValue
     LaunchedEffect(key1 = orientation) {
-        if (orientation == Configuration.ORIENTATION_LANDSCAPE && currentDrawerState == DrawerValue.Closed) {
+        if (
+            orientation == Configuration.ORIENTATION_LANDSCAPE && currentDrawerState == DrawerValue.Closed
+        ) {
             drawerState.close()
         }
     }
 
-    val nav = remember(navController) {
-        { route: String ->
-            scope.launch {
-                if (getRouteWithArguments(navController) != route) {
-                    navController.navigate(route)
+    val nav =
+        remember(navController) {
+            { route: String ->
+                scope.launch {
+                    if (getRouteWithArguments(navController) != route) {
+                        navController.navigate(route)
+                    }
                 }
+                Unit
             }
-            Unit
         }
-    }
 
     DisplayErrorMessages(accountViewModel)
     DisplayNotifyMessages(accountViewModel, nav)
 
-    val navPopBack = remember(navController) {
-        {
-            navController.popBackStack()
-            Unit
+    val navPopBack =
+        remember(navController) {
+            {
+                navController.popBackStack()
+                Unit
+            }
         }
-    }
 
-    val followLists: FollowListViewModel = viewModel(
-        key = "FollowListViewModel",
-        factory = FollowListViewModel.Factory(accountViewModel.account)
-    )
+    val followLists: FollowListViewModel =
+        viewModel(
+            key = "FollowListViewModel",
+            factory = FollowListViewModel.Factory(accountViewModel.account),
+        )
 
     // Avoids creating ViewModels for performance reasons (up to 1 second delays)
-    val homeFeedViewModel: NostrHomeFeedViewModel = viewModel(
-        key = "NostrHomeFeedViewModel",
-        factory = NostrHomeFeedViewModel.Factory(accountViewModel.account)
-    )
+    val homeFeedViewModel: NostrHomeFeedViewModel =
+        viewModel(
+            key = "NostrHomeFeedViewModel",
+            factory = NostrHomeFeedViewModel.Factory(accountViewModel.account),
+        )
 
-    val repliesFeedViewModel: NostrHomeRepliesFeedViewModel = viewModel(
-        key = "NostrHomeRepliesFeedViewModel",
-        factory = NostrHomeRepliesFeedViewModel.Factory(accountViewModel.account)
-    )
+    val repliesFeedViewModel: NostrHomeRepliesFeedViewModel =
+        viewModel(
+            key = "NostrHomeRepliesFeedViewModel",
+            factory = NostrHomeRepliesFeedViewModel.Factory(accountViewModel.account),
+        )
 
-    val videoFeedViewModel: NostrVideoFeedViewModel = viewModel(
-        key = "NostrVideoFeedViewModel",
-        factory = NostrVideoFeedViewModel.Factory(accountViewModel.account)
-    )
+    val videoFeedViewModel: NostrVideoFeedViewModel =
+        viewModel(
+            key = "NostrVideoFeedViewModel",
+            factory = NostrVideoFeedViewModel.Factory(accountViewModel.account),
+        )
 
-    val discoverMarketplaceFeedViewModel: NostrDiscoverMarketplaceFeedViewModel = viewModel(
-        key = "NostrDiscoveryMarketplaceFeedViewModel",
-        factory = NostrDiscoverMarketplaceFeedViewModel.Factory(accountViewModel.account)
-    )
+    val discoverMarketplaceFeedViewModel: NostrDiscoverMarketplaceFeedViewModel =
+        viewModel(
+            key = "NostrDiscoveryMarketplaceFeedViewModel",
+            factory = NostrDiscoverMarketplaceFeedViewModel.Factory(accountViewModel.account),
+        )
 
-    val discoveryLiveFeedViewModel: NostrDiscoverLiveFeedViewModel = viewModel(
-        key = "NostrDiscoveryLiveFeedViewModel",
-        factory = NostrDiscoverLiveFeedViewModel.Factory(accountViewModel.account)
-    )
+    val discoveryLiveFeedViewModel: NostrDiscoverLiveFeedViewModel =
+        viewModel(
+            key = "NostrDiscoveryLiveFeedViewModel",
+            factory = NostrDiscoverLiveFeedViewModel.Factory(accountViewModel.account),
+        )
 
-    val discoveryCommunityFeedViewModel: NostrDiscoverCommunityFeedViewModel = viewModel(
-        key = "NostrDiscoveryCommunityFeedViewModel",
-        factory = NostrDiscoverCommunityFeedViewModel.Factory(accountViewModel.account)
-    )
+    val discoveryCommunityFeedViewModel: NostrDiscoverCommunityFeedViewModel =
+        viewModel(
+            key = "NostrDiscoveryCommunityFeedViewModel",
+            factory = NostrDiscoverCommunityFeedViewModel.Factory(accountViewModel.account),
+        )
 
-    val discoveryChatFeedViewModel: NostrDiscoverChatFeedViewModel = viewModel(
-        key = "NostrDiscoveryChatFeedViewModel",
-        factory = NostrDiscoverChatFeedViewModel.Factory(accountViewModel.account)
-    )
+    val discoveryChatFeedViewModel: NostrDiscoverChatFeedViewModel =
+        viewModel(
+            key = "NostrDiscoveryChatFeedViewModel",
+            factory = NostrDiscoverChatFeedViewModel.Factory(accountViewModel.account),
+        )
 
-    val notifFeedViewModel: NotificationViewModel = viewModel(
-        key = "NotificationViewModel",
-        factory = NotificationViewModel.Factory(accountViewModel.account)
-    )
+    val notifFeedViewModel: NotificationViewModel =
+        viewModel(
+            key = "NotificationViewModel",
+            factory = NotificationViewModel.Factory(accountViewModel.account),
+        )
 
-    val userReactionsStatsModel: UserReactionsViewModel = viewModel(
-        key = "UserReactionsViewModel",
-        factory = UserReactionsViewModel.Factory(accountViewModel.account)
-    )
+    val userReactionsStatsModel: UserReactionsViewModel =
+        viewModel(
+            key = "UserReactionsViewModel",
+            factory = UserReactionsViewModel.Factory(accountViewModel.account),
+        )
 
-    val knownFeedViewModel: NostrChatroomListKnownFeedViewModel = viewModel(
-        key = "NostrChatroomListKnownFeedViewModel",
-        factory = NostrChatroomListKnownFeedViewModel.Factory(accountViewModel.account)
-    )
+    val knownFeedViewModel: NostrChatroomListKnownFeedViewModel =
+        viewModel(
+            key = "NostrChatroomListKnownFeedViewModel",
+            factory = NostrChatroomListKnownFeedViewModel.Factory(accountViewModel.account),
+        )
 
-    val newFeedViewModel: NostrChatroomListNewFeedViewModel = viewModel(
-        key = "NostrChatroomListNewFeedViewModel",
-        factory = NostrChatroomListNewFeedViewModel.Factory(accountViewModel.account)
-    )
+    val newFeedViewModel: NostrChatroomListNewFeedViewModel =
+        viewModel(
+            key = "NostrChatroomListNewFeedViewModel",
+            factory = NostrChatroomListNewFeedViewModel.Factory(accountViewModel.account),
+        )
 
-    val navBottomRow = remember(navController) {
-        { route: Route, selected: Boolean ->
-            scope.launch {
-                if (!selected) {
-                    navController.navigate(route.base) {
-                        popUpTo(Route.Home.route)
-                        launchSingleTop = true
-                    }
-                } else {
-                    // deals with scroll to top here to avoid passing as parameter
-                    // and having to deal with all recompositions with scroll to top true
-                    when (route.base) {
-                        Route.Home.base -> {
-                            homeFeedViewModel.sendToTop()
-                            repliesFeedViewModel.sendToTop()
+    val navBottomRow =
+        remember(navController) {
+            { route: Route, selected: Boolean ->
+                scope.launch {
+                    if (!selected) {
+                        navController.navigate(route.base) {
+                            popUpTo(Route.Home.route)
+                            launchSingleTop = true
+                        }
+                    } else {
+                        // deals with scroll to top here to avoid passing as parameter
+                        // and having to deal with all recompositions with scroll to top true
+                        when (route.base) {
+                            Route.Home.base -> {
+                                homeFeedViewModel.sendToTop()
+                                repliesFeedViewModel.sendToTop()
+                            }
+                            Route.Video.base -> {
+                                videoFeedViewModel.sendToTop()
+                            }
+                            Route.Discover.base -> {
+                                discoveryLiveFeedViewModel.sendToTop()
+                                discoveryCommunityFeedViewModel.sendToTop()
+                                discoveryChatFeedViewModel.sendToTop()
+                            }
+                            Route.Notification.base -> {
+                                notifFeedViewModel.invalidateDataAndSendToTop()
+                            }
                         }
 
-                        Route.Video.base -> {
-                            videoFeedViewModel.sendToTop()
+                        navController.navigate(route.route) {
+                            popUpTo(route.route)
+                            launchSingleTop = true
                         }
-
-                        Route.Discover.base -> {
-                            discoveryLiveFeedViewModel.sendToTop()
-                            discoveryCommunityFeedViewModel.sendToTop()
-                            discoveryChatFeedViewModel.sendToTop()
-                        }
-
-                        Route.Notification.base -> {
-                            notifFeedViewModel.invalidateDataAndSendToTop()
-                        }
-                    }
-
-                    navController.navigate(route.route) {
-                        popUpTo(route.route)
-                        launchSingleTop = true
                     }
                 }
-            }
 
-            Unit
+                Unit
+            }
         }
-    }
 
     val bottomBarHeightPx = with(LocalDensity.current) { 50.dp.roundToPx().toFloat() }
     val bottomBarOffsetHeightPx = remember { mutableFloatStateOf(0f) }
     val shouldShow = remember { mutableStateOf(true) }
 
-    val nestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                val newOffset = bottomBarOffsetHeightPx.floatValue + available.y
+    val nestedScrollConnection =
+        remember {
+            object : NestedScrollConnection {
+                override fun onPreScroll(
+                    available: Offset,
+                    source: NestedScrollSource,
+                ): Offset {
+                    val newOffset = bottomBarOffsetHeightPx.floatValue + available.y
 
-                if (accountViewModel.settings.automaticallyHideNavigationBars == BooleanType.ALWAYS) {
-                    val newBottomBarOffset = if (navState.value?.destination?.route !in InvertedLayouts) {
-                        newOffset.coerceIn(-bottomBarHeightPx, 0f)
+                    if (accountViewModel.settings.automaticallyHideNavigationBars == BooleanType.ALWAYS) {
+                        val newBottomBarOffset =
+                            if (navState.value?.destination?.route !in InvertedLayouts) {
+                                newOffset.coerceIn(-bottomBarHeightPx, 0f)
+                            } else {
+                                newOffset.coerceIn(0f, bottomBarHeightPx)
+                            }
+
+                        if (newBottomBarOffset != bottomBarOffsetHeightPx.floatValue) {
+                            bottomBarOffsetHeightPx.floatValue = newBottomBarOffset
+                        }
                     } else {
-                        newOffset.coerceIn(0f, bottomBarHeightPx)
+                        if (abs(bottomBarOffsetHeightPx.floatValue) > 0.1) {
+                            bottomBarOffsetHeightPx.floatValue = 0f
+                        }
                     }
 
-                    if (newBottomBarOffset != bottomBarOffsetHeightPx.floatValue) {
-                        bottomBarOffsetHeightPx.floatValue = newBottomBarOffset
+                    val newShouldShow = abs(bottomBarOffsetHeightPx.floatValue) < bottomBarHeightPx / 2.0f
+
+                    if (shouldShow.value != newShouldShow) {
+                        shouldShow.value = newShouldShow
                     }
-                } else {
-                    if (abs(bottomBarOffsetHeightPx.floatValue) > 0.1) {
-                        bottomBarOffsetHeightPx.floatValue = 0f
-                    }
+
+                    return Offset.Zero
                 }
-
-                val newShouldShow = abs(bottomBarOffsetHeightPx.floatValue) < bottomBarHeightPx / 2.0f
-
-                if (shouldShow.value != newShouldShow) {
-                    shouldShow.value = newShouldShow
-                }
-
-                return Offset.Zero
             }
         }
-    }
 
     WatchNavStateToUpdateBarVisibility(navState) {
         bottomBarOffsetHeightPx.floatValue = 0f
@@ -299,21 +340,19 @@ fun MainScreen(
         drawerState = drawerState,
         drawerContent = {
             DrawerContent(nav, drawerState, openSheetFunction, accountViewModel)
-            BackHandler(enabled = drawerState.isOpen) {
-                scope.launch { drawerState.close() }
-            }
+            BackHandler(enabled = drawerState.isOpen) { scope.launch { drawerState.close() } }
         },
         content = {
             Scaffold(
-                modifier = Modifier
-                    .background(MaterialTheme.colorScheme.secondary)
-                    .statusBarsPadding()
-                    .nestedScroll(nestedScrollConnection),
+                modifier =
+                    Modifier.background(MaterialTheme.colorScheme.secondary)
+                        .statusBarsPadding()
+                        .nestedScroll(nestedScrollConnection),
                 bottomBar = {
                     AnimatedContent(
                         targetState = shouldShow.value,
                         transitionSpec = AnimatedContentTransitionScope<Boolean>::bottomBarTransitionSpec,
-                        label = "BottomBarAnimatedContent"
+                        label = "BottomBarAnimatedContent",
                     ) { isVisible ->
                         if (isVisible) {
                             AppBottomBar(accountViewModel, navState, navBottomRow)
@@ -324,7 +363,7 @@ fun MainScreen(
                     AnimatedContent(
                         targetState = shouldShow.value,
                         transitionSpec = AnimatedContentTransitionScope<Boolean>::topBarTransitionSpec,
-                        label = "TopBarAnimatedContent"
+                        label = "TopBarAnimatedContent",
                     ) { isVisible ->
                         if (isVisible) {
                             AppTopBar(
@@ -333,7 +372,7 @@ fun MainScreen(
                                 drawerState,
                                 accountViewModel,
                                 nav = nav,
-                                navPopBack
+                                navPopBack,
                             )
                         }
                     }
@@ -342,28 +381,28 @@ fun MainScreen(
                     AnimatedVisibility(
                         visible = shouldShow.value,
                         enter = remember { scaleIn() },
-                        exit = remember { scaleOut() }
+                        exit = remember { scaleOut() },
                     ) {
                         Box(
-                            modifier = Modifier.defaultMinSize(minWidth = 55.dp, minHeight = 55.dp)
+                            modifier = Modifier.defaultMinSize(minWidth = 55.dp, minHeight = 55.dp),
                         ) {
                             FloatingButtons(
                                 navState,
                                 accountViewModel,
                                 accountStateViewModel,
                                 nav,
-                                navBottomRow
+                                navBottomRow,
                             )
                         }
                     }
-                }
+                },
             ) {
                 Column(
-                    modifier = Modifier
-                        .padding(
+                    modifier =
+                        Modifier.padding(
                             top = it.calculateTopPadding(),
-                            bottom = it.calculateBottomPadding()
-                        )
+                            bottom = it.calculateBottomPadding(),
+                        ),
                 ) {
                     AppNavigation(
                         homeFeedViewModel = homeFeedViewModel,
@@ -379,26 +418,31 @@ fun MainScreen(
                         userReactionsStatsModel = userReactionsStatsModel,
                         navController = navController,
                         accountViewModel = accountViewModel,
-                        sharedPreferencesViewModel = sharedPreferencesViewModel
+                        sharedPreferencesViewModel = sharedPreferencesViewModel,
                     )
                 }
             }
-        }
+        },
     )
 
     // Sheet content
     if (openBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = {
-                scope.launch { sheetState.hide() }.invokeOnCompletion {
-                    if (!sheetState.isVisible) {
-                        openBottomSheet = false
+                scope
+                    .launch { sheetState.hide() }
+                    .invokeOnCompletion {
+                        if (!sheetState.isVisible) {
+                            openBottomSheet = false
+                        }
                     }
-                }
             },
-            sheetState = sheetState
+            sheetState = sheetState,
         ) {
-            AccountSwitchBottomSheet(accountViewModel = accountViewModel, accountStateViewModel = accountStateViewModel)
+            AccountSwitchBottomSheet(
+                accountViewModel = accountViewModel,
+                accountStateViewModel = accountStateViewModel,
+            )
         }
     }
 }
@@ -427,33 +471,42 @@ private fun DisplayErrorMessages(accountViewModel: AccountViewModel) {
 
     openDialogMsg.value?.let { obj ->
         when (obj) {
-            is ResourceToastMsg -> InformationDialog(
-                context.getString(obj.titleResId),
-                context.getString(obj.resourceId)
-            ) {
-                accountViewModel.clearToasts()
-            }
-
-            is StringToastMsg -> InformationDialog(
-                obj.title,
-                obj.msg
-            ) {
-                accountViewModel.clearToasts()
-            }
+            is ResourceToastMsg ->
+                InformationDialog(
+                    context.getString(obj.titleResId),
+                    context.getString(obj.resourceId),
+                ) {
+                    accountViewModel.clearToasts()
+                }
+            is StringToastMsg ->
+                InformationDialog(
+                    obj.title,
+                    obj.msg,
+                ) {
+                    accountViewModel.clearToasts()
+                }
         }
     }
 }
 
 @Composable
-private fun DisplayNotifyMessages(accountViewModel: AccountViewModel, nav: (String) -> Unit) {
-    val openDialogMsg = accountViewModel.account.transientPaymentRequests.collectAsStateWithLifecycle(null)
+private fun DisplayNotifyMessages(
+    accountViewModel: AccountViewModel,
+    nav: (String) -> Unit,
+) {
+    val openDialogMsg =
+        accountViewModel.account.transientPaymentRequests.collectAsStateWithLifecycle(null)
 
     openDialogMsg.value?.firstOrNull()?.let { request ->
         NotifyRequestDialog(
-            title = stringResource(id = R.string.payment_required_title, request.relayUrl.removePrefix("wss://").removeSuffix("/")),
+            title =
+                stringResource(
+                    id = R.string.payment_required_title,
+                    request.relayUrl.removePrefix("wss://").removeSuffix("/"),
+                ),
             textContent = request.description,
             accountViewModel = accountViewModel,
-            nav = nav
+            nav = nav,
         ) {
             accountViewModel.dismissPaymentRequest(request)
         }
@@ -461,23 +514,23 @@ private fun DisplayNotifyMessages(accountViewModel: AccountViewModel, nav: (Stri
 }
 
 @Composable
-fun WatchNavStateToUpdateBarVisibility(navState: State<NavBackStackEntry?>, onReset: () -> Unit) {
-    LaunchedEffect(key1 = navState.value) {
-        onReset()
-    }
+fun WatchNavStateToUpdateBarVisibility(
+    navState: State<NavBackStackEntry?>,
+    onReset: () -> Unit,
+) {
+    LaunchedEffect(key1 = navState.value) { onReset() }
 
     val lifeCycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifeCycleOwner) {
-        val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                onReset()
+        val observer =
+            LifecycleEventObserver { _, event ->
+                if (event == Lifecycle.Event.ON_RESUME) {
+                    onReset()
+                }
             }
-        }
 
         lifeCycleOwner.lifecycle.addObserver(observer)
-        onDispose {
-            lifeCycleOwner.lifecycle.removeObserver(observer)
-        }
+        onDispose { lifeCycleOwner.lifecycle.removeObserver(observer) }
     }
 }
 
@@ -487,7 +540,7 @@ fun FloatingButtons(
     accountViewModel: AccountViewModel,
     accountStateViewModel: AccountStateViewModel,
     nav: (String) -> Unit,
-    navScrollToTop: (Route, Boolean) -> Unit
+    navScrollToTop: (Route, Boolean) -> Unit,
 ) {
     val accountState by accountStateViewModel.accountContent.collectAsStateWithLifecycle()
 
@@ -495,7 +548,6 @@ fun FloatingButtons(
         is AccountState.Loading -> {
             // Does nothing.
         }
-
         is AccountState.LoggedInViewOnly -> {
             WritePermissionButtons(navEntryState, accountViewModel, nav, navScrollToTop)
         }
@@ -513,32 +565,31 @@ private fun WritePermissionButtons(
     navEntryState: State<NavBackStackEntry?>,
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
-    navScrollToTop: (Route, Boolean) -> Unit
+    navScrollToTop: (Route, Boolean) -> Unit,
 ) {
-    val currentRoute by remember(navEntryState.value) {
-        derivedStateOf {
-            navEntryState.value?.destination?.route?.substringBefore("?")
+    val currentRoute by
+        remember(navEntryState.value) {
+            derivedStateOf { navEntryState.value?.destination?.route?.substringBefore("?") }
         }
-    }
 
     when (currentRoute) {
         Route.Home.base -> NewNoteButton(accountViewModel, nav)
         Route.Message.base -> {
-            if (accountViewModel.settings.windowSizeClass.value?.widthSizeClass == WindowWidthSizeClass.Compact) {
+            if (
+                accountViewModel.settings.windowSizeClass.value?.widthSizeClass ==
+                WindowWidthSizeClass.Compact
+            ) {
                 ChannelFabColumn(accountViewModel, nav)
             }
         }
         Route.Video.base -> NewImageButton(accountViewModel, nav, navScrollToTop)
         Route.Community.base -> {
-            val communityId by remember(navEntryState.value) {
-                derivedStateOf {
-                    navEntryState.value?.arguments?.getString("id")
+            val communityId by
+                remember(navEntryState.value) {
+                    derivedStateOf { navEntryState.value?.arguments?.getString("id") }
                 }
-            }
 
-            communityId?.let {
-                NewCommunityNoteButton(it, accountViewModel, nav)
-            }
+            communityId?.let { NewCommunityNoteButton(it, accountViewModel, nav) }
         }
     }
 }

@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.actions
 
 import androidx.compose.animation.Crossfade
@@ -47,66 +67,61 @@ fun RelayInformationDialog(
     relayBriefInfo: RelayBriefInfoCache.RelayBriefInfo,
     relayInfo: RelayInformation,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
-    val automaticallyShowProfilePicture = remember {
-        accountViewModel.settings.showProfilePictures.value
-    }
+    val automaticallyShowProfilePicture =
+        remember {
+            accountViewModel.settings.showProfilePictures.value
+        }
 
     Dialog(
         onDismissRequest = { onClose() },
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            dismissOnClickOutside = false
-        )
+        properties =
+            DialogProperties(
+                usePlatformDefaultWidth = false,
+                dismissOnClickOutside = false,
+            ),
     ) {
         Surface {
             val scrollState = rememberScrollState()
 
             Column(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .fillMaxSize()
-                    .verticalScroll(scrollState)
+                modifier = Modifier.padding(10.dp).fillMaxSize().verticalScroll(scrollState),
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    CloseButton(onPress = {
-                        onClose()
-                    })
+                    CloseButton(onPress = { onClose() })
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center, modifier = StdPadding.fillMaxWidth()) {
-                    Column() {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = StdPadding.fillMaxWidth(),
+                ) {
+                    Column {
                         RenderRelayIcon(
                             relayBriefInfo.displayUrl,
                             relayBriefInfo.favIcon,
                             automaticallyShowProfilePicture,
-                            MaterialTheme.colorScheme.largeRelayIconModifier
+                            MaterialTheme.colorScheme.largeRelayIconModifier,
                         )
                     }
 
                     Spacer(modifier = DoubleHorzSpacer)
 
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Row() {
-                            Title(relayInfo.name?.trim() ?: "")
-                        }
+                        Row { Title(relayInfo.name?.trim() ?: "") }
 
-                        Row() {
-                            SubtitleContent(relayInfo.description?.trim() ?: "")
-                        }
+                        Row { SubtitleContent(relayInfo.description?.trim() ?: "") }
                     }
                 }
 
                 Section(stringResource(R.string.owner))
 
-                relayInfo.pubkey?.let {
-                    DisplayOwnerInformation(it, accountViewModel, nav)
-                }
+                relayInfo.pubkey?.let { DisplayOwnerInformation(it, accountViewModel, nav) }
 
                 Section(stringResource(R.string.software))
 
@@ -138,9 +153,7 @@ fun RelayInformationDialog(
                     if (it.isNotEmpty()) {
                         Section(stringResource(R.string.admission_fees))
 
-                        it.forEach { item ->
-                            SectionContent("${item.amount?.div(1000) ?: 0} sats")
-                        }
+                        it.forEach { item -> SectionContent("${item.amount?.div(1000) ?: 0} sats") }
                     }
                 }
 
@@ -150,7 +163,7 @@ fun RelayInformationDialog(
                     Box(modifier = Modifier.padding(start = 10.dp)) {
                         ClickableUrl(
                             urlText = it,
-                            url = it
+                            url = it,
                         )
                     }
                 }
@@ -158,18 +171,30 @@ fun RelayInformationDialog(
                 relayInfo.limitation?.let {
                     Section(stringResource(R.string.limitations))
                     val authRequired = it.auth_required ?: false
-                    val authRequiredText = if (authRequired) stringResource(R.string.yes) else stringResource(R.string.no)
+                    val authRequiredText =
+                        if (authRequired) stringResource(R.string.yes) else stringResource(R.string.no)
                     val paymentRequired = it.payment_required ?: false
-                    val paymentRequiredText = if (paymentRequired) stringResource(R.string.yes) else stringResource(R.string.no)
+                    val paymentRequiredText =
+                        if (paymentRequired) stringResource(R.string.yes) else stringResource(R.string.no)
 
                     Column {
-                        SectionContent("${stringResource(R.string.message_length)}: ${it.max_message_length ?: 0}")
-                        SectionContent("${stringResource(R.string.subscriptions)}: ${it.max_subscriptions ?: 0}")
+                        SectionContent(
+                            "${stringResource(R.string.message_length)}: ${it.max_message_length ?: 0}",
+                        )
+                        SectionContent(
+                            "${stringResource(R.string.subscriptions)}: ${it.max_subscriptions ?: 0}",
+                        )
                         SectionContent("${stringResource(R.string.filters)}: ${it.max_subscriptions ?: 0}")
-                        SectionContent("${stringResource(R.string.subscription_id_length)}: ${it.max_subid_length ?: 0}")
+                        SectionContent(
+                            "${stringResource(R.string.subscription_id_length)}: ${it.max_subid_length ?: 0}",
+                        )
                         SectionContent("${stringResource(R.string.minimum_prefix)}: ${it.min_prefix ?: 0}")
-                        SectionContent("${stringResource(R.string.maximum_event_tags)}: ${it.max_event_tags ?: 0}")
-                        SectionContent("${stringResource(R.string.content_length)}: ${it.max_content_length ?: 0}")
+                        SectionContent(
+                            "${stringResource(R.string.maximum_event_tags)}: ${it.max_event_tags ?: 0}",
+                        )
+                        SectionContent(
+                            "${stringResource(R.string.content_length)}: ${it.max_content_length ?: 0}",
+                        )
                         SectionContent("${stringResource(R.string.minimum_pow)}: ${it.min_pow_difficulty ?: 0}")
                         SectionContent("${stringResource(R.string.auth)}: $authRequiredText")
                         SectionContent("${stringResource(R.string.payment)}: $paymentRequiredText")
@@ -179,31 +204,19 @@ fun RelayInformationDialog(
                 relayInfo.relay_countries?.let {
                     Section(stringResource(R.string.countries))
 
-                    FlowRow {
-                        it.forEach { item ->
-                            SectionContent(item)
-                        }
-                    }
+                    FlowRow { it.forEach { item -> SectionContent(item) } }
                 }
 
                 relayInfo.language_tags?.let {
                     Section(stringResource(R.string.languages))
 
-                    FlowRow {
-                        it.forEach { item ->
-                            SectionContent(item)
-                        }
-                    }
+                    FlowRow { it.forEach { item -> SectionContent(item) } }
                 }
 
                 relayInfo.tags?.let {
                     Section(stringResource(R.string.tags))
 
-                    FlowRow {
-                        it.forEach { item ->
-                            SectionContent(item)
-                        }
-                    }
+                    FlowRow { it.forEach { item -> SectionContent(item) } }
                 }
 
                 relayInfo.posting_policy?.let {
@@ -212,7 +225,7 @@ fun RelayInformationDialog(
                     Box(Modifier.padding(10.dp)) {
                         ClickableUrl(
                             it,
-                            it
+                            it,
                         )
                     }
                 }
@@ -230,7 +243,7 @@ private fun DisplaySupportedNips(relayInfo: RelayInformation) {
             Box(Modifier.padding(10.dp)) {
                 ClickableUrl(
                     urlText = text,
-                    url = "https://github.com/nostr-protocol/nips/blob/master/$text.md"
+                    url = "https://github.com/nostr-protocol/nips/blob/master/$text.md",
                 )
             }
         }
@@ -240,7 +253,7 @@ private fun DisplaySupportedNips(relayInfo: RelayInformation) {
             Box(Modifier.padding(10.dp)) {
                 ClickableUrl(
                     urlText = text,
-                    url = "https://github.com/nostr-protocol/nips/blob/master/$text.md"
+                    url = "https://github.com/nostr-protocol/nips/blob/master/$text.md",
                 )
             }
         }
@@ -253,7 +266,7 @@ private fun DisplaySoftwareInformation(relayInfo: RelayInformation) {
     Box(modifier = Modifier.padding(start = 10.dp)) {
         ClickableUrl(
             urlText = url,
-            url = url
+            url = url,
         )
     }
 }
@@ -262,12 +275,17 @@ private fun DisplaySoftwareInformation(relayInfo: RelayInformation) {
 private fun DisplayOwnerInformation(
     userHex: String,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     LoadUser(baseUserHex = userHex, accountViewModel) {
         Crossfade(it) {
             if (it != null) {
-                UserCompose(baseUser = it, accountViewModel = accountViewModel, showDiviser = false, nav = nav)
+                UserCompose(
+                    baseUser = it,
+                    accountViewModel = accountViewModel,
+                    showDiviser = false,
+                    nav = nav,
+                )
             }
         }
     }
@@ -278,14 +296,14 @@ fun Title(text: String) {
     Text(
         text = text,
         fontWeight = FontWeight.Bold,
-        fontSize = 24.sp
+        fontSize = 24.sp,
     )
 }
 
 @Composable
 fun SubtitleContent(text: String) {
     Text(
-        text = text
+        text = text,
     )
 }
 
@@ -295,7 +313,7 @@ fun Section(text: String) {
     Text(
         text = text,
         fontWeight = FontWeight.Bold,
-        fontSize = 20.sp
+        fontSize = 20.sp,
     )
     Spacer(modifier = DoubleVertSpacer)
 }
@@ -304,6 +322,6 @@ fun Section(text: String) {
 fun SectionContent(text: String) {
     Text(
         modifier = Modifier.padding(start = 10.dp),
-        text = text
+        text = text,
     )
 }

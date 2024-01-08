@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.amethyst.ui.elements
 
 import androidx.compose.foundation.clickable
@@ -53,40 +73,39 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
-@Stable
-data class Reward(val amount: BigDecimal)
+@Stable data class Reward(val amount: BigDecimal)
 
 @Composable
 fun DisplayReward(
     baseReward: Reward,
     baseNote: Note,
     accountViewModel: AccountViewModel,
-    nav: (String) -> Unit
+    nav: (String) -> Unit,
 ) {
     var popupExpanded by remember { mutableStateOf(false) }
 
-    Column() {
+    Column {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.clickable { popupExpanded = true }
+            modifier = Modifier.clickable { popupExpanded = true },
         ) {
             ClickableText(
                 text = AnnotatedString("#bounty"),
                 onClick = { nav("Hashtag/bounty") },
-                style = LocalTextStyle.current.copy(
-                    color = MaterialTheme.colorScheme.primary.copy(
-                        alpha = 0.52f
-                    )
-                )
+                style =
+                    LocalTextStyle.current.copy(
+                        color =
+                            MaterialTheme.colorScheme.primary.copy(
+                                alpha = 0.52f,
+                            ),
+                    ),
             )
 
             RenderPledgeAmount(baseNote, baseReward, accountViewModel)
         }
 
         if (popupExpanded) {
-            AddBountyAmountDialog(baseNote, accountViewModel) {
-                popupExpanded = false
-            }
+            AddBountyAmountDialog(baseNote, accountViewModel) { popupExpanded = false }
         }
     }
 }
@@ -95,18 +114,18 @@ fun DisplayReward(
 private fun RenderPledgeAmount(
     baseNote: Note,
     baseReward: Reward,
-    accountViewModel: AccountViewModel
+    accountViewModel: AccountViewModel,
 ) {
     val repliesState by baseNote.live().replies.observeAsState()
     var reward by remember {
         mutableStateOf<String>(
-            showAmount(baseReward.amount)
+            showAmount(baseReward.amount),
         )
     }
 
     var hasPledge by remember {
         mutableStateOf<Boolean>(
-            false
+            false,
         )
     }
 
@@ -120,9 +139,7 @@ private fun RenderPledgeAmount(
             }
             val newHasPledge = repliesState?.note?.hasPledgeBy(accountViewModel.userProfile()) == true
             if (hasPledge != newHasPledge) {
-                launch(Dispatchers.Main) {
-                    hasPledge = newHasPledge
-                }
+                launch(Dispatchers.Main) { hasPledge = newHasPledge }
             }
         }
     }
@@ -136,7 +153,7 @@ private fun RenderPledgeAmount(
     Text(
         text = reward,
         color = MaterialTheme.colorScheme.placeholderText,
-        maxLines = 1
+        maxLines = 1,
     )
 }
 
@@ -146,7 +163,10 @@ class AddBountyAmountViewModel : ViewModel() {
 
     var nextAmount by mutableStateOf(TextFieldValue(""))
 
-    fun load(account: Account, bounty: Note?) {
+    fun load(
+        account: Account,
+        bounty: Note?,
+    ) {
         this.account = account
         this.bounty = bounty
     }
@@ -163,7 +183,7 @@ class AddBountyAmountViewModel : ViewModel() {
                 wantsToMarkAsSensitive = false,
                 replyingTo = null,
                 root = null,
-                directMentions = setOf()
+                directMentions = setOf(),
             )
 
             nextAmount = TextFieldValue("")
@@ -180,33 +200,38 @@ class AddBountyAmountViewModel : ViewModel() {
 }
 
 @Composable
-fun AddBountyAmountDialog(bounty: Note, accountViewModel: AccountViewModel, onClose: () -> Unit) {
+fun AddBountyAmountDialog(
+    bounty: Note,
+    accountViewModel: AccountViewModel,
+    onClose: () -> Unit,
+) {
     val postViewModel: AddBountyAmountViewModel = viewModel()
     postViewModel.load(accountViewModel.account, bounty)
     val scope = rememberCoroutineScope()
 
     Dialog(
         onDismissRequest = { onClose() },
-        properties = DialogProperties(
-            dismissOnClickOutside = false,
-            usePlatformDefaultWidth = false
-        )
+        properties =
+            DialogProperties(
+                dismissOnClickOutside = false,
+                usePlatformDefaultWidth = false,
+            ),
     ) {
-        Surface() {
+        Surface {
             Column(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .width(IntrinsicSize.Min)
+                modifier = Modifier.padding(10.dp).width(IntrinsicSize.Min),
             ) {
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
-                    CloseButton(onPress = {
-                        postViewModel.cancel()
-                        onClose()
-                    })
+                    CloseButton(
+                        onPress = {
+                            postViewModel.cancel()
+                            onClose()
+                        },
+                    )
 
                     PostButton(
                         onPost = {
@@ -215,7 +240,7 @@ fun AddBountyAmountDialog(bounty: Note, accountViewModel: AccountViewModel, onCl
                                 onClose()
                             }
                         },
-                        isActive = postViewModel.hasChanged()
+                        isActive = postViewModel.hasChanged(),
                     )
                 }
 
@@ -223,25 +248,24 @@ fun AddBountyAmountDialog(bounty: Note, accountViewModel: AccountViewModel, onCl
 
                 Row(
                     modifier = Modifier.padding(vertical = 5.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     OutlinedTextField(
                         label = { Text(text = stringResource(R.string.pledge_amount_in_sats)) },
                         value = postViewModel.nextAmount,
-                        onValueChange = {
-                            postViewModel.nextAmount = it
-                        },
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            capitalization = KeyboardCapitalization.None,
-                            keyboardType = KeyboardType.Number
-                        ),
+                        onValueChange = { postViewModel.nextAmount = it },
+                        keyboardOptions =
+                            KeyboardOptions.Default.copy(
+                                capitalization = KeyboardCapitalization.None,
+                                keyboardType = KeyboardType.Number,
+                            ),
                         placeholder = {
                             Text(
                                 text = "10000, 50000, 5000000",
-                                color = MaterialTheme.colorScheme.placeholderText
+                                color = MaterialTheme.colorScheme.placeholderText,
                             )
                         },
-                        singleLine = true
+                        singleLine = true,
                     )
                 }
             }

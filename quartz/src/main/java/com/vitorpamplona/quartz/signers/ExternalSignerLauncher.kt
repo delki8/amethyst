@@ -1,3 +1,23 @@
+/**
+ * Copyright (c) 2023 Vitor Pamplona
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the
+ * Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN
+ * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 package com.vitorpamplona.quartz.signers
 
 import android.content.ContentResolver
@@ -18,7 +38,6 @@ import com.vitorpamplona.quartz.events.EventInterface
 import com.vitorpamplona.quartz.events.LnZapRequestEvent
 import org.json.JSONArray
 
-
 enum class SignerType {
     SIGN_EVENT,
     NIP04_ENCRYPT,
@@ -26,41 +45,41 @@ enum class SignerType {
     NIP44_ENCRYPT,
     NIP44_DECRYPT,
     GET_PUBLIC_KEY,
-    DECRYPT_ZAP_EVENT
+    DECRYPT_ZAP_EVENT,
 }
 
 class Permission(
     val type: String,
-    val kind: Int? = null
+    val kind: Int? = null,
 ) {
     fun toJson(): String {
-        return "{\"type\":\"${type}\",\"kind\":${kind}}"
+        return "{\"type\":\"${type}\",\"kind\":$kind}"
     }
 }
 
 class Result(
-    @JsonProperty("package")
-    val `package`: String?,
-    @JsonProperty("signature")
-    val signature: String?,
-    @JsonProperty("id")
-    val id: String?
+    @JsonProperty("package") val `package`: String?,
+    @JsonProperty("signature") val signature: String?,
+    @JsonProperty("id") val id: String?,
 ) {
     companion object {
-        val mapper = jacksonObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-            .registerModule(
-                SimpleModule()
-                    .addDeserializer(Result::class.java, ResultDeserializer())
-            )
+        val mapper =
+            jacksonObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .registerModule(
+                    SimpleModule().addDeserializer(Result::class.java, ResultDeserializer()),
+                )
 
         private class ResultDeserializer : StdDeserializer<Result>(Result::class.java) {
-            override fun deserialize(jp: JsonParser, ctxt: DeserializationContext): Result {
+            override fun deserialize(
+                jp: JsonParser,
+                ctxt: DeserializationContext,
+            ): Result {
                 val jsonObject: JsonNode = jp.codec.readTree(jp)
                 return Result(
                     jsonObject.get("package").asText().intern(),
                     jsonObject.get("signature").asText().intern(),
-                    jsonObject.get("id").asText().intern()
+                    jsonObject.get("id").asText().intern(),
                 )
             }
         }
@@ -82,16 +101,14 @@ class Result(
 
 class ExternalSignerLauncher(
     private val npub: String,
-    val signerPackageName: String = "com.greenart7c3.nostrsigner"
+    val signerPackageName: String = "com.greenart7c3.nostrsigner",
 ) {
     private val contentCache = LruCache<String, (String) -> Unit>(20)
 
     private var signerAppLauncher: ((Intent) -> Unit)? = null
     private var contentResolver: (() -> ContentResolver)? = null
 
-    /**
-     * Call this function when the launcher becomes available on activity, fragment or compose
-     */
+    /** Call this function when the launcher becomes available on activity, fragment or compose */
     fun registerLauncher(
         launcher: ((Intent) -> Unit),
         contentResolver: (() -> ContentResolver),
@@ -100,9 +117,7 @@ class ExternalSignerLauncher(
         this.contentResolver = contentResolver
     }
 
-    /**
-     * Call this function when the activity is destroyed or is about to be replaced.
-     */
+    /** Call this function when the activity is destroyed or is about to be replaced. */
     fun clearLauncher() {
         this.signerAppLauncher = null
         this.contentResolver = null
@@ -139,37 +154,43 @@ class ExternalSignerLauncher(
         type: SignerType,
         pubKey: HexKey,
         id: String,
-        onReady: (String)-> Unit
+        onReady: (String) -> Unit,
     ) {
         signerAppLauncher?.let {
             openSignerApp(
-                data, type, it, pubKey, id, onReady
+                data,
+                type,
+                it,
+                pubKey,
+                id,
+                onReady,
             )
         }
     }
 
     private fun defaultPermissions(): String {
-        val permissions = listOf(
-            Permission(
-                "sign_event",
-                22242
-            ),
-            Permission(
-                "nip04_encrypt"
-            ),
-            Permission(
-                "nip04_decrypt"
-            ),
-            Permission(
-                "nip44_encrypt"
-            ),
-            Permission(
-                "nip44_decrypt"
-            ),
-            Permission(
-                "decrypt_zap_event"
-            ),
-        )
+        val permissions =
+            listOf(
+                Permission(
+                    "sign_event",
+                    22242,
+                ),
+                Permission(
+                    "nip04_encrypt",
+                ),
+                Permission(
+                    "nip04_decrypt",
+                ),
+                Permission(
+                    "nip44_encrypt",
+                ),
+                Permission(
+                    "nip44_decrypt",
+                ),
+                Permission(
+                    "decrypt_zap_event",
+                ),
+            )
         val jsonArray = StringBuilder("[")
         permissions.forEachIndexed { index, permission ->
             jsonArray.append(permission.toJson())
@@ -188,18 +209,19 @@ class ExternalSignerLauncher(
         intentLauncher: (Intent) -> Unit,
         pubKey: HexKey,
         id: String,
-        onReady: (String)-> Unit
+        onReady: (String) -> Unit,
     ) {
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("nostrsigner:$data"))
-        val signerType = when (type) {
-            SignerType.SIGN_EVENT -> "sign_event"
-            SignerType.NIP04_ENCRYPT -> "nip04_encrypt"
-            SignerType.NIP04_DECRYPT -> "nip04_decrypt"
-            SignerType.NIP44_ENCRYPT -> "nip44_encrypt"
-            SignerType.NIP44_DECRYPT -> "nip44_decrypt"
-            SignerType.GET_PUBLIC_KEY -> "get_public_key"
-            SignerType.DECRYPT_ZAP_EVENT -> "decrypt_zap_event"
-        }
+        val signerType =
+            when (type) {
+                SignerType.SIGN_EVENT -> "sign_event"
+                SignerType.NIP04_ENCRYPT -> "nip04_encrypt"
+                SignerType.NIP04_DECRYPT -> "nip04_decrypt"
+                SignerType.NIP44_ENCRYPT -> "nip44_encrypt"
+                SignerType.NIP44_DECRYPT -> "nip44_decrypt"
+                SignerType.GET_PUBLIC_KEY -> "get_public_key"
+                SignerType.DECRYPT_ZAP_EVENT -> "decrypt_zap_event"
+            }
         intent.putExtra("type", signerType)
         intent.putExtra("pubKey", pubKey)
         intent.putExtra("id", id)
@@ -219,52 +241,74 @@ class ExternalSignerLauncher(
         intentLauncher(intent)
     }
 
-    fun openSigner(event: EventInterface, columnName: String = "signature", onReady: (String)-> Unit) {
-        val result = getDataFromResolver(SignerType.SIGN_EVENT, arrayOf(event.toJson(), event.pubKey()), columnName)
+    fun openSigner(
+        event: EventInterface,
+        columnName: String = "signature",
+        onReady: (String) -> Unit,
+    ) {
+        val result =
+            getDataFromResolver(
+                SignerType.SIGN_EVENT,
+                arrayOf(event.toJson(), event.pubKey()),
+                columnName,
+            )
         if (result == null) {
             openSignerApp(
                 event.toJson(),
                 SignerType.SIGN_EVENT,
                 "",
                 event.id(),
-                onReady
+                onReady,
             )
         } else {
             onReady(result)
         }
     }
 
-    fun getDataFromResolver(signerType: SignerType, data: Array<out String>, columnName: String = "signature"): String? {
+    fun getDataFromResolver(
+        signerType: SignerType,
+        data: Array<out String>,
+        columnName: String = "signature",
+    ): String? {
         return getDataFromResolver(signerType, data, columnName, contentResolver)
     }
 
-    fun getDataFromResolver(signerType: SignerType, data: Array<out String>, columnName: String = "signature", contentResolver: (() -> ContentResolver)? = null): String? {
-        val localData = if (signerType !== SignerType.GET_PUBLIC_KEY) {
-            data.toList().plus(npub).toTypedArray()
-        } else {
-            data
-        }
+    fun getDataFromResolver(
+        signerType: SignerType,
+        data: Array<out String>,
+        columnName: String = "signature",
+        contentResolver: (() -> ContentResolver)? = null,
+    ): String? {
+        val localData =
+            if (signerType !== SignerType.GET_PUBLIC_KEY) {
+                data.toList().plus(npub).toTypedArray()
+            } else {
+                data
+            }
 
         try {
-            contentResolver?.let { it() }?.query(
-                Uri.parse("content://${signerPackageName}.$signerType"),
-                localData,
-                null,
-                null,
-                null
-            ).use {
-                if (it == null) {
-                    return null
-                }
-                if (it.moveToFirst()) {
-                    val index = it.getColumnIndex(columnName)
-                    if (index < 0) {
-                        Log.d("getDataFromResolver", "column '$columnName' not found")
+            contentResolver
+                ?.let { it() }
+                ?.query(
+                    Uri.parse("content://$signerPackageName.$signerType"),
+                    localData,
+                    null,
+                    null,
+                    null,
+                )
+                .use {
+                    if (it == null) {
                         return null
                     }
-                    return it.getString(index)
+                    if (it.moveToFirst()) {
+                        val index = it.getColumnIndex(columnName)
+                        if (index < 0) {
+                            Log.d("getDataFromResolver", "column '$columnName' not found")
+                            return null
+                        }
+                        return it.getString(index)
+                    }
                 }
-            }
         } catch (e: Exception) {
             Log.e("ExternalSignerLauncher", "Failed to query the Signer app in the background")
             return null
@@ -273,7 +317,12 @@ class ExternalSignerLauncher(
         return null
     }
 
-    fun decrypt(encryptedContent: String, pubKey: HexKey, signerType: SignerType = SignerType.NIP04_DECRYPT, onReady: (String)-> Unit) {
+    fun decrypt(
+        encryptedContent: String,
+        pubKey: HexKey,
+        signerType: SignerType = SignerType.NIP04_DECRYPT,
+        onReady: (String) -> Unit,
+    ) {
         val id = (encryptedContent + pubKey + onReady.toString()).hashCode().toString()
         val result = getDataFromResolver(signerType, arrayOf(encryptedContent, pubKey))
         if (result == null) {
@@ -282,14 +331,19 @@ class ExternalSignerLauncher(
                 signerType,
                 pubKey,
                 id,
-                onReady
+                onReady,
             )
         } else {
             onReady(result)
         }
     }
 
-    fun encrypt(decryptedContent: String, pubKey: HexKey, signerType: SignerType = SignerType.NIP04_ENCRYPT, onReady: (String)-> Unit) {
+    fun encrypt(
+        decryptedContent: String,
+        pubKey: HexKey,
+        signerType: SignerType = SignerType.NIP04_ENCRYPT,
+        onReady: (String) -> Unit,
+    ) {
         val id = (decryptedContent + pubKey + onReady.toString()).hashCode().toString()
         val result = getDataFromResolver(signerType, arrayOf(decryptedContent, pubKey))
         if (result == null) {
@@ -298,22 +352,26 @@ class ExternalSignerLauncher(
                 signerType,
                 pubKey,
                 id,
-                onReady
+                onReady,
             )
         } else {
             onReady(result)
         }
     }
 
-    fun decryptZapEvent(event: LnZapRequestEvent, onReady: (String)-> Unit) {
-        val result = getDataFromResolver(SignerType.DECRYPT_ZAP_EVENT, arrayOf(event.toJson(), event.pubKey))
+    fun decryptZapEvent(
+        event: LnZapRequestEvent,
+        onReady: (String) -> Unit,
+    ) {
+        val result =
+            getDataFromResolver(SignerType.DECRYPT_ZAP_EVENT, arrayOf(event.toJson(), event.pubKey))
         if (result == null) {
             openSignerApp(
                 event.toJson(),
                 SignerType.DECRYPT_ZAP_EVENT,
                 event.pubKey,
                 event.id,
-                onReady
+                onReady,
             )
         } else {
             onReady(result)
