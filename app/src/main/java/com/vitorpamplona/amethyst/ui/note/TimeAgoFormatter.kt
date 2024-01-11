@@ -28,15 +28,15 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 var locale = Locale.getDefault()
-var yearFormatter = SimpleDateFormat("MMM dd, yyyy", locale)
-var monthFormatter = SimpleDateFormat("MMM dd", locale)
+var yearFormatter = SimpleDateFormat(" • MMM dd, yyyy", locale)
+var monthFormatter = SimpleDateFormat(" • MMM dd", locale)
 
 fun timeAgo(
     time: Long?,
     context: Context,
 ): String {
     if (time == null) return " "
-    if (time == 0L) return "${context.getString(R.string.never)}"
+    if (time == 0L) return " • ${context.getString(R.string.never)}"
 
     val timeDifference = TimeUtils.now() - time
 
@@ -45,8 +45,8 @@ fun timeAgo(
 
         if (locale != Locale.getDefault()) {
             locale = Locale.getDefault()
-            yearFormatter = SimpleDateFormat("MMM dd, yyyy", locale)
-            monthFormatter = SimpleDateFormat("MMM dd", locale)
+            yearFormatter = SimpleDateFormat(" • MMM dd, yyyy", locale)
+            monthFormatter = SimpleDateFormat(" • MMM dd", locale)
         }
 
         yearFormatter.format(time * 1000)
@@ -54,8 +54,8 @@ fun timeAgo(
         // Dec 12
         if (locale != Locale.getDefault()) {
             locale = Locale.getDefault()
-            yearFormatter = SimpleDateFormat("MMM dd, yyyy", locale)
-            monthFormatter = SimpleDateFormat("MMM dd", locale)
+            yearFormatter = SimpleDateFormat(" • MMM dd, yyyy", locale)
+            monthFormatter = SimpleDateFormat(" • MMM dd", locale)
         }
 
         monthFormatter.format(time * 1000)
@@ -67,7 +67,7 @@ fun timeAgo(
     } else if (timeDifference > TimeUtils.ONE_MINUTE) {
         " • " + (timeDifference / TimeUtils.ONE_MINUTE).toString() + context.getString(R.string.m)
     } else {
-        "" + context.getString(R.string.now)
+        " • " + context.getString(R.string.now)
     }
 }
 

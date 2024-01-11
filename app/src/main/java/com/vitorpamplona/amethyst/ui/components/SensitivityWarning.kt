@@ -160,13 +160,13 @@ fun ContentWarningNote(
                         shape = ButtonBorder,
                         colors =
                             ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.outline,
+                                containerColor = MaterialTheme.colorScheme.primary,
                             ),
                         contentPadding = ButtonPadding,
                     ) {
                         Text(
                             text = stringResource(R.string.block_hide_user),
-                            color = Color.Magenta,
+                            color = Color.White,
                         )
                     }
                 }
