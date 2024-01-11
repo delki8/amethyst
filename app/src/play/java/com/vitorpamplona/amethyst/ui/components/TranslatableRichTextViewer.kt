@@ -162,7 +162,7 @@ private fun TranslationMessage(
     val scope = rememberCoroutineScope()
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(top = 4.dp, start= 32.dp),
+        modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
     ) {
         val clickableTextStyle = SpanStyle(color = MaterialTheme.colorScheme.lessImportantLink)
 
@@ -196,8 +196,8 @@ private fun TranslationMessage(
                         MaterialTheme.colorScheme.onSurface.copy(
                             alpha = 0.32f,
                         ),
-                fontSize = 10.sp
-            ),
+                    fontSize = 10.sp,
+                ),
             overflow = TextOverflow.Visible,
             maxLines = 3,
         ) { spanOffset ->

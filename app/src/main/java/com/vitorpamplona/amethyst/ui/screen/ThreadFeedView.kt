@@ -109,6 +109,7 @@ import com.vitorpamplona.amethyst.ui.note.NoteDropDownMenu
 import com.vitorpamplona.amethyst.ui.note.NoteQuickActionMenu
 import com.vitorpamplona.amethyst.ui.note.NoteUsernameDisplay
 import com.vitorpamplona.amethyst.ui.note.ReactionsRow
+import com.vitorpamplona.amethyst.ui.note.RelayBadges
 import com.vitorpamplona.amethyst.ui.note.RenderAppDefinition
 import com.vitorpamplona.amethyst.ui.note.RenderEmojiPack
 import com.vitorpamplona.amethyst.ui.note.RenderPinListEvent
@@ -128,6 +129,7 @@ import com.vitorpamplona.amethyst.ui.theme.EditFieldBorder
 import com.vitorpamplona.amethyst.ui.theme.EditFieldTrailingIconModifier
 import com.vitorpamplona.amethyst.ui.theme.FeedPadding
 import com.vitorpamplona.amethyst.ui.theme.StdHorzSpacer
+import com.vitorpamplona.amethyst.ui.theme.WidthAuthorPictureModifier
 import com.vitorpamplona.amethyst.ui.theme.lessImportantLink
 import com.vitorpamplona.amethyst.ui.theme.placeholderText
 import com.vitorpamplona.amethyst.ui.theme.selectedNote
@@ -449,6 +451,9 @@ fun NoteMaster(
                             onLongClick = { popupExpanded = true },
                         ),
             ) {
+                Column(WidthAuthorPictureModifier) {
+                    RelayBadges(baseNote, accountViewModel, nav)
+                }
                 Column {
                     if (
                         (noteEvent is ChannelCreateEvent || noteEvent is ChannelMetadataEvent) &&

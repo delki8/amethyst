@@ -106,7 +106,11 @@ fun SensitivityWarning(
 }
 
 @Composable
-fun ContentWarningNote(accountViewModel: AccountViewModel, author: User, onDismiss: () -> Unit) {
+fun ContentWarningNote(
+    accountViewModel: AccountViewModel,
+    author: User,
+    onDismiss: () -> Unit,
+) {
     Column {
         Row(modifier = Modifier.padding(horizontal = 12.dp)) {
             Column(modifier = Modifier.padding(start = 10.dp)) {
@@ -162,7 +166,7 @@ fun ContentWarningNote(accountViewModel: AccountViewModel, author: User, onDismi
                     ) {
                         Text(
                             text = stringResource(R.string.block_hide_user),
-                            color = Color.Magenta
+                            color = Color.Magenta,
                         )
                     }
                 }

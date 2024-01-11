@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Icon
@@ -37,9 +36,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import com.vitorpamplona.amethyst.model.Note
 import com.vitorpamplona.amethyst.ui.screen.loggedIn.AccountViewModel
-import com.vitorpamplona.amethyst.ui.theme.DoubleVertSpacer
 import com.vitorpamplona.amethyst.ui.theme.ShowMoreRelaysButtonBoxModifer
 import com.vitorpamplona.amethyst.ui.theme.ShowMoreRelaysButtonIconButtonModifier
 import com.vitorpamplona.amethyst.ui.theme.ShowMoreRelaysButtonIconModifier
@@ -52,11 +51,11 @@ fun RelayBadges(
     accountViewModel: AccountViewModel,
     nav: (String) -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-
     val relayList by baseNote.live().relayInfo.observeAsState(baseNote.relays)
 
-    Spacer(DoubleVertSpacer)
+    var expanded by remember { mutableStateOf(relayList == null || relayList.size < 30) }
+
+//    Spacer(DoubleVertSpacer)
 
     // FlowRow Seems to be a lot faster than LazyVerticalGrid
     FlowRow {

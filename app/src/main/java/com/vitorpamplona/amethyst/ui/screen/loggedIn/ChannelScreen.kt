@@ -632,7 +632,7 @@ fun ShowVideoStreaming(
         SensitivityWarning(
             event = it,
             accountViewModel = accountViewModel,
-            author = baseChannel.creator!!
+            author = baseChannel.creator!!,
         ) {
             val streamingInfo by
                 baseChannel.live
