@@ -18,36 +18,34 @@
  * AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-package com.vitorpamplona.amethyst.ui.elements
+package com.vitorpamplona.amethyst.ui.screen.loggedOff
 
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.animation.Crossfade
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
-import com.vitorpamplona.amethyst.ui.theme.Font14SP
-import com.vitorpamplona.amethyst.ui.theme.ThemeComparisonColumn
-import com.vitorpamplona.amethyst.ui.theme.lessImportantLink
+import androidx.compose.runtime.setValue
+import com.vitorpamplona.amethyst.ui.screen.AccountStateViewModel
 
 @Composable
-@Preview
-fun DisplayPoWPreview() {
-    ThemeComparisonColumn(
-        onDark = { DisplayPoW(pow = 24) },
-        onLight = { DisplayPoW(pow = 24) },
-    )
-}
+fun LoginOrSignupScreen(
+    accountViewModel: AccountStateViewModel,
+    isFirstLogin: Boolean,
+) {
+    var wantsNewUser by remember {
+        mutableStateOf(false)
+    }
 
-@Composable
-fun DisplayPoW(pow: Int) {
-    val powStr = remember(pow) { "PoW-$pow" }
-
-    Text(
-        powStr,
-        color = MaterialTheme.colorScheme.lessImportantLink,
-        fontSize = Font14SP,
-        fontWeight = FontWeight.Bold,
-        maxLines = 1,
-    )
+    Crossfade(wantsNewUser, label = "LoginOrSignupScreen") {
+        if (it) {
+            SignUpPage(accountViewModel = accountViewModel) {
+                wantsNewUser = false
+            }
+        } else {
+            LoginPage(accountViewModel = accountViewModel, isFirstLogin = isFirstLogin) {
+                wantsNewUser = true
+            }
+        }
+    }
 }
