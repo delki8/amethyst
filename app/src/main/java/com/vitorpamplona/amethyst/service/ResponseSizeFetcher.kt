@@ -36,7 +36,6 @@ class ResponseSizeFetcher {
             val contentLength = connection.getHeaderField("Content-Length")
             contentLength?.toLong() ?: downloadAndGetSize(url)
         } catch (e: IOException) {
-            // Handle exceptions (e.g., MalformedURLException, IOException, etc.)
             e.printStackTrace()
             null
         } finally {
@@ -50,12 +49,10 @@ class ResponseSizeFetcher {
             connection = url.openConnection() as HttpURLConnection
             connection.connect()
 
-            // Download the resource (you can choose to read the content if needed)
             val contentLength = connection.contentLength.toLong()
 
             contentLength
         } catch (e: IOException) {
-            // Handle exceptions during the download if needed
             e.printStackTrace()
             null
         } finally {
