@@ -412,9 +412,7 @@ private fun UrlImageView(
         val painterState = remember { mutableStateOf<AsyncImagePainter.State?>(null) }
 
         if (showImage.value) {
-            // TODO use a sizeFetcher singleton
-            val sizeFetcher = ResponseSizeFetcher()
-            val size = sizeFetcher.getResponseSize(content.url)
+            val size = ResponseSizeFetcher.INSTANCE.getResponseSize(content.url)
             val tenMegabyte = 10_000_000
             if (size == null || size > tenMegabyte) {
                 // TODO show image link in case user wants to download large image externally

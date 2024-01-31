@@ -24,7 +24,11 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
-class ResponseSizeFetcher {
+class ResponseSizeFetcher private constructor() {
+    companion object {
+        val INSTANCE: ResponseSizeFetcher by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { ResponseSizeFetcher() }
+    }
+
     fun getResponseSize(url: String): Long? {
         var connection: HttpURLConnection? = null
         return try {
