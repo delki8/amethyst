@@ -49,7 +49,7 @@ import com.vitorpamplona.amethyst.model.User
 import com.vitorpamplona.amethyst.model.UserState
 import com.vitorpamplona.amethyst.service.CashuProcessor
 import com.vitorpamplona.amethyst.service.CashuToken
-import com.vitorpamplona.amethyst.service.HttpClient
+import com.vitorpamplona.amethyst.service.HttpClientManager
 import com.vitorpamplona.amethyst.service.Nip05NostrAddressVerifier
 import com.vitorpamplona.amethyst.service.Nip11CachedRetriever
 import com.vitorpamplona.amethyst.service.Nip11Retriever
@@ -87,6 +87,7 @@ import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.BufferOverflow
@@ -1042,7 +1043,7 @@ class AccountViewModel(val account: Account, val settings: SettingsState) : View
     ) {
         viewModelScope.launch(Dispatchers.IO) {
             account.proxyPort = portNumber.value.toInt()
-            account.proxy = HttpClient.initProxy(checked, "127.0.0.1", account.proxyPort)
+            account.proxy = HttpClientManager.initProxy(checked, "127.0.0.1", account.proxyPort)
             account.saveable.invalidateData()
             serviceManager?.forceRestart()
         }
@@ -1102,6 +1103,7 @@ class AccountViewModel(val account: Account, val settings: SettingsState) : View
                 val myCover = context.imageLoader.execute(request).drawable
                 onReady(myCover)
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 Log.e("VideoView", "Fail to load cover $thumbUri", e)
                 onError(e.message)
             }

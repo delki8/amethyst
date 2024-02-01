@@ -40,7 +40,7 @@ import com.vitorpamplona.amethyst.model.ThemeType
 import com.vitorpamplona.amethyst.model.parseBooleanType
 import com.vitorpamplona.amethyst.model.parseConnectivityType
 import com.vitorpamplona.amethyst.model.parseThemeType
-import com.vitorpamplona.amethyst.service.HttpClient
+import com.vitorpamplona.amethyst.service.HttpClientManager
 import com.vitorpamplona.amethyst.service.Nip96MediaServers
 import com.vitorpamplona.amethyst.service.checkNotInMainThread
 import com.vitorpamplona.quartz.crypto.KeyPair
@@ -53,6 +53,7 @@ import com.vitorpamplona.quartz.events.LnZapEvent
 import com.vitorpamplona.quartz.signers.ExternalSignerLauncher
 import com.vitorpamplona.quartz.signers.NostrSignerExternal
 import com.vitorpamplona.quartz.signers.NostrSignerInternal
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -368,6 +369,7 @@ object LocalPreferences {
             return try {
                 getString(PrefKeys.SHARED_SETTINGS, "{}")?.let { Event.mapper.readValue<Settings>(it) }
             } catch (e: Throwable) {
+                if (e is CancellationException) throw e
                 Log.w(
                     "LocalPreferences",
                     "Unable to decode shared preferences: ${getString(PrefKeys.SHARED_SETTINGS, null)}",
@@ -510,6 +512,7 @@ object LocalPreferences {
                         }
                             ?: Nip96MediaServers.DEFAULT[0]
                     } catch (e: Exception) {
+                        if (e is CancellationException) throw e
                         Log.w("LocalPreferences", "Failed to decode saved File Server", e)
                         e.printStackTrace()
                         Nip96MediaServers.DEFAULT[0]
@@ -521,6 +524,7 @@ object LocalPreferences {
                             Event.mapper.readValue<Nip47URI?>(it)
                         }
                     } catch (e: Throwable) {
+                        if (e is CancellationException) throw e
                         Log.w(
                             "LocalPreferences",
                             "Error Decoding Zap Payment Request Server ${getString(PrefKeys.ZAP_PAYMENT_REQUEST_SERVER, null)}",
@@ -541,6 +545,7 @@ object LocalPreferences {
                             }
                         }
                     } catch (e: Throwable) {
+                        if (e is CancellationException) throw e
                         Log.w(
                             "LocalPreferences",
                             "Error Decoding Contact List ${getString(PrefKeys.LATEST_CONTACT_LIST, null)}",
@@ -556,6 +561,7 @@ object LocalPreferences {
                         }
                             ?: mapOf()
                     } catch (e: Throwable) {
+                        if (e is CancellationException) throw e
                         Log.w(
                             "LocalPreferences",
                             "Error Decoding Language Preferences ${getString(PrefKeys.LANGUAGE_PREFS, null)}",
@@ -570,7 +576,7 @@ object LocalPreferences {
                 val hideNIP24WarningDialog = getBoolean(PrefKeys.HIDE_NIP_24_WARNING_DIALOG, false)
                 val useProxy = getBoolean(PrefKeys.USE_PROXY, false)
                 val proxyPort = getInt(PrefKeys.PROXY_PORT, 9050)
-                val proxy = HttpClient.initProxy(useProxy, "127.0.0.1", proxyPort)
+                val proxy = HttpClientManager.initProxy(useProxy, "127.0.0.1", proxyPort)
 
                 val showSensitiveContent =
                     if (contains(PrefKeys.SHOW_SENSITIVE_CONTENT)) {
@@ -588,6 +594,7 @@ object LocalPreferences {
                         }
                             ?: mapOf()
                     } catch (e: Throwable) {
+                        if (e is CancellationException) throw e
                         Log.w(
                             "LocalPreferences",
                             "Error Decoding Last Read per route ${getString(PrefKeys.LAST_READ_PER_ROUTE, null)}",

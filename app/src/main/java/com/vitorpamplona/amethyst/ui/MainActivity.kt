@@ -45,7 +45,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.accompanist.adaptive.calculateDisplayFeatures
 import com.vitorpamplona.amethyst.LocalPreferences
 import com.vitorpamplona.amethyst.ServiceManager
-import com.vitorpamplona.amethyst.service.HttpClient
+import com.vitorpamplona.amethyst.service.HttpClientManager
 import com.vitorpamplona.amethyst.service.lang.LanguageTranslatorService
 import com.vitorpamplona.amethyst.service.notifications.PushNotificationUtils
 import com.vitorpamplona.amethyst.ui.components.DEFAULT_MUTED_SETTING
@@ -64,6 +64,7 @@ import com.vitorpamplona.quartz.events.ChannelMetadataEvent
 import com.vitorpamplona.quartz.events.CommunityDefinitionEvent
 import com.vitorpamplona.quartz.events.LiveActivitiesEvent
 import com.vitorpamplona.quartz.events.PrivateDmEvent
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -236,9 +237,9 @@ class MainActivity : AppCompatActivity() {
 
         if (changedNetwork) {
             if (isOnMobileData) {
-                HttpClient.changeTimeouts(HttpClient.DEFAULT_TIMEOUT_ON_MOBILE)
+                HttpClientManager.setDefaultTimeout(HttpClientManager.DEFAULT_TIMEOUT_ON_MOBILE)
             } else {
-                HttpClient.changeTimeouts(HttpClient.DEFAULT_TIMEOUT_ON_WIFI)
+                HttpClientManager.setDefaultTimeout(HttpClientManager.DEFAULT_TIMEOUT_ON_WIFI)
             }
         }
 
@@ -341,6 +342,7 @@ fun uriToRoute(uri: String?): String? {
                     Route.Home.base + "?nip47=" + encodedUri
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 null
             }
     }

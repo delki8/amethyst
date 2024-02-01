@@ -280,12 +280,10 @@ private fun RenderUserAsClickableText(
             derivedStateOf { userState?.user?.info?.latestMetadata?.tags?.toImmutableListOfLists() }
         }
 
-    val addedCharts = remember(nip19) { "${nip19.additionalChars}" }
-
     userDisplayName?.let {
         CreateClickableTextWithEmoji(
             clickablePart = it,
-            suffix = addedCharts,
+            suffix = nip19.additionalChars,
             maxLines = 1,
             route = route,
             nav = nav,
@@ -335,6 +333,7 @@ fun CreateClickableText(
     ClickableText(
         text = text,
         maxLines = maxLines,
+        style = currentStyle,
         onClick = { nav(route) },
     )
 }
@@ -388,7 +387,7 @@ fun CreateTextWithEmoji(
                 .merge(
                     TextStyle(
                         color = textColor,
-                        textAlign = textAlign,
+                        textAlign = TextAlign.Unspecified,
                         fontWeight = fontWeight,
                         fontSize = fontSize,
                     ),
@@ -446,7 +445,7 @@ fun CreateTextWithEmoji(
                     .merge(
                         TextStyle(
                             color = textColor,
-                            textAlign = textAlign,
+                            textAlign = TextAlign.Unspecified,
                             fontWeight = fontWeight,
                             fontSize = fontSize,
                         ),

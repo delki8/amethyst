@@ -63,6 +63,7 @@ import com.vitorpamplona.quartz.events.PrivateDmEvent
 import com.vitorpamplona.quartz.events.TextNoteEvent
 import com.vitorpamplona.quartz.events.ZapSplitSetup
 import com.vitorpamplona.quartz.events.findURLs
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.BufferOverflow
@@ -264,7 +265,7 @@ open class NewPostViewModel() : ViewModel() {
         }
 
         val urls = findURLs(tagger.message)
-        val usedAttachments = nip94attachments.filter { it.urls().intersect(urls).isNotEmpty() }
+        val usedAttachments = nip94attachments.filter { it.urls().intersect(urls.toSet()).isNotEmpty() }
         usedAttachments.forEach { account?.sendHeader(it, relayList, {}) }
 
         if (originalNote?.channelHex() != null) {
@@ -476,6 +477,7 @@ open class NewPostViewModel() : ViewModel() {
                                         )
                                     }
                                 } catch (e: Exception) {
+                                    if (e is CancellationException) throw e
                                     Log.e(
                                         "ImageUploader",
                                         "Failed to upload ${e.message}",
@@ -846,9 +848,7 @@ open class NewPostViewModel() : ViewModel() {
                 alt?.ifBlank { null }?.let { "alt=${URLEncoder.encode(it, "utf-8")}" },
                 blurHash?.ifBlank { null }?.let { "blurhash=${URLEncoder.encode(it, "utf-8")}" },
                 x?.ifBlank { null }?.let { "x=${URLEncoder.encode(it, "utf-8")}" },
-                sensitiveContent
-                    ?.ifBlank { null }
-                    ?.let { "content-warning=${URLEncoder.encode(it, "utf-8")}" },
+                sensitiveContent?.let { "content-warning=${URLEncoder.encode(it, "utf-8")}" },
             )
                 .joinToString("&")
 
@@ -944,6 +944,7 @@ open class NewPostViewModel() : ViewModel() {
                     valueMinimum = int
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
             }
         } else {
             valueMinimum = null
@@ -962,6 +963,7 @@ open class NewPostViewModel() : ViewModel() {
                     valueMaximum = int
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
             }
         } else {
             valueMaximum = null

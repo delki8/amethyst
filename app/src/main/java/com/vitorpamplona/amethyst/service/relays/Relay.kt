@@ -23,7 +23,7 @@ package com.vitorpamplona.amethyst.service.relays
 import android.util.Log
 import com.vitorpamplona.amethyst.BuildConfig
 import com.vitorpamplona.amethyst.model.RelayBriefInfoCache
-import com.vitorpamplona.amethyst.service.HttpClient
+import com.vitorpamplona.amethyst.service.HttpClientManager
 import com.vitorpamplona.amethyst.service.checkNotInMainThread
 import com.vitorpamplona.quartz.encoders.HexKey
 import com.vitorpamplona.quartz.events.Event
@@ -31,6 +31,7 @@ import com.vitorpamplona.quartz.events.EventInterface
 import com.vitorpamplona.quartz.events.RelayAuthEvent
 import com.vitorpamplona.quartz.events.bytesUsedInMemory
 import com.vitorpamplona.quartz.utils.TimeUtils
+import kotlinx.coroutines.CancellationException
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
@@ -62,7 +63,7 @@ class Relay(
         const val RECONNECTING_IN_SECONDS = 60 * 3
     }
 
-    private val httpClient = HttpClient.getHttpClientForRelays()
+    private val httpClient = HttpClientManager.getHttpClient()
 
     private var listeners = setOf<Listener>()
     private var socket: WebSocket? = null
@@ -106,7 +107,7 @@ class Relay(
     private var connectingBlock = AtomicBoolean()
 
     fun connectAndRun(onConnected: (Relay) -> Unit) {
-        Log.d("Relay", "Relay.connect $url")
+        Log.d("Relay", "Relay.connect $url hasProxy: ${this.httpClient.proxy != null}")
         // BRB is crashing OkHttp Deflater object :(
         if (url.contains("brb.io")) return
 
@@ -128,6 +129,8 @@ class Relay(
 
             socket = httpClient.newWebSocket(request, RelayListener(onConnected))
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
+
             errorCounter++
             markConnectionAsClosed()
             Log.e("Relay", "Relay Invalid $url")
@@ -167,8 +170,9 @@ class Relay(
 
             try {
                 processNewRelayMessage(text)
-            } catch (t: Throwable) {
-                t.printStackTrace()
+            } catch (e: Throwable) {
+                if (e is CancellationException) throw e
+                e.printStackTrace()
                 text.chunked(2000) { chunked ->
                     listeners.forEach { it.onError(this@Relay, "", Error("Problem with $chunked")) }
                 }

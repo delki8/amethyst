@@ -42,6 +42,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.collections.immutable.toImmutableSet
+import kotlinx.coroutines.CancellationException
 import java.util.regex.Pattern
 
 @Immutable
@@ -103,6 +104,7 @@ class RichTextParser() {
                 hash = frags["x"],
                 blurhash = frags["blurhash"],
                 dim = frags["dim"],
+                contentWarning = frags["content-warning"],
             )
         } else if (videoExtensions.any { removedParamsFromUrl.endsWith(it) }) {
             val frags = Nip44UrlParser().parse(fullUrl)
@@ -112,6 +114,7 @@ class RichTextParser() {
                 hash = frags["x"],
                 blurhash = frags["blurhash"],
                 dim = frags["dim"],
+                contentWarning = frags["content-warning"],
             )
         } else {
             null
@@ -283,6 +286,7 @@ class RichTextParser() {
                 }
             }
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             Log.w("Tag Parser", "Couldn't link tag $word", e)
         }
 
@@ -297,6 +301,7 @@ class RichTextParser() {
                 }
             }
         } catch (e: Exception) {
+            if (e is CancellationException) throw e
             Log.e("Hashtag Parser", "Couldn't link hashtag $word", e)
         }
 

@@ -132,6 +132,7 @@ import com.vitorpamplona.quartz.crypto.CryptoUtils
 import com.vitorpamplona.quartz.encoders.toHexKey
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -162,6 +163,7 @@ class ZoomableUrlImage(
     val blurhash: String? = null,
     dim: String? = null,
     uri: String? = null,
+    val contentWarning: String? = null,
 ) : ZoomableUrlContent(url, description, hash, dim, uri)
 
 @Immutable
@@ -174,6 +176,7 @@ class ZoomableUrlVideo(
     val artworkUri: String? = null,
     val authorName: String? = null,
     val blurhash: String? = null,
+    val contentWarning: String? = null,
 ) : ZoomableUrlContent(url, description, hash, dim, uri)
 
 @Immutable
@@ -266,20 +269,24 @@ fun ZoomableContentView(
 
     when (content) {
         is ZoomableUrlImage ->
-            UrlImageView(content, mainImageModifier, accountViewModel = accountViewModel)
+            SensitivityWarning(content.contentWarning != null, accountViewModel) {
+                UrlImageView(content, mainImageModifier, accountViewModel = accountViewModel)
+            }
         is ZoomableUrlVideo ->
-            VideoView(
-                videoUri = content.url,
-                title = content.description,
-                artworkUri = content.artworkUri,
-                authorName = content.authorName,
-                dimensions = content.dim,
-                blurhash = content.blurhash,
-                roundedCorner = roundedCorner,
-                nostrUriCallback = content.uri,
-                onDialog = { dialogOpen = true },
-                accountViewModel = accountViewModel,
-            )
+            SensitivityWarning(content.contentWarning != null, accountViewModel) {
+                VideoView(
+                    videoUri = content.url,
+                    title = content.description,
+                    artworkUri = content.artworkUri,
+                    authorName = content.authorName,
+                    dimensions = content.dim,
+                    blurhash = content.blurhash,
+                    roundedCorner = roundedCorner,
+                    nostrUriCallback = content.uri,
+                    onDialog = { dialogOpen = true },
+                    accountViewModel = accountViewModel,
+                )
+            }
         is ZoomableLocalImage ->
             LocalImageView(content, mainImageModifier, accountViewModel = accountViewModel)
         is ZoomableLocalVideo ->
@@ -388,13 +395,13 @@ private fun UrlImageView(
         val myModifier =
             remember {
                 mainImageModifier.widthIn(max = maxWidth).heightIn(max = maxHeight)
-      /* Is this necessary? It makes images bleed into other pages
+                /* Is this necessary? It makes images bleed into other pages
       .run {
           aspectRatio(content.dim)?.let { ratio ->
               this.aspectRatio(ratio, false)
           } ?: this
       }
-       */
+                 */
             }
 
         val contentScale =
@@ -653,6 +660,7 @@ fun aspectRatio(dim: String?): Float? {
             width / height
         }
     } catch (e: Exception) {
+        if (e is CancellationException) throw e
         null
     }
 }

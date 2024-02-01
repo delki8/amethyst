@@ -49,6 +49,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -100,6 +101,7 @@ import com.vitorpamplona.amethyst.ui.theme.ThemeComparisonRow
 import com.vitorpamplona.amethyst.ui.theme.placeholderText
 import com.vitorpamplona.quartz.signers.ExternalSignerLauncher
 import com.vitorpamplona.quartz.signers.SignerType
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -122,7 +124,7 @@ fun LoginPage() {
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun LoginPage(
-    accountViewModel: AccountStateViewModel,
+    accountStateViewModel: AccountStateViewModel,
     isFirstLogin: Boolean,
     onWantsToLogin: () -> Unit,
 ) {
@@ -172,6 +174,7 @@ fun LoginPage(
                         activity.prepareToLaunchSigner()
                         launcher.launch(it)
                     } catch (e: Exception) {
+                        if (e is CancellationException) throw e
                         Log.e("Signer", "Error opening Signer app", e)
                         scope.launch(Dispatchers.Main) {
                             Toast.makeText(
@@ -208,7 +211,7 @@ fun LoginPage(
                 }
 
                 if (acceptedTerms.value && key.value.text.isNotBlank()) {
-                    accountViewModel.login(
+                    accountStateViewModel.login(
                         key.value.text,
                         useProxy.value,
                         proxyPort.value.toInt(),
@@ -330,7 +333,7 @@ fun LoginPage(
                         }
 
                         if (acceptedTerms.value && key.value.text.isNotBlank()) {
-                            accountViewModel.login(key.value.text, useProxy.value, proxyPort.value.toInt()) {
+                            accountStateViewModel.login(key.value.text, useProxy.value, proxyPort.value.toInt()) {
                                 errorMessage = context.getString(R.string.invalid_key)
                             }
                         }
@@ -443,7 +446,7 @@ fun LoginPage(
                     }
 
                     if (acceptedTerms.value && key.value.text.isNotBlank()) {
-                        accountViewModel.login(key.value.text, useProxy.value, proxyPort.value.toInt()) {
+                        accountStateViewModel.login(key.value.text, useProxy.value, proxyPort.value.toInt()) {
                             errorMessage = context.getString(R.string.invalid_key)
                         }
                     }
@@ -490,7 +493,7 @@ fun LoginPage(
         Spacer(modifier = Modifier.height(Size20dp))
 
         Box(modifier = Modifier.padding(Size40dp, 0.dp, Size40dp, 0.dp)) {
-            Button(
+            OutlinedButton(
                 onClick = onWantsToLogin,
                 shape = RoundedCornerShape(Size35dp),
                 modifier = Modifier.height(50.dp),

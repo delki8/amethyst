@@ -179,6 +179,7 @@ import com.vitorpamplona.quartz.events.ClassifiedsEvent
 import com.vitorpamplona.quartz.events.toImmutableListOfLists
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -1674,6 +1675,7 @@ fun ImageVideoDescription(
                             try {
                                 bitmap = resolver.loadThumbnail(uri, Size(1200, 1000), null)
                             } catch (e: Exception) {
+                                if (e is CancellationException) throw e
                                 onError("Unable to load thumbnail")
                                 Log.w("NewPostView", "Couldn't create thumbnail, but the video can be uploaded", e)
                             }
@@ -1716,6 +1718,7 @@ fun ImageVideoDescription(
                 modifier = Modifier.fillMaxWidth(),
             ) {
                 SettingSwitchItem(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                     checked = sensitiveContent,
                     onCheckedChange = { sensitiveContent = it },
                     title = R.string.add_sensitive_content_label,
@@ -1764,7 +1767,7 @@ fun ImageVideoDescription(
 
 @Composable
 fun SettingSwitchItem(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     title: Int,
@@ -1774,8 +1777,6 @@ fun SettingSwitchItem(
     Row(
         modifier =
             modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
                 .toggleable(
                     value = checked,
                     enabled = enabled,
@@ -1786,7 +1787,7 @@ fun SettingSwitchItem(
     ) {
         Column(
             modifier = Modifier.weight(1.0f),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
+            verticalArrangement = Arrangement.spacedBy(Size5dp),
         ) {
             Text(
                 text = stringResource(id = title),

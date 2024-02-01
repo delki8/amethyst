@@ -12,8 +12,8 @@ android {
         applicationId "com.vitorpamplona.amethyst"
         minSdk 26
         targetSdk 34
-        versionCode 348
-        versionName "0.83.7"
+        versionCode 349
+        versionName "0.83.8"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -26,7 +26,7 @@ android {
             'cy-rGB',
             'da-rDK',
             'de',
-            'el-rGB',
+            'el-rGR',
             'en-rGB',
             'eo',
             'es',
@@ -141,7 +141,8 @@ android {
     }
 
     composeOptions {
-        kotlinCompilerExtensionVersion "1.5.3"
+        // Should match compose version : https://developer.android.com/jetpack/androidx/releases/compose-kotlin
+        kotlinCompilerExtensionVersion "1.5.8"
     }
 
     packagingOptions {
@@ -181,7 +182,7 @@ dependencies {
 
     // Adaptive Layout / Two Pane
     implementation "androidx.compose.material3:material3-window-size-class:${material3_version}"
-    implementation "com.google.accompanist:accompanist-adaptive:0.32.0"
+    implementation 'com.google.accompanist:accompanist-adaptive:0.34.0'
 
 
     // Lifecycle
@@ -251,7 +252,7 @@ dependencies {
     playImplementation 'com.google.mlkit:translate:17.0.2'
 
     // PushNotifications
-    playImplementation platform('com.google.firebase:firebase-bom:32.7.0')
+    playImplementation platform('com.google.firebase:firebase-bom:32.7.1')
     playImplementation 'com.google.firebase:firebase-messaging-ktx'
 
     //PushNotifications(FDroid)
@@ -276,8 +277,8 @@ dependencies {
 
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'io.mockk:mockk:1.13.9'
-    androidTestImplementation 'androidx.test.ext:junit:1.2.0-alpha02'
-    androidTestImplementation 'androidx.test.ext:junit-ktx:1.2.0-alpha02'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.0-alpha03'
+    androidTestImplementation 'androidx.test.ext:junit-ktx:1.2.0-alpha03'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     androidTestImplementation "androidx.compose.ui:ui-test-junit4:$compose_ui_version"
     debugImplementation "androidx.compose.ui:ui-tooling:$compose_ui_version"
