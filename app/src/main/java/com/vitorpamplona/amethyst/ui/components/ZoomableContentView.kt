@@ -108,6 +108,7 @@ import coil.compose.AsyncImagePainter
 import coil.imageLoader
 import com.vitorpamplona.amethyst.R
 import com.vitorpamplona.amethyst.service.BlurHashRequester
+import com.vitorpamplona.amethyst.service.ResponseSizeFetcher
 import com.vitorpamplona.amethyst.ui.actions.CloseButton
 import com.vitorpamplona.amethyst.ui.actions.InformationDialog
 import com.vitorpamplona.amethyst.ui.actions.LoadingAnimation
@@ -418,13 +419,21 @@ private fun UrlImageView(
         val painterState = remember { mutableStateOf<AsyncImagePainter.State?>(null) }
 
         if (showImage.value) {
-            AsyncImage(
-                model = content.url,
-                contentDescription = content.description,
-                contentScale = contentScale,
-                modifier = myModifier,
-                onState = { painterState.value = it },
-            )
+            val size = ResponseSizeFetcher.INSTANCE.getResponseSize(content.url)
+            val tenMegabyte = 10_000_000
+            if (size == null || size > tenMegabyte) {
+                // TODO show image link in case user wants to download large image externally
+                BlankNote()
+            } else {
+                // TODO use a local version in case 'getResponseSize()' ends up downloading the full content
+                AsyncImage(
+                    model = content.url,
+                    contentDescription = content.description,
+                    contentScale = contentScale,
+                    modifier = myModifier,
+                    onState = { painterState.value = it },
+                )
+            }
         }
 
         AddedImageFeatures(
